@@ -8,20 +8,20 @@ const Hero = () => {
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-2xl">
-          <span className="text-xs font-bold tracking-[0.3em] uppercase text-indigo-600 mb-4 block">
+          <span className="text-xs font-bold tracking-[0.3em] uppercase text-emerald-600 mb-4 block">
             Crafting Miniature Luxuries
           </span>
-          <h1 className="text-5xl md:text-7xl font-serif font-extrabold text-indigo-950 leading-tight mb-8">
+          <h1 className="text-5xl md:text-7xl font-serif font-extrabold text-emerald-950 leading-tight mb-8">
             Experience the Finest <br /> Fragrances, <span className="italic">Decanted.</span>
           </h1>
           <p className="text-lg text-gray-700 mb-10 leading-relaxed max-w-lg">
             Authentic designer and niche perfume decants. Explore luxury scents in 2ml, 5ml, and 10ml sizes before committing to a full bottle.
           </p>
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
-            <Link href="/products" className="bg-indigo-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all transform hover:-translate-y-1 shadow-xl text-center">
+            <Link href="/products" className="bg-emerald-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all transform hover:-translate-y-1 shadow-xl text-center">
               Shop Collection
             </Link>
-            <Link href="/new-arrivals" className="bg-white text-indigo-950 border border-indigo-950 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
+            <Link href="/new-arrivals" className="bg-white text-emerald-950 border border-emerald-950 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
               New Arrivals
             </Link>
           </div>

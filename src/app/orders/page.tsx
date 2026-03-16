@@ -68,8 +68,8 @@ export default function OrdersPage() {
   if (!isAuthenticated) {
     return (
         <div className="py-20 text-center">
-            <h2 className="text-2xl font-serif text-indigo-950 mb-4">Please login to view your orders.</h2>
-            <Link href="/login" className="text-xs font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600">
+            <h2 className="text-2xl font-serif text-emerald-950 mb-4">Please login to view your orders.</h2>
+            <Link href="/login" className="text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600">
                 Sign In
             </Link>
         </div>
@@ -82,14 +82,14 @@ export default function OrdersPage() {
         <div className="flex flex-col md:flex-row justify-between items-end mb-12">
           <div>
             <nav className="text-[10px] uppercase tracking-widest text-gray-400 mb-4">
-              <Link href="/profile">Account</Link> / <span className="text-indigo-600">Order History</span>
+              <Link href="/profile">Account</Link> / <span className="text-emerald-600">Order History</span>
             </nav>
-            <h1 className="text-4xl font-serif text-indigo-950">Your Orders</h1>
+            <h1 className="text-4xl font-serif text-emerald-950">Your Orders</h1>
           </div>
           <button
             onClick={handleSyncOrders}
             disabled={syncing}
-            className="mt-6 md:mt-0 inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600 disabled:opacity-60"
+            className="mt-6 md:mt-0 inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600 disabled:opacity-60"
           >
             <RefreshCw size={12} className={syncing ? "animate-spin" : ""} />
             <span>{syncing ? "Syncing..." : "Sync Guest Orders"}</span>
@@ -98,13 +98,13 @@ export default function OrdersPage() {
 
         {loading ? (
           <div className="py-20 flex justify-center">
-              <Loader2 className="animate-spin text-indigo-600" size={32} />
+              <Loader2 className="animate-spin text-emerald-600" size={32} />
           </div>
         ) : orders.length === 0 ? (
           <div className="py-20 text-center border-2 border-dashed border-gray-100 uppercase tracking-widest">
              <Package size={48} className="mx-auto text-gray-200 mb-4" />
              <p className="text-gray-500 text-xs">No orders found.</p>
-             <Link href="/products" className="mt-4 inline-block text-[10px] font-bold text-indigo-600 border-b border-indigo-600 pb-1">Start Shopping</Link>
+             <Link href="/products" className="mt-4 inline-block text-[10px] font-bold text-emerald-600 border-b border-emerald-600 pb-1">Start Shopping</Link>
           </div>
         ) : (
           <div className="border border-gray-100 overflow-hidden shadow-sm">
@@ -122,7 +122,7 @@ export default function OrdersPage() {
                   className="grid grid-cols-1 md:grid-cols-5 p-6 hover:bg-gray-50 transition-colors items-center text-sm group"
                 >
                   <div className="flex items-center space-x-2 mb-2 md:mb-0 group/id md:pr-8">
-                    <span className="font-bold text-indigo-950 truncate max-w-[120px] md:max-w-full">{order.id || order._id}</span>
+                    <span className="font-bold text-emerald-950 truncate max-w-[120px] md:max-w-full">{order.id || order._id}</span>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -141,21 +141,21 @@ export default function OrdersPage() {
                           },
                         });
                       }}
-                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover/id:opacity-100"
+                      className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all opacity-0 group-hover/id:opacity-100"
                       title="Copy Order ID"
                     >
                       <Copy size={12} />
                     </button>
                   </div>
                   <span className="text-gray-500 mb-2 md:mb-0">{new Date(order.created_at).toLocaleDateString()}</span>
-                  <span className="font-bold text-indigo-950 mb-2 md:mb-0">₹{order.total_amount}</span>
+                  <span className="font-bold text-emerald-950 mb-2 md:mb-0">₹{order.total_amount}</span>
                   <span className="text-gray-500 mb-2 md:mb-0 truncate pr-4 italic">
                     {order.items?.[0]?.name}
                     {order.items?.length > 1 ? ` + ${order.items.length - 1} more` : ''}
                   </span>
                   <div className="flex justify-between items-center">
                     <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                      order.status === 'delivered' ? 'bg-green-50 text-green-600' : 'bg-indigo-50 text-indigo-600'
+                      order.status === 'delivered' ? 'bg-green-50 text-green-600' : 'bg-emerald-50 text-emerald-600'
                     }`}>
                       {order.status}
                     </span>

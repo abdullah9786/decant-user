@@ -46,6 +46,10 @@ export const categoryApi = {
     getAll: (params?: any) => api.get('/categories', { params }),
 };
 
+export const brandApi = {
+    getAll: (params?: any) => api.get('/brands', { params }),
+};
+
 export const orderApi = {
     create: (data: any) => api.post('/orders', data),
     getAll: (userId?: string) => api.get('/orders', { params: { user_id: userId } }),

@@ -6,8 +6,8 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1">
-            <Link href="/" className="text-2xl font-bold italic tracking-tighter text-indigo-950 mb-6 block">
-              SCENTS<span className="text-indigo-600">.</span>
+            <Link href="/" className="text-2xl font-bold italic tracking-tighter text-emerald-950 mb-6 block">
+              SCENTS<span className="text-emerald-600">.</span>
             </Link>
             <p className="text-gray-600 text-sm leading-relaxed">
               Curating the finest perfume decants in India. Experience luxury fragrances in accessible sizes.
@@ -16,19 +16,19 @@ const Footer = () => {
           <div>
             <h4 className="text-xs font-bold text-gray-900 tracking-widest uppercase mb-6">Explore</h4>
             <ul className="space-y-4 text-sm text-gray-600">
-              <li><Link href="/products" className="hover:text-indigo-600">Shop All</Link></li>
-              <li><Link href="/brands" className="hover:text-indigo-600">Featured Brands</Link></li>
-              <li><Link href="/new-arrivals" className="hover:text-indigo-600">New Arrivals</Link></li>
-              <li><Link href="/bestsellers" className="hover:text-indigo-600">Best Sellers</Link></li>
+              <li><Link href="/products" className="hover:text-emerald-600">Shop All</Link></li>
+              <li><Link href="/brands" className="hover:text-emerald-600">Featured Brands</Link></li>
+              <li><Link href="/new-arrivals" className="hover:text-emerald-600">New Arrivals</Link></li>
+              <li><Link href="/bestsellers" className="hover:text-emerald-600">Best Sellers</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-xs font-bold text-gray-900 tracking-widest uppercase mb-6">Support</h4>
             <ul className="space-y-4 text-sm text-gray-600">
-              <li><Link href="/faq" className="hover:text-indigo-600">FAQs</Link></li>
-              <li><Link href="/shipping" className="hover:text-indigo-600">Shipping & Returns</Link></li>
-              <li><Link href="/contact" className="hover:text-indigo-600">Contact Us</Link></li>
-              <li><Link href="/privacy" className="hover:text-indigo-600">Privacy Policy</Link></li>
+              <li><Link href="/faq" className="hover:text-emerald-600">FAQs</Link></li>
+              <li><Link href="/shipping" className="hover:text-emerald-600">Shipping & Returns</Link></li>
+              <li><Link href="/contact" className="hover:text-emerald-600">Contact Us</Link></li>
+              <li><Link href="/privacy" className="hover:text-emerald-600">Privacy Policy</Link></li>
             </ul>
           </div>
           <div>
@@ -38,9 +38,9 @@ const Footer = () => {
               <input 
                 type="email" 
                 placeholder="Email address" 
-                className="w-full bg-white border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:border-indigo-600"
+                className="w-full bg-white border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:border-emerald-600"
               />
-              <button className="bg-indigo-950 text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors">
+              <button className="bg-emerald-950 text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors">
                 Join
               </button>
             </div>

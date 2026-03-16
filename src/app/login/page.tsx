@@ -60,7 +60,7 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex items-center justify-center bg-white px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-serif text-indigo-950">Welcome Back</h2>
+          <h2 className="text-3xl font-serif text-emerald-950">Welcome Back</h2>
           <p className="mt-2 text-sm text-gray-500 uppercase tracking-widest">Sign in to your account</p>
         </div>
         
@@ -75,7 +75,7 @@ export default function LoginPage() {
               type="button"
               onClick={handleResend}
               disabled={resendLoading}
-              className="w-full text-[10px] font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600 pb-1 disabled:opacity-60"
+              className="w-full text-[10px] font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600 pb-1 disabled:opacity-60"
             >
               {resendLoading ? 'Sending...' : 'Resend Verification Email'}
             </button>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Email Address"
               />
             </div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Password"
               />
             </div>
@@ -110,7 +110,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-[0.2em] text-white bg-indigo-950 hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 active:scale-[0.98] transition-all disabled:opacity-70"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-[0.2em] text-white bg-emerald-950 hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 active:scale-[0.98] transition-all disabled:opacity-70"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : 'SIGN IN'}
             </button>
@@ -119,12 +119,12 @@ export default function LoginPage() {
           <div className="text-center">
             <p className="text-sm text-gray-500">
               Don't have an account?{' '}
-              <Link href="/register" className="font-bold text-indigo-600 hover:text-indigo-500 underline underline-offset-4">
+              <Link href="/register" className="font-bold text-emerald-600 hover:text-emerald-500 underline underline-offset-4">
                 Register now
               </Link>
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              <Link href="/forgot-password" className="font-bold text-indigo-600 hover:text-indigo-500 underline underline-offset-4">
+              <Link href="/forgot-password" className="font-bold text-emerald-600 hover:text-emerald-500 underline underline-offset-4">
                 Forgot password?
               </Link>
             </p>

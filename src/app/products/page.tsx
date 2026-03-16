@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/ui/ProductCard';
 import { ChevronDown, Filter, X, Loader2 } from 'lucide-react';
-import { productApi } from '@/lib/api';
+import { categoryApi, productApi } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function ProductListingPage() {
@@ -13,8 +13,10 @@ export default function ProductListingPage() {
   const [error, setError] = useState<string | null>(null);
   
   const [sortBy, setSortBy] = useState('featured');
-  const [filterBrand, setFilterBrand] = useState<string | null>(null);
-  const [filterCategory, setFilterCategory] = useState<string | null>(null);
+  const [filterBrands, setFilterBrands] = useState<string[]>([]);
+  const [filterCategories, setFilterCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [fetchingCategories, setFetchingCategories] = useState(true);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -26,8 +28,8 @@ export default function ProductListingPage() {
         setLoading(true);
         const categoryParam = searchParams.get('category');
         const brandParam = searchParams.get('brand');
-        if (categoryParam) setFilterCategory(categoryParam);
-        if (brandParam) setFilterBrand(brandParam);
+        setFilterCategories(categoryParam ? [categoryParam] : []);
+        setFilterBrands(brandParam ? [brandParam] : []);
 
         const response = await productApi.getAll({
           category: categoryParam || undefined,
@@ -44,6 +46,20 @@ export default function ProductListingPage() {
     fetchProducts();
   }, [searchParams]);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await categoryApi.getAll();
+        setCategories(response.data || []);
+      } catch (err) {
+        console.error("Error fetching categories", err);
+      } finally {
+        setFetchingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const brands = useMemo(() => {
     return Array.from(new Set(products.map(p => p.brand)));
   }, [products]);
@@ -52,11 +68,11 @@ export default function ProductListingPage() {
     let result = [...products];
 
     // Filter by brand
-    if (filterBrand) {
-      result = result.filter(p => p.brand === filterBrand);
+    if (filterBrands.length > 0) {
+      result = result.filter(p => filterBrands.includes(p.brand));
     }
-    if (filterCategory) {
-      result = result.filter(p => p.category === filterCategory);
+    if (filterCategories.length > 0) {
+      result = result.filter(p => filterCategories.includes(p.category));
     }
 
     // Sort
@@ -77,7 +93,25 @@ export default function ProductListingPage() {
     }
 
     return result;
-  }, [products, filterBrand, sortBy]);
+  }, [products, filterBrands, filterCategories, sortBy]);
+
+  const toggleBrand = (brand: string) => {
+    setFilterBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+    );
+  };
+
+  const toggleCategory = (category: string) => {
+    setFilterCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+    );
+  };
+
+  const clearAllFilters = () => {
+    setFilterBrands([]);
+    setFilterCategories([]);
+    router.replace('/products');
+  };
 
   const sortOptions = [
     { label: 'Featured', value: 'featured' },
@@ -88,7 +122,7 @@ export default function ProductListingPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="animate-spin text-indigo-600" size={40} />
+        <Loader2 className="animate-spin text-emerald-600" size={40} />
         <p className="text-sm text-gray-400 uppercase tracking-widest">Entering the fragrance vault...</p>
       </div>
     );
@@ -97,75 +131,139 @@ export default function ProductListingPage() {
   return (
     <div className="py-20 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
           <div>
             <nav className="text-[10px] uppercase tracking-widest text-gray-400 mb-4">
-              <Link href="/">Home</Link> / <span className="text-indigo-600">Shop All</span>
+              <Link href="/">Home</Link> / <span className="text-emerald-600">Shop All</span>
             </nav>
-            <h1 className="text-4xl font-serif text-indigo-950">Fragrance Collection</h1>
+            <h1 className="text-4xl font-serif text-emerald-950">Fragrance Collection</h1>
           </div>
           
-          <div className="flex space-x-6 mt-6 md:mt-0 relative">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6 md:mt-0 relative">
              {/* Filter Trigger */}
              <div className="relative">
                 <div className="flex items-center space-x-1">
                   <button 
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className={`flex items-center space-x-2 text-xs font-bold uppercase tracking-widest pb-1 border-b-2 transition-colors ${filterBrand ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400 hover:text-indigo-600'}`}
+                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
+                      filterBrands.length > 0 || filterCategories.length > 0
+                        ? 'bg-emerald-950 text-white border-emerald-950 shadow-lg shadow-emerald-900/10'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-700'
+                    }`}
                   >
                     <Filter size={14} />
-                    <span>{filterBrand || 'Filter'}</span>
+                    <span>
+                      {filterBrands.length || filterCategories.length
+                        ? `Filter (${filterBrands.length + filterCategories.length})`
+                        : 'Filter'}
+                    </span>
+                    <ChevronDown size={14} />
                   </button>
-                  {(filterBrand || filterCategory) && (
+                  {(filterBrands.length > 0 || filterCategories.length > 0) && (
                     <button 
-                      onClick={() => {
-                        setFilterBrand(null);
-                        setFilterCategory(null);
-                        router.replace('/products');
-                      }}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      onClick={clearAllFilters}
+                      className="ml-1 text-[10px] uppercase tracking-widest font-bold text-emerald-900 bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-full hover:bg-emerald-100 transition-colors"
                       title="Clear filter"
                     >
-                      <X size={14} />
+                      Clear
                     </button>
                   )}
                 </div>
                 
                 {isFilterOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl z-20 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-50">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Brands</span>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsFilterOpen(false)}
+                      className="fixed inset-0 z-10 cursor-default"
+                      aria-label="Close filters"
+                    />
+                  <div className="absolute top-full right-0 left-0 sm:left-auto mt-3 w-72 sm:w-72 bg-white border border-emerald-100 shadow-2xl z-20 p-5 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-emerald-50">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">Brands</span>
                       <button 
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setFilterBrand(null);
+                          setFilterBrands([]);
                           setIsFilterOpen(false);
                         }}
-                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-1 hover:bg-emerald-50 rounded-full transition-colors"
                         title="Clear and close"
                       >
-                        <X size={16} className="text-gray-400 hover:text-indigo-600" />
+                        <X size={16} className="text-emerald-500 hover:text-emerald-700" />
                       </button>
                     </div>
                     <div className="max-h-60 overflow-y-auto space-y-2">
                        <button 
-                        onClick={() => { setFilterBrand(null); setIsFilterOpen(false); }}
-                        className={`block w-full text-left text-xs uppercase tracking-widest hover:text-indigo-600 ${!filterBrand ? 'text-indigo-600 font-bold' : 'text-gray-600'}`}
+                        onClick={() => { setFilterBrands([]); setIsFilterOpen(false); }}
+                        className={`block w-full text-left text-[11px] uppercase tracking-widest ${
+                          filterBrands.length === 0 ? 'text-emerald-700 font-bold' : 'text-gray-600 hover:text-emerald-600'
+                        }`}
                        >
                         All Brands
                        </button>
                        {brands.map(brand => (
-                         <button 
-                          key={brand}
-                          onClick={() => { setFilterBrand(brand); setIsFilterOpen(false); }}
-                          className={`block w-full text-left text-xs uppercase tracking-widest hover:text-indigo-600 ${filterBrand === brand ? 'text-indigo-600 font-bold' : 'text-gray-600'}`}
+                         <label
+                           key={brand}
+                           className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-gray-600 hover:text-emerald-600 cursor-pointer"
                          >
-                          {brand}
-                         </button>
+                           <input
+                             type="checkbox"
+                             checked={filterBrands.includes(brand)}
+                             onChange={() => toggleBrand(brand)}
+                             className="h-3.5 w-3.5 accent-emerald-700"
+                           />
+                           <span className={filterBrands.includes(brand) ? 'text-emerald-700 font-bold' : ''}>{brand}</span>
+                         </label>
                        ))}
                     </div>
+
+                    <div className="mt-6 flex justify-between items-center mb-4 pb-2 border-b border-emerald-50">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">Families</span>
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilterCategories([]);
+                          setIsFilterOpen(false);
+                        }}
+                        className="p-1 hover:bg-emerald-50 rounded-full transition-colors"
+                        title="Clear and close"
+                      >
+                        <X size={16} className="text-emerald-500 hover:text-emerald-700" />
+                      </button>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-2">
+                      <button 
+                        onClick={() => { setFilterCategories([]); setIsFilterOpen(false); }}
+                        className={`block w-full text-left text-[11px] uppercase tracking-widest ${
+                          filterCategories.length === 0 ? 'text-emerald-700 font-bold' : 'text-gray-600 hover:text-emerald-600'
+                        }`}
+                      >
+                        All Families
+                      </button>
+                      {fetchingCategories ? (
+                        <div className="text-[11px] uppercase tracking-widest text-gray-400">Loading families...</div>
+                      ) : (
+                        categories.map((cat: any) => (
+                          <label
+                            key={cat._id || cat.name}
+                            className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-gray-600 hover:text-emerald-600 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={filterCategories.includes(cat.name)}
+                              onChange={() => toggleCategory(cat.name)}
+                              className="h-3.5 w-3.5 accent-emerald-700"
+                            />
+                            <span className={filterCategories.includes(cat.name) ? 'text-emerald-700 font-bold' : ''}>{cat.name}</span>
+                          </label>
+                        ))
+                      )}
+                    </div>
                   </div>
+                  </>
                 )}
              </div>
 
@@ -173,24 +271,34 @@ export default function ProductListingPage() {
              <div className="relative">
                 <button 
                   onClick={() => setIsSortOpen(!isSortOpen)}
-                  className="flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors pb-1 border-b-2 border-transparent"
+                  className="flex items-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest bg-white text-gray-600 border border-gray-200 hover:border-emerald-300 hover:text-emerald-700 transition-all"
                 >
                   <span>Sort: {sortOptions.find(o => o.value === sortBy)?.label}</span>
                   <ChevronDown size={14} />
                 </button>
 
                 {isSortOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl z-20 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <>
+                  <button
+                    type="button"
+                    onClick={() => setIsSortOpen(false)}
+                    className="fixed inset-0 z-10 cursor-default"
+                    aria-label="Close sorting"
+                  />
+                  <div className="absolute top-full right-0 left-0 sm:left-auto mt-3 w-56 sm:w-56 bg-white border border-emerald-100 shadow-2xl z-20 p-2 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
                     {sortOptions.map(option => (
                       <button
                         key={option.value}
                         onClick={() => { setSortBy(option.value); setIsSortOpen(false); }}
-                        className={`block w-full text-left px-4 py-2 text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors ${sortBy === option.value ? 'text-indigo-600 font-bold' : 'text-gray-600'}`}
+                        className={`block w-full text-left px-4 py-2 text-[11px] uppercase tracking-widest hover:bg-emerald-50 transition-colors ${
+                          sortBy === option.value ? 'text-emerald-700 font-bold' : 'text-gray-600'
+                        }`}
                       >
                         {option.label}
                       </button>
                     ))}
                   </div>
+                  </>
                 )}
              </div>
           </div>
@@ -210,8 +318,8 @@ export default function ProductListingPage() {
           <div className="py-40 text-center">
             <p className="font-serif italic text-gray-400 text-xl">No products match your selection.</p>
             <button 
-              onClick={() => { setFilterBrand(null); setSortBy('featured'); }}
-              className="mt-6 text-xs font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600"
+              onClick={() => { setFilterBrands([]); setFilterCategories([]); setSortBy('featured'); }}
+              className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
             >
               Clear All Filters
             </button>

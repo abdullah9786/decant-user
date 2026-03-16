@@ -24,7 +24,7 @@ const ProductCard = ({ id, _id, name, brand, variants, image_url, is_featured }:
   return (
     <div className="group bg-white border border-gray-100 p-4 transition-all hover:shadow-2xl hover:-translate-y-1 relative">
       {is_featured && (
-        <span className="absolute top-4 left-4 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 z-10">
+        <span className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 z-10">
           Featured
         </span>
       )}
@@ -43,7 +43,7 @@ const ProductCard = ({ id, _id, name, brand, variants, image_url, is_featured }:
         )}
         
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
-           <button className="bg-white text-indigo-950 px-6 py-2 text-[10px] font-bold uppercase tracking-widest shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
+           <button className="bg-white text-emerald-950 px-6 py-2 text-[10px] font-bold uppercase tracking-widest shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
              Quick View
            </button>
         </div>
@@ -51,11 +51,11 @@ const ProductCard = ({ id, _id, name, brand, variants, image_url, is_featured }:
 
       <div className="text-center">
         <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">{brand}</p>
-        <h3 className="font-serif text-lg text-indigo-950 mb-2 truncate px-2">{name}</h3>
-        <p className="text-indigo-600 font-bold mb-4">From ₹{displayPrice}</p>
+        <h3 className="font-serif text-lg text-emerald-950 mb-2 truncate px-2">{name}</h3>
+        <p className="text-emerald-600 font-bold mb-4">From ₹{displayPrice}</p>
         <Link 
           href={`/products/${productId}`}
-          className="inline-block w-full py-4 bg-gray-50 text-indigo-950 text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-950 hover:text-white transition-all duration-300 text-center"
+          className="inline-block w-full py-4 bg-gray-50 text-emerald-950 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-950 hover:text-white transition-all duration-300 text-center"
         >
           Select Options
         </Link>

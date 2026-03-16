@@ -27,7 +27,7 @@ export default function NewArrivalsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <Loader2 className="animate-spin text-indigo-600" size={32} />
+        <Loader2 className="animate-spin text-emerald-600" size={32} />
       </div>
     );
   }
@@ -37,10 +37,10 @@ export default function NewArrivalsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <nav className="text-[10px] uppercase tracking-widest text-gray-400 mb-6">
-            <Link href="/">Home</Link> / <span className="text-indigo-600">New Arrivals</span>
+            <Link href="/">Home</Link> / <span className="text-emerald-600">New Arrivals</span>
           </nav>
-          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.3em] mb-4 inline-block">FRESHLY CURATED</span>
-          <h1 className="text-4xl md:text-5xl font-serif text-indigo-950">New Arrivals</h1>
+          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.3em] mb-4 inline-block">FRESHLY CURATED</span>
+          <h1 className="text-4xl md:text-5xl font-serif text-emerald-950">New Arrivals</h1>
           <p className="mt-4 text-gray-500 italic">The latest additions to our exclusive fragrance vault.</p>
         </div>
 
@@ -53,7 +53,7 @@ export default function NewArrivalsPage() {
         ) : (
           <div className="text-center py-20">
              <p className="text-gray-400 italic font-serif">Awaiting the next great masterpiece...</p>
-             <Link href="/products" className="mt-8 inline-block text-xs font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600">
+             <Link href="/products" className="mt-8 inline-block text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600">
                 Browse Collection
              </Link>
           </div>

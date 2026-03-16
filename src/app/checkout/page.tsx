@@ -79,8 +79,8 @@ export default function CheckoutPage() {
       return (
           <div className="py-40 text-center">
               <ShoppingBag size={48} className="mx-auto text-gray-200 mb-6" />
-              <h2 className="text-2xl font-serif text-indigo-950 mb-4">Your cart is empty</h2>
-              <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600">
+              <h2 className="text-2xl font-serif text-emerald-950 mb-4">Your cart is empty</h2>
+              <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600">
                   Shop our collection
               </Link>
           </div>
@@ -95,11 +95,11 @@ export default function CheckoutPage() {
           {steps.map((s, i) => (
              <div key={s.title} className="relative z-10 flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                  step > i ? 'bg-indigo-600 text-white border-indigo-600' : (step === i + 1 ? 'bg-indigo-950 text-white shadow-lg border-indigo-950' : 'bg-white border border-gray-200 text-gray-300')
+                  step > i ? 'bg-emerald-600 text-white border-emerald-600' : (step === i + 1 ? 'bg-emerald-950 text-white shadow-lg border-emerald-950' : 'bg-white border border-gray-200 text-gray-300')
                 } border-2`}>
                   <s.icon size={20} />
                 </div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === i + 1 ? 'text-indigo-950' : 'text-gray-400'}`}>{s.title}</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === i + 1 ? 'text-emerald-950' : 'text-gray-400'}`}>{s.title}</span>
              </div>
           ))}
         </div>
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
       <div className="bg-white border border-gray-100 shadow-2xl p-10 md:p-16">
           {step === 1 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-3xl font-serif text-indigo-950 mb-10">Shipping Details</h2>
+              <h2 className="text-3xl font-serif text-emerald-950 mb-10">Shipping Details</h2>
               {!isAuthenticated && (
                 <input 
                   placeholder="Email Address *" 
@@ -115,7 +115,7 @@ export default function CheckoutPage() {
                   required
                   value={shippingAddress.email}
                   onChange={(e) => setShippingAddress({...shippingAddress, email: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600 border-l-4 border-l-red-400" 
+                  className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               )}
               <div className="grid grid-cols-2 gap-6">
@@ -123,13 +123,13 @@ export default function CheckoutPage() {
                     placeholder="First Name" 
                     value={shippingAddress.first_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, first_name: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
                 <input 
                     placeholder="Last Name" 
                     value={shippingAddress.last_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, last_name: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
               </div>
               <div className="grid grid-cols-2 gap-6">
@@ -137,34 +137,34 @@ export default function CheckoutPage() {
                     placeholder="Building Name / House No" 
                     value={shippingAddress.building_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, building_name: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
                 <input 
                     placeholder="Floor / Apartment No (Optional)" 
                     value={shippingAddress.floor_no}
                     onChange={(e) => setShippingAddress({...shippingAddress, floor_no: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
               </div>
               <input 
                 placeholder="Street Address / Landmark" 
                 value={shippingAddress.street}
                 onChange={(e) => setShippingAddress({...shippingAddress, street: e.target.value})}
-                className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600" 
+                className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
               />
               <div className="grid grid-cols-2 gap-6">
                 <input 
                     placeholder="City" 
                     value={shippingAddress.city}
                     onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
                 <input 
                     placeholder="PIN Code *" 
                     required
                     value={shippingAddress.zip}
                     onChange={(e) => setShippingAddress({...shippingAddress, zip: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600 border-l-4 border-l-red-400" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               </div>
               <input 
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
                 required
                 value={shippingAddress.phone}
                 onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
-                className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-indigo-600 border-l-4 border-l-red-400" 
+                className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
               
               <button 
@@ -184,7 +184,7 @@ export default function CheckoutPage() {
                   !shippingAddress.phone ||
                   (!isAuthenticated && !shippingAddress.email)
                 }
-                className="w-full bg-indigo-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 disabled:opacity-50"
+                className="w-full bg-emerald-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 disabled:opacity-50"
               >
                 Proceed to Payment
               </button>
@@ -193,16 +193,16 @@ export default function CheckoutPage() {
 
           {step === 2 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 text-center">
-              <h2 className="text-3xl font-serif text-indigo-950 mb-4">Secure Payment</h2>
-              <p className="text-xs text-gray-400 uppercase tracking-widest mb-10">Amount to pay: <span className="text-indigo-600 font-bold">₹{totalPrice()}</span></p>
+              <h2 className="text-3xl font-serif text-emerald-950 mb-4">Secure Payment</h2>
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-10">Amount to pay: <span className="text-emerald-600 font-bold">₹{totalPrice()}</span></p>
               
               <div className="space-y-4">
-                <div className="p-6 border border-indigo-600 bg-indigo-50/50 flex items-center justify-between cursor-pointer">
+                <div className="p-6 border border-emerald-600 bg-emerald-50/50 flex items-center justify-between cursor-pointer">
                   <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 rounded-full border-4 border-indigo-600"></div>
-                    <span className="text-sm font-bold text-indigo-950 uppercase tracking-widest">Card / UPI / Netbanking</span>
+                    <div className="w-4 h-4 rounded-full border-4 border-emerald-600"></div>
+                    <span className="text-sm font-bold text-emerald-950 uppercase tracking-widest">Card / UPI / Netbanking</span>
                   </div>
-                  <CreditCard className="text-indigo-600" />
+                  <CreditCard className="text-emerald-600" />
                 </div>
                 <div className="p-6 border border-gray-100 flex items-center space-x-4 cursor-not-allowed text-gray-300">
                   <div className="w-4 h-4 rounded-full border border-gray-200"></div>
@@ -213,7 +213,7 @@ export default function CheckoutPage() {
               <button 
                 onClick={handleNext}
                 disabled={loading}
-                className="w-full bg-indigo-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 flex items-center justify-center space-x-2"
+                className="w-full bg-emerald-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 flex items-center justify-center space-x-2"
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : 'Place Order'}
               </button>
@@ -223,13 +223,13 @@ export default function CheckoutPage() {
           {step === 3 && (
             <div className="text-center py-10 animate-in zoom-in-95 duration-700">
                <CheckCircle2 size={100} className="text-green-500 mx-auto mb-8" />
-               <h2 className="text-4xl font-serif text-indigo-950 mb-4">Order Confirmed!</h2>
+               <h2 className="text-4xl font-serif text-emerald-950 mb-4">Order Confirmed!</h2>
                <p className="text-gray-500 text-sm uppercase tracking-[0.2em] mb-12">Thank you for choosing SCENTS. Your order #{orderId} is being prepared.</p>
                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                    <Link href={`/track-order?orderId=${encodeURIComponent(orderId || '')}`} className="w-full sm:w-auto bg-indigo-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all">
+                    <Link href={`/track-order?orderId=${encodeURIComponent(orderId || '')}`} className="w-full sm:w-auto bg-emerald-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all">
                         Track Order
                     </Link>
-                    <Link href="/" className="w-full sm:w-auto border border-gray-200 text-gray-600 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-indigo-950 hover:text-white transition-all">
+                    <Link href="/" className="w-full sm:w-auto border border-gray-200 text-gray-600 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-emerald-950 hover:text-white transition-all">
                         Return Home
                     </Link>
                </div>

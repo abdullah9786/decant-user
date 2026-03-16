@@ -62,7 +62,7 @@ export default function ProfilePage() {
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-indigo-600" size={32} />
+        <Loader2 className="animate-spin text-emerald-600" size={32} />
       </div>
     );
   }
@@ -76,16 +76,16 @@ export default function ProfilePage() {
   return (
     <div className="py-20 bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-serif text-indigo-950 mb-12">My Account</h1>
+        <h1 className="text-4xl font-serif text-emerald-950 mb-12">My Account</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Sidebar / Info */}
           <div className="md:col-span-1 space-y-8">
             <div className="bg-white p-8 border border-gray-100 shadow-sm text-center">
-              <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <User size={40} className="text-indigo-600" />
+              <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <User size={40} className="text-emerald-600" />
               </div>
-              <h3 className="text-xl font-serif text-indigo-950 mb-1">{user.full_name}</h3>
+              <h3 className="text-xl font-serif text-emerald-950 mb-1">{user.full_name}</h3>
               <p className="text-xs text-gray-400 uppercase tracking-widest">{user.email}</p>
             </div>
 
@@ -107,12 +107,12 @@ export default function ProfilePage() {
                 className="flex items-center justify-between p-8 bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all group"
               >
                 <div className="flex items-center space-x-6">
-                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
-                    <item.icon size={20} className="text-indigo-950" />
+                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-emerald-50 transition-colors">
+                    <item.icon size={20} className="text-emerald-950" />
                   </div>
-                  <span className="text-sm font-bold uppercase tracking-widest text-indigo-950">{item.title}</span>
+                  <span className="text-sm font-bold uppercase tracking-widest text-emerald-950">{item.title}</span>
                 </div>
-                <ChevronRight size={20} className="text-gray-300 group-hover:text-indigo-600 transition-colors" />
+                <ChevronRight size={20} className="text-gray-300 group-hover:text-emerald-600 transition-colors" />
               </Link>
             ))}
 
@@ -121,10 +121,10 @@ export default function ProfilePage() {
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-6">Recent Order</h4>
               {loading ? (
                 <div className="bg-white p-8 border border-gray-100 flex justify-center">
-                  <Loader2 className="animate-spin text-indigo-200" size={24} />
+                  <Loader2 className="animate-spin text-emerald-200" size={24} />
                 </div>
               ) : recentOrder ? (
-                <div className="bg-indigo-950 text-white p-8 relative overflow-hidden transition-all hover:bg-black">
+                <div className="bg-emerald-950 text-white p-8 relative overflow-hidden transition-all hover:bg-black">
                   <div className="relative z-10">
                      <p className="text-[10px] uppercase tracking-widest opacity-60 mb-2">Order #{(recentOrder.id || recentOrder._id).substring(0, 8)}</p>
                      <p className="text-xl font-serif mb-4 truncate pr-16">
@@ -143,7 +143,7 @@ export default function ProfilePage() {
                   <button
                     onClick={handleSyncOrders}
                     disabled={syncing}
-                    className="inline-flex items-center justify-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-indigo-600 border-b border-indigo-600 disabled:opacity-60"
+                    className="inline-flex items-center justify-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600 disabled:opacity-60"
                   >
                     <RefreshCw size={12} className={syncing ? "animate-spin" : ""} />
                     <span>{syncing ? "Syncing..." : "Sync Guest Orders"}</span>

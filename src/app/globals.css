@@ -1,14 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
+  --background: #fbf8f2;
+  --foreground: #1f2937;
+  --brand: #0f766e;
+  --brand-dark: #064e3b;
+  --text-primary: #1f2937;
+  --text-muted: #475569;
+  --page-bg: linear-gradient(180deg, #f6f9f3 0%, #eef6f1 60%, #e9f2ea 100%);
+  --surface-bg: rgba(255, 255, 255, 0.75);
+  --surface-border: rgba(255, 255, 255, 0.35);
+  --surface-shadow: 0 0 120px rgba(2, 44, 34, 0.25);
+  --accent-gradient: linear-gradient(135deg, #022c22 0%, #064e3b 45%, #065f46 100%);
+  --accent-text: #ffffff;
+  --accent-muted: rgba(255, 255, 255, 0.75);
+  --hero-text: #0f172a;
+  --hero-muted: #475569;
+  --hero-accent: #047857;
+  --hero-border: rgba(15, 23, 42, 0.15);
+  --hero-cta-bg: #064e3b;
+  --hero-cta-text: #ffffff;
+  --hero-cta-bg-hover: #022c22;
+  --hero-cta-alt-text: #064e3b;
+  --hero-cta-alt-border: rgba(6, 78, 59, 0.3);
+  --hero-cta-alt-hover: rgba(6, 78, 59, 0.06);
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text-primary);
+  background: var(--page-bg);
+  background-attachment: fixed;
 }
+
+::selection {
+  background: rgba(15, 118, 110, 0.2);
+}
+
 
 @theme {
   --font-serif: var(--font-playfair);

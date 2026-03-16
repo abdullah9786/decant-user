@@ -43,7 +43,7 @@ export default function TrackOrderPage() {
     <div className="py-20 bg-white min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-serif text-indigo-950 mb-4">Track Your Order</h1>
+          <h1 className="text-4xl font-serif text-emerald-950 mb-4">Track Your Order</h1>
           <p className="text-gray-500 uppercase tracking-widest text-xs">Enter your order ID to see the latest status</p>
         </div>
 
@@ -55,13 +55,13 @@ export default function TrackOrderPage() {
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
               placeholder="e.g. 65f1e2c4a9..."
-              className="flex-1 bg-white border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-indigo-600"
+              className="flex-1 bg-white border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-emerald-600"
               required
             />
             <button
               type="submit"
               disabled={loading}
-              className="bg-indigo-950 text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-60"
+              className="bg-emerald-950 text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-60"
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : 'Track'}
             </button>
@@ -76,9 +76,9 @@ export default function TrackOrderPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400">Order ID</p>
-                <p className="text-lg font-bold text-indigo-950">{order.id || order._id}</p>
+                <p className="text-lg font-bold text-emerald-950">{order.id || order._id}</p>
               </div>
-              <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-indigo-50 text-indigo-600">
+              <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-600">
                 {order.status}
               </span>
             </div>
@@ -94,11 +94,11 @@ export default function TrackOrderPage() {
                 {order.items?.map((item: any, i: number) => (
                   <div key={i} className="flex justify-between text-sm text-gray-700">
                     <span>{item.name} • {item.size_ml}ml × {item.quantity}</span>
-                    <span className="font-bold text-indigo-950">₹{item.price * item.quantity}</span>
+                    <span className="font-bold text-emerald-950">₹{item.price * item.quantity}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between text-sm font-bold text-indigo-950">
+              <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between text-sm font-bold text-emerald-950">
                 <span>Total</span>
                 <span>₹{order.total_amount}</span>
               </div>

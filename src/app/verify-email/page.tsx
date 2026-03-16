@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-[80vh] flex items-center justify-center bg-white px-4">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
-          <h2 className="text-3xl font-serif text-indigo-950">Verify Your Email</h2>
+          <h2 className="text-3xl font-serif text-emerald-950">Verify Your Email</h2>
           <p className="mt-2 text-sm text-gray-500 uppercase tracking-widest">Activate your SCENTS account</p>
         </div>
 
@@ -87,14 +87,14 @@ export default function VerifyEmailPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Email Address"
               />
             </div>
             <button
               onClick={handleResend}
               disabled={sending || !email}
-              className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-[0.2em] text-white bg-indigo-950 hover:bg-indigo-900 transition-all disabled:opacity-70"
+              className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-[0.2em] text-white bg-emerald-950 hover:bg-emerald-900 transition-all disabled:opacity-70"
             >
               {sending ? <Loader2 className="animate-spin" size={20} /> : 'RESEND VERIFICATION EMAIL'}
             </button>

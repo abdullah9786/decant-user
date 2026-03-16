@@ -57,7 +57,7 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center bg-white px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-serif text-indigo-950">Join Us</h2>
+          <h2 className="text-3xl font-serif text-emerald-950">Join Us</h2>
           <p className="mt-2 text-sm text-gray-500 uppercase tracking-widest">Create your fragrance profile</p>
         </div>
         
@@ -77,7 +77,7 @@ export default function RegisterPage() {
                 required
                 value={formData.full_name}
                 onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Full Name"
               />
             </div>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Email Address"
               />
             </div>
@@ -101,7 +101,7 @@ export default function RegisterPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Password"
               />
             </div>
@@ -113,7 +113,7 @@ export default function RegisterPage() {
                 required
                 value={formData.confirm_password}
                 onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
                 placeholder="Confirm Password"
               />
             </div>
@@ -123,7 +123,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-[0.2em] text-white bg-indigo-950 hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 active:scale-[0.98] transition-all disabled:opacity-70"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-[0.2em] text-white bg-emerald-950 hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 active:scale-[0.98] transition-all disabled:opacity-70"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : 'CREATE ACCOUNT'}
             </button>
@@ -132,7 +132,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <p className="text-sm text-gray-500">
               Already have an account?{' '}
-              <Link href="/login" className="font-bold text-indigo-600 hover:text-indigo-500 underline underline-offset-4">
+              <Link href="/login" className="font-bold text-emerald-600 hover:text-emerald-500 underline underline-offset-4">
                 Sign in
               </Link>
             </p>
