@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, ChevronRight, Star, ShieldCheck, Truck, Loader2, ChevronLeft, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Star, ShieldCheck, Truck, Loader2, ChevronLeft } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { productApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import FairPricing from '@/components/home/FairPricing';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -41,7 +42,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const bottlePrice = selectedMl ? Math.round((selectedPrice / selectedMl) * 100) : 5000;
   const othersLow = selectedPrice ? selectedPrice + 200 : 0;
   const othersHigh = selectedPrice ? selectedPrice + 250 : 0;
-  const formatPrice = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 
   const handleAddToCart = () => {
     if (!product || !currentVariant) return;
@@ -258,67 +258,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* Fair Pricing Comparison */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-10 md:p-14">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]"></div>
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
-            <div className="text-center">
-              <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--accent-muted)] font-bold">Fair Pricing</div>
-              <h3 className="text-2xl md:text-4xl font-serif mt-4">
-                Pay the true cost of a decant.
-              </h3>
-              <p className="text-[color:var(--accent-muted)] mt-3">
-                {selectedMl
-                  ? `For ${selectedMl}ml, fair price is ${formatPrice(selectedPrice)}.`
-                  : 'Choose a size to see fair pricing.'}
-              </p>
-            </div>
-
-            <div className="relative mt-10 rounded-3xl border border-white/10 bg-white/10 p-6 md:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-6 text-center">
-                <div className="space-y-1">
-                  <div className="text-[10px] uppercase tracking-widest text-[color:var(--accent-muted)] font-bold">Bottle</div>
-                  <div className="text-2xl font-serif">{formatPrice(bottlePrice)}</div>
-                  <div className="text-xs text-[color:var(--accent-muted)]">100ml retail</div>
-                </div>
-
-                <div className="text-white/60 text-xl font-serif hidden md:block">→</div>
-
-                <div className="space-y-1">
-                  <div className="text-[10px] uppercase tracking-widest text-[color:var(--accent-muted)] font-bold">Others</div>
-                  <div className="text-2xl font-serif line-through decoration-white/50">
-                    {selectedPrice ? `${formatPrice(othersLow)}–${formatPrice(othersHigh)}` : '—'}
-                  </div>
-                  <div className="text-xs text-[color:var(--accent-muted)]">
-                    {selectedMl ? `${selectedMl}ml decant` : 'Decant'}
-                  </div>
-                </div>
-
-                <div className="text-white/60 text-xl font-serif hidden md:block">→</div>
-
-                <div className="space-y-1">
-                  <div className="text-[10px] uppercase tracking-widest text-white font-bold">Our Price</div>
-                  <div className="text-3xl font-serif">{selectedPrice ? formatPrice(selectedPrice) : '—'}</div>
-                  <div className="text-xs text-[color:var(--accent-muted)]">
-                    {selectedMl ? `${selectedMl}ml fair‑price` : 'Fair‑price'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="text-sm text-[color:var(--accent-muted)]">
-                Transparent pricing so you can explore more scents without paying inflated margins.
-              </div>
-              <Link href="/products" className="inline-flex items-center text-xs font-bold uppercase tracking-widest text-white border-b border-white/60">
-                Explore fair‑price decants <ArrowRight size={14} className="ml-2" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <FairPricing
+        bottlePrice={bottlePrice}
+        ourPrice={selectedPrice}
+        sizeLabel={selectedMl ? `${selectedMl}ml` : 'Decant'}
+        othersLow={othersLow}
+        othersHigh={othersHigh}
+        introText={
+          selectedMl
+            ? `For ${selectedMl}ml, fair price is ₹${selectedPrice.toLocaleString('en-IN')}.`
+            : 'Choose a size to see fair pricing.'
+        }
+      />
 
       {/* Conviction CTA */}
       <section className="py-16">

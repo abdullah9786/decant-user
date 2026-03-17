@@ -6,6 +6,7 @@ import { ShoppingBag, User, Search, Menu, X } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
+import Logo from './Logo';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,9 +32,7 @@ const Navbar = () => {
 
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-2xl sm:text-3xl font-extrabold italic tracking-tighter text-emerald-950">
-              SCENTS<span className="text-emerald-600">.</span>
-            </Link>
+            <Logo />
           </div>
 
           {/* Desktop Nav */}
