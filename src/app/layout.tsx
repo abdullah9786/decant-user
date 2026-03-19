@@ -23,7 +23,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} font-sans text-[color:var(--text-primary)] antialiased`}>
         <Navbar />
         <Toaster position="top-right" />
-        <main className="bg-[color:var(--surface-bg)] backdrop-blur-2xl border-y border-[color:var(--surface-border)] shadow-[var(--surface-shadow)]">
+        <main className="bg-[color:var(--surface-bg)]">
           {children}
         </main>
         <Footer />
