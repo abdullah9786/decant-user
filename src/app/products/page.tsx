@@ -13,6 +13,7 @@ export default function ProductListingPage() {
   const [error, setError] = useState<string | null>(null);
   
   const [sortBy, setSortBy] = useState('custom');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterBrands, setFilterBrands] = useState<string[]>([]);
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -67,6 +68,14 @@ export default function ProductListingPage() {
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
 
+    // Search
+    if (searchTerm.trim().length > 0) {
+      const term = searchTerm.trim().toLowerCase();
+      result = result.filter((p) =>
+        `${p.name || ''} ${p.brand || ''}`.toLowerCase().includes(term)
+      );
+    }
+
     // Filter by brand
     if (filterBrands.length > 0) {
       result = result.filter(p => filterBrands.includes(p.brand));
@@ -93,7 +102,7 @@ export default function ProductListingPage() {
     }
 
     return result;
-  }, [products, filterBrands, filterCategories, sortBy]);
+  }, [products, filterBrands, filterCategories, sortBy, searchTerm]);
 
   const toggleBrand = (brand: string) => {
     setFilterBrands((prev) =>
@@ -140,13 +149,21 @@ export default function ProductListingPage() {
             <h1 className="text-4xl font-serif text-emerald-950">Fragrance Collection</h1>
           </div>
           
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6 md:mt-0 relative">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6 md:mt-0 relative w-full md:w-auto">
+             <input
+               type="text"
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               placeholder="Search fragrances..."
+               className="w-full sm:w-64 px-4 py-2.5 rounded-full border border-gray-200 text-xs font-bold uppercase tracking-widest text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+             />
+             <div className="grid grid-cols-2 gap-3 w-full sm:w-auto">
              {/* Filter Trigger */}
              <div className="relative">
                 <div className="flex items-center space-x-1">
                   <button 
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
+                    className={`w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
                       filterBrands.length > 0 || filterCategories.length > 0
                         ? 'bg-emerald-950 text-white border-emerald-950 shadow-lg shadow-emerald-900/10'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-700'
@@ -272,7 +289,7 @@ export default function ProductListingPage() {
              <div className="relative">
                 <button 
                   onClick={() => setIsSortOpen(!isSortOpen)}
-                  className="flex items-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest bg-white text-gray-600 border border-gray-200 hover:border-emerald-300 hover:text-emerald-700 transition-all"
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest bg-white text-gray-600 border border-gray-200 hover:border-emerald-300 hover:text-emerald-700 transition-all"
                 >
                   <span>Sort: {sortOptions.find(o => o.value === sortBy)?.label}</span>
                   <ChevronDown size={14} />
@@ -301,6 +318,7 @@ export default function ProductListingPage() {
                   </div>
                   </>
                 )}
+             </div>
              </div>
           </div>
         </div>

@@ -7,6 +7,11 @@ import { useCartStore } from '@/store/useCartStore';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
+  const subtotal = totalPrice();
+  const shippingFee = subtotal > 999 ? 0 : 90;
+  const freeDeliveryThreshold = 999;
+  const amountToFreeDelivery = Math.max(0, freeDeliveryThreshold + 1 - subtotal);
+  const grandTotal = subtotal + shippingFee;
 
   if (items.length === 0) {
     return (
@@ -78,15 +83,30 @@ export default function CartPage() {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
                   <span>Subtotal</span>
-                  <span>₹{totalPrice()}</span>
+                  <span>₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
                   <span>Shipping</span>
-                  <span>FREE</span>
+                  <span>{shippingFee === 0 ? 'FREE' : `₹${shippingFee}`}</span>
+                </div>
+                <div className="space-y-2">
+                  {amountToFreeDelivery > 0 && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-800">
+                        Add ₹{amountToFreeDelivery} more to unlock free delivery
+                      </div>
+                      <Link
+                        href="/products"
+                        className="inline-flex items-center justify-center px-4 py-2 text-[10px] font-bold uppercase tracking-widest bg-emerald-950 text-white rounded-full hover:bg-emerald-900 transition-colors whitespace-nowrap"
+                      >
+                        Add more
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 <div className="pt-4 border-t border-gray-200 flex justify-between text-lg font-bold text-emerald-950">
                   <span>Total</span>
-                  <span>₹{totalPrice()}</span>
+                  <span>₹{grandTotal}</span>
                 </div>
               </div>
               <Link 

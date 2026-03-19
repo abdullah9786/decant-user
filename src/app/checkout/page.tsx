@@ -25,6 +25,9 @@ export default function CheckoutPage() {
   });
 
   const { items, totalPrice, clearCart } = useCartStore();
+  const subtotal = totalPrice();
+  const shippingFee = subtotal > 999 ? 0 : 90;
+  const grandTotal = subtotal + shippingFee;
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
 
@@ -51,7 +54,7 @@ export default function CheckoutPage() {
           price: item.price,
           quantity: item.quantity
         })),
-        total_amount: totalPrice(),
+        total_amount: grandTotal,
         shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
         status: 'pending'
       };
@@ -194,7 +197,7 @@ export default function CheckoutPage() {
           {step === 2 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 text-center">
               <h2 className="text-3xl font-serif text-emerald-950 mb-4">Secure Payment</h2>
-              <p className="text-xs text-gray-400 uppercase tracking-widest mb-10">Amount to pay: <span className="text-emerald-600 font-bold">₹{totalPrice()}</span></p>
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-10">Amount to pay: <span className="text-emerald-600 font-bold">₹{grandTotal}</span></p>
               
               <div className="space-y-4">
                 <div className="p-6 border border-emerald-600 bg-emerald-50/50 flex items-center justify-between cursor-pointer">
