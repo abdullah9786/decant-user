@@ -12,7 +12,7 @@ export default function ProductListingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState('custom');
   const [filterBrands, setFilterBrands] = useState<string[]>([]);
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -114,6 +114,7 @@ export default function ProductListingPage() {
   };
 
   const sortOptions = [
+    { label: 'Recommended', value: 'custom' },
     { label: 'Featured', value: 'featured' },
     { label: 'Price: Low to High', value: 'price-asc' },
     { label: 'Price: High to Low', value: 'price-desc' },
@@ -318,7 +319,7 @@ export default function ProductListingPage() {
           <div className="py-40 text-center">
             <p className="font-serif italic text-gray-400 text-xl">No products match your selection.</p>
             <button 
-              onClick={() => { setFilterBrands([]); setFilterCategories([]); setSortBy('featured'); }}
+              onClick={() => { setFilterBrands([]); setFilterCategories([]); setSortBy('custom'); }}
               className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
             >
               Clear All Filters

@@ -72,29 +72,50 @@ export default function CartPage() {
           </div>
 
           {/* Summary */}
-          <div className="bg-gray-50 p-10 h-fit sticky top-32 border border-gray-100">
-            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-8 border-b border-gray-200 pb-4">Order Summary</h3>
-            <div className="space-y-4 mb-8">
-              <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
-                <span>Subtotal</span>
-                <span>₹{totalPrice()}</span>
+          <div className="h-fit sticky top-32 space-y-6">
+            <div className="bg-gray-50 p-10 border border-gray-100">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-8 border-b border-gray-200 pb-4">Order Summary</h3>
+              <div className="space-y-4 mb-8">
+                <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
+                  <span>Subtotal</span>
+                  <span>₹{totalPrice()}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
+                  <span>Shipping</span>
+                  <span>FREE</span>
+                </div>
+                <div className="pt-4 border-t border-gray-200 flex justify-between text-lg font-bold text-emerald-950">
+                  <span>Total</span>
+                  <span>₹{totalPrice()}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
-                <span>Shipping</span>
-                <span>FREE</span>
-              </div>
-              <div className="pt-4 border-t border-gray-200 flex justify-between text-lg font-bold text-emerald-950">
-                <span>Total</span>
-                <span>₹{totalPrice()}</span>
+              <Link 
+                href="/checkout" 
+                className="w-full bg-emerald-950 text-white py-5 text-sm font-bold uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center space-x-3 shadow-xl"
+              >
+                <span>Continue to Checkout</span>
+                <ArrowRight size={18} />
+              </Link>
+            </div>
+
+            <div className="relative overflow-hidden border border-emerald-100 bg-white p-6 shadow-xl">
+              <div className="absolute -top-10 right-4 w-24 h-24 rounded-full bg-emerald-100/70 blur-2xl" />
+              <div className="absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-emerald-200/60 blur-2xl" />
+              <div className="relative space-y-4">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">
+                  Coupon truth
+                </div>
+                <div className="text-xl font-serif text-emerald-950 leading-snug">
+                  Looking for a coupon?
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  We don’t do inflated prices just to “discount” them. The price you see is genuine from the start.
+                </p>
+                <div className="text-[10px] uppercase tracking-widest text-emerald-700 font-bold">
+                  No fake markdowns. No coupon bait.
+                </div>
               </div>
             </div>
-            <Link 
-              href="/checkout" 
-              className="w-full bg-emerald-950 text-white py-5 text-sm font-bold uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center space-x-3 shadow-xl"
-            >
-              <span>Continue to Checkout</span>
-              <ArrowRight size={18} />
-            </Link>
           </div>
         </div>
       </div>

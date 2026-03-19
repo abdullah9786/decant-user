@@ -39,6 +39,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const currentVariant = product?.variants?.find((v: any) => v.size_ml === selectedSize) || product?.variants?.[0];
   const selectedMl = selectedSize ?? currentVariant?.size_ml ?? 0;
   const selectedPrice = currentVariant?.price ?? 0;
+  const availableMl = product?.stock_ml ?? 0;
+  const canFulfill = selectedMl > 0 && availableMl >= selectedMl;
   const bottlePrice = selectedMl ? Math.round((selectedPrice / selectedMl) * 100) : 5000;
   const othersLow = selectedPrice ? selectedPrice + 200 : 0;
   const othersHigh = selectedPrice ? selectedPrice + 250 : 0;
@@ -209,16 +211,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       <button
                         key={v.size_ml}
                         onClick={() => setSelectedSize(v.size_ml)}
-                        disabled={v.stock === 0}
+                        disabled={availableMl < v.size_ml}
                         className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
                           selectedSize === v.size_ml 
                           ? 'bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5' 
-                          : v.stock === 0 
+                          : availableMl < v.size_ml 
                             ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
                             : 'border-gray-200 text-gray-500 hover:border-emerald-600 hover:text-emerald-950'
                         }`}
                       >
-                        {v.size_ml}ML {v.stock === 0 && '(Null)'}
+                        {v.size_ml}ML {availableMl < v.size_ml && '(Out)'}
                       </button>
                     ))}
                   </div>
@@ -227,11 +229,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <div className="space-y-4 pt-4">
                   <button 
                     onClick={handleAddToCart}
-                    disabled={!currentVariant || currentVariant.stock === 0}
+                    disabled={!currentVariant || !canFulfill}
                     className="w-full bg-emerald-950 text-white py-6 text-[10px] font-bold uppercase tracking-widest hover:bg-black cursor-pointer transition-all flex items-center justify-center space-x-3 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed group/cart"
                   >
                     <ShoppingBag size={18} className="group-hover/cart:scale-110 transition-transform" />
-                    <span>{currentVariant?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+                    <span>{canFulfill ? 'Add to Cart' : 'Out of Stock'}</span>
                   </button>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -270,52 +272,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             : 'Choose a size to see fair pricing.'
         }
       />
-
-      {/* Conviction CTA */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-white/80 p-10 md:p-14 shadow-xl">
-            <div className="absolute -top-24 -right-20 w-64 h-64 rounded-full bg-emerald-100/60 blur-3xl" />
-            <div className="absolute -bottom-24 -left-16 w-56 h-56 rounded-full bg-emerald-200/40 blur-3xl" />
-            <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">Limited decants • Small batches</div>
-                <h2 className="text-3xl md:text-4xl font-serif text-emerald-950 mt-4">
-                  Make this your next scent ritual.
-                </h2>
-                <p className="text-slate-600 mt-4 text-base leading-relaxed max-w-2xl">
-                  {product.name} by {product.brand} is crafted in authentic small-batch decants. Discover the full character without committing to a full bottle — and keep it in rotation when it becomes your signature.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">100% Original Bottle</span>
-                  <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">Fast Pan‑India Shipping</span>
-                  <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">Secure Checkout</span>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl border border-emerald-100 p-6 shadow-lg">
-                <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">Selected Size</div>
-                <div className="mt-3 text-2xl font-serif text-emerald-950">
-                  {selectedSize ? `${selectedSize} ML` : 'Choose your size'}
-                </div>
-                <div className="mt-2 text-sm text-slate-500">
-                  {currentVariant?.stock === 0 ? 'Currently out of stock' : 'In stock and ready to ship'}
-                </div>
-                <div className="mt-6 text-3xl font-serif text-emerald-950">₹{currentVariant?.price}</div>
-                <button
-                  onClick={handleAddToCart}
-                  disabled={!currentVariant || currentVariant.stock === 0}
-                  className="mt-6 w-full bg-emerald-950 text-white py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {currentVariant?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                </button>
-                <div className="mt-4 text-[10px] uppercase tracking-widest text-slate-400">
-                  Loved by collectors and first‑time explorers alike.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Scent Pyramid */}
@@ -366,6 +322,93 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         )}
       </div>
+
+      {/* No Fake Discount Promise */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-[28px] border border-emerald-100 bg-white p-8 md:p-10 shadow-xl">
+            <div className="absolute -top-16 right-6 w-40 h-40 rounded-full bg-emerald-100/70 blur-3xl" />
+            <div className="absolute -bottom-20 -left-10 w-48 h-48 rounded-full bg-emerald-200/60 blur-3xl" />
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-full">
+                  Genuine pricing
+                </div>
+                <h2 className="mt-4 text-3xl md:text-4xl font-serif text-emerald-950 leading-tight">
+                  No fake markups. No “coupon drama.”
+                </h2>
+                <p className="mt-4 text-slate-600 text-base leading-relaxed max-w-2xl">
+                  Some stores inflate the price just to “slash” it at checkout. We don’t do that. 
+                  Our pricing is the real price — fair from the start, without forced coupons or inflated MRP tricks.
+                </p>
+              </div>
+              <div className="bg-emerald-950 text-white rounded-2xl p-6 shadow-2xl">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-200 font-bold">Price truth</div>
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center justify-between border border-emerald-900/60 rounded-xl px-4 py-3">
+                    <span className="text-[10px] uppercase tracking-widest text-emerald-200">Other sites</span>
+                    <span className="text-sm font-bold text-emerald-100">Marked up + coupon bait</span>
+                  </div>
+                  <div className="flex items-center justify-between border border-emerald-700/60 rounded-xl px-4 py-3 bg-emerald-900/40">
+                    <span className="text-[10px] uppercase tracking-widest text-emerald-200">Decume</span>
+                    <span className="text-lg font-bold">₹{selectedPrice || 0}</span>
+                  </div>
+                </div>
+                <p className="mt-4 text-[10px] uppercase tracking-widest text-emerald-300">
+                  The price you see is the price you pay.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Conviction CTA */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-white/80 p-10 md:p-14 shadow-xl">
+            <div className="absolute -top-24 -right-20 w-64 h-64 rounded-full bg-emerald-100/60 blur-3xl" />
+            <div className="absolute -bottom-24 -left-16 w-56 h-56 rounded-full bg-emerald-200/40 blur-3xl" />
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">Limited decants • Small batches</div>
+                <h2 className="text-3xl md:text-4xl font-serif text-emerald-950 mt-4">
+                  Make this your next scent ritual.
+                </h2>
+                <p className="text-slate-600 mt-4 text-base leading-relaxed max-w-2xl">
+                  {product.name} by {product.brand} is crafted in authentic small-batch decants. Discover the full character without committing to a full bottle — and keep it in rotation when it becomes your signature.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">100% Original Bottle</span>
+                  <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">Fast Pan‑India Shipping</span>
+                  <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">Secure Checkout</span>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl border border-emerald-100 p-6 shadow-lg">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">Selected Size</div>
+                <div className="mt-3 text-2xl font-serif text-emerald-950">
+                  {selectedSize ? `${selectedSize} ML` : 'Choose your size'}
+                </div>
+                <div className="mt-2 text-sm text-slate-500">
+                  {canFulfill ? `In stock · ${availableMl}ml available` : 'Currently out of stock'}
+                </div>
+                <div className="mt-6 text-3xl font-serif text-emerald-950">₹{currentVariant?.price}</div>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!currentVariant || !canFulfill}
+                  className="mt-6 w-full bg-emerald-950 text-white py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {canFulfill ? 'Add to Cart' : 'Out of Stock'}
+                </button>
+                <div className="mt-4 text-[10px] uppercase tracking-widest text-slate-400">
+                  Loved by collectors and first‑time explorers alike.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

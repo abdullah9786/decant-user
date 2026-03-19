@@ -3,7 +3,6 @@ import Link from 'next/link';
 interface Variant {
   size_ml: number;
   price: number;
-  stock: number;
 }
 
 interface ProductCardProps {
