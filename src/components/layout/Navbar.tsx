@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import Link from 'next/link';
 import { ShoppingBag, User, Search, Menu, X } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
@@ -10,9 +11,13 @@ import Logo from './Logo';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const totalItems = useCartStore((state) => state.totalItems());
   const { user, isAuthenticated, logout } = useAuthStore();
   const router = useRouter();
+
+  useEffect(() => { setMounted(true); }, []);
+
 
   const handleLogout = () => {
     logout();
@@ -71,7 +76,7 @@ const Navbar = () => {
 
             <Link href="/cart" className="text-gray-600 hover:text-emerald-600 transition-colors relative">
               <ShoppingBag size={22} />
-              {totalItems > 0 && (
+              {mounted && totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {totalItems}
                 </span>
