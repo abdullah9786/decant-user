@@ -301,7 +301,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   { title: 'Heart Notes', notes: product?.notes_middle || [], desc: product?.notes_middle_desc },
                   { title: 'Base Notes', notes: product?.notes_base || [], desc: product?.notes_base_desc },
                 ].map((block) => (
-                  <div key={block.title} className="bg-white/70 border border-emerald-50 rounded-2xl p-6 md:p-8 shadow-sm">
+                  <div key={block.title} className="bg-white border border-emerald-100 rounded-xl p-6 md:p-8">
                     <div className="text-emerald-800 font-bold text-lg mb-2">
                       {block.notes.length > 0 ? block.notes.join(', ') : 'Notes coming soon'}
                     </div>
@@ -326,9 +326,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       {/* No Fake Discount Promise */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[28px] border border-emerald-100 bg-white p-8 md:p-10 shadow-xl">
-            <div className="absolute -top-16 right-6 w-40 h-40 rounded-full bg-emerald-100/70 blur-3xl" />
-            <div className="absolute -bottom-20 -left-10 w-48 h-48 rounded-full bg-emerald-200/60 blur-3xl" />
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-8 md:p-10">
+            <div className="absolute -top-8 right-0 w-32 h-32 rounded-full bg-emerald-50" />
+            <div className="absolute -bottom-8 left-0 w-32 h-32 rounded-full bg-emerald-50" />
             <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
               <div>
                 <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-full">
@@ -366,9 +366,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       {/* Conviction CTA */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-white/80 p-10 md:p-14 shadow-xl">
-            <div className="absolute -top-24 -right-20 w-64 h-64 rounded-full bg-emerald-100/60 blur-3xl" />
-            <div className="absolute -bottom-24 -left-16 w-56 h-56 rounded-full bg-emerald-200/40 blur-3xl" />
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-10 md:p-14">
+            <div className="absolute -top-12 right-0 w-48 h-48 rounded-full bg-emerald-50" />
+            <div className="absolute -bottom-12 left-0 w-40 h-40 rounded-full bg-emerald-50" />
             <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
               <div>
                 <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">Limited decants • Small batches</div>
