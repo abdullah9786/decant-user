@@ -275,7 +275,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Scent Pyramid */}
-        {/* {((product?.notes_top?.length ?? 0) + (product?.notes_middle?.length ?? 0) + (product?.notes_base?.length ?? 0) > 0) && (
+        {((product?.notes_top?.length ?? 0) + (product?.notes_middle?.length ?? 0) + (product?.notes_base?.length ?? 0) > 0) && (
           <div className="mt-10 md:mt-20">
             <div className="text-center mb-12">
               <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-emerald-700">SCENT PYRAMID</span>
@@ -320,7 +320,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
           </div>
-        )} */}
+        )}
       </div>
 
       {/* No Fake Discount Promise */}
