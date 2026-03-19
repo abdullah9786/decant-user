@@ -6,8 +6,8 @@ import { ShoppingBag, ChevronRight, Star, ShieldCheck, Truck, Loader2, ChevronLe
 import { useCartStore } from '@/store/useCartStore';
 import { productApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
 import FairPricing from '@/components/home/FairPricing';
+
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -109,20 +109,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <div className="lg:col-span-7 flex flex-col md:flex-row-reverse gap-4">
             {/* Main Image Viewer */}
             <div className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group">
-               <AnimatePresence mode="wait">
-                  <motion.img
-                    key={activeImageIdx}
-                    src={allImages[activeImageIdx]}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="w-full h-full object-cover"
-                  />
-               </AnimatePresence>
-               
+               {/* CSS cross-fade — no JS animation library needed */}
+               {allImages.map((img, i) => (
+                 <img
+                   key={i}
+                   src={img}
+                   className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                     i === activeImageIdx ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                   }`}
+                   alt={product.name}
+                 />
+               ))}
+
                {/* Mobile Controls */}
-               <div className="absolute inset-0 flex items-center justify-between p-4 md:hidden pointer-events-none">
+               <div className="absolute inset-0 flex items-center justify-between p-4 md:hidden pointer-events-none z-20">
                   <button 
                     onClick={() => setActiveImageIdx(prev => (prev === 0 ? allImages.length - 1 : prev - 1))}
                     className="p-2 bg-white/80 rounded-full shadow-lg backdrop-blur-sm pointer-events-auto"
@@ -138,11 +138,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                </div>
 
                {/* Mobile Indicators */}
-               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 md:hidden">
+               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 md:hidden z-20">
                   {allImages.map((_, i) => (
                     <div 
                       key={i} 
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${i === activeImageIdx ? 'bg-emerald-600 w-4' : 'bg-gray-300'}`}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${i === activeImageIdx ? 'bg-emerald-600 w-4' : 'bg-gray-300 w-1.5'}`}
                     />
                   ))}
                </div>
