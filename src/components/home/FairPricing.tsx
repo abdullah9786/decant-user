@@ -26,8 +26,8 @@ const FairPricing = ({
     <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-10 md:p-14">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]"></div>
-          <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,_rgba(255,255,255,0.22)_0%,_transparent_65%)] pointer-events-none" />
+          <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-emerald-800" />
           <div className="text-center">
             <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--accent-muted)] font-bold">Fair Pricing</div>
             <h3 className="text-2xl md:text-4xl font-serif mt-4">
@@ -36,7 +36,7 @@ const FairPricing = ({
             <p className="text-[color:var(--accent-muted)] mt-3">{introText}</p>
           </div>
 
-          <div className="relative mt-10 rounded-3xl border border-white/10 bg-white/10 p-6 md:p-8">
+          <div className="relative mt-10 rounded-2xl border border-white/20 bg-black/10 p-6 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-6 text-center">
               <div className="space-y-1">
                 <div className="text-[10px] uppercase tracking-widest text-[color:var(--accent-muted)] font-bold">Bottle</div>
