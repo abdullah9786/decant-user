@@ -38,9 +38,9 @@ export default function SearchPage() {
         setCategories(categoryResponse.data || []);
 
         const products = productResponse.data || [];
-        const collect = (key: string) =>
+        const collect = (key: string): string[] =>
           Array.from(
-            new Set(
+            new Set<string>(
               products
                 .flatMap((p: any) => (p[key] || []))
                 .map((v: string) => v.trim())

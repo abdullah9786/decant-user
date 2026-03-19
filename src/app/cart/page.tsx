@@ -1,9 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
+
+export const dynamic = 'force-dynamic';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();

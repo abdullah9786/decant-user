@@ -7,7 +7,9 @@ import { ChevronDown, Filter, X, Loader2 } from 'lucide-react';
 import { categoryApi, productApi } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function ProductListingPage() {
+export const dynamic = 'force-dynamic';
+
+function ProductListingContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -346,5 +348,13 @@ export default function ProductListingPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ProductListingPage() {
+  return (
+    <React.Suspense fallback={<div className="py-32 text-center text-gray-300 font-serif italic">Loading...</div>}>
+      <ProductListingContent />
+    </React.Suspense>
   );
 }

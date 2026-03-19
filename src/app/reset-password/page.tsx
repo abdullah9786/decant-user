@@ -5,7 +5,9 @@ import { authApi } from '@/lib/api';
 import { Lock, Loader2, CheckCircle2 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function ResetPasswordPage() {
+export const dynamic = 'force-dynamic';
+
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token') || '';
@@ -102,5 +104,13 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <ResetPasswordContent />
+    </React.Suspense>
   );
 }

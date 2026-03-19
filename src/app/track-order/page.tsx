@@ -5,7 +5,9 @@ import { orderApi } from '@/lib/api';
 import { Loader2, PackageSearch } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-export default function TrackOrderPage() {
+export const dynamic = 'force-dynamic';
+
+function TrackOrderContent() {
   const [orderId, setOrderId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,5 +116,13 @@ export default function TrackOrderPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TrackOrderPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <TrackOrderContent />
+    </React.Suspense>
   );
 }

@@ -5,7 +5,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
 
-export default function VerifyEmailPage() {
+export const dynamic = 'force-dynamic';
+
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token') || '';
@@ -102,5 +104,13 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <VerifyEmailContent />
+    </React.Suspense>
   );
 }
