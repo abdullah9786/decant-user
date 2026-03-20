@@ -48,7 +48,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_55%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(15,118,110,0.14),_transparent_55%)]"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 md:py-32 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-[0.4em] text-[color:var(--hero-accent)] font-bold">
@@ -121,7 +121,7 @@ export default function HomePage() {
       />
 
       {/* Signature Atelier Section */}
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
             <div className="relative">
@@ -182,7 +182,7 @@ export default function HomePage() {
       </section>
 
       {/* Editorial Strip */}
-      <section className="py-16 bg-white/70">
+      <section className="py-10 md:py-16 bg-white/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { title: 'Curated Houses', copy: 'Every decant is sourced from verified bottles, never replicas.' },
@@ -198,9 +198,10 @@ export default function HomePage() {
       </section>
 
       {/* Trust / Authenticity */}
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-10 md:p-14">
+          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-6 md:p-14">
+
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]"></div>
             <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
             <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-12 items-center">
@@ -261,7 +262,7 @@ export default function HomePage() {
       </section>
 
       {/* Collections Bento */}
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
@@ -318,7 +319,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products */}
-      <section className="py-20 bg-white/70">
+      <section className="py-12 md:py-20 bg-white/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
@@ -349,9 +350,9 @@ export default function HomePage() {
       </section>
 
       {/* Closing CTA */}
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[32px] bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-12 md:p-16 relative overflow-hidden">
+          <div className="rounded-[32px] bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-8 md:p-16 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_right,_rgba(255,255,255,0.12),_transparent_60%)]"></div>
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
               <div>
