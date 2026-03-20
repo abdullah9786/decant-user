@@ -330,7 +330,7 @@ function ProductListingContent() {
             <p className="text-red-400 font-serif italic text-xl">{error}</p>
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8 lg:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {filteredAndSortedProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
