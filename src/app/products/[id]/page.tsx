@@ -295,14 +295,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 ))}
               </div>
-              <div className="space-y-8">
+              <div className="space-y-4 md:space-y-6">
                 {[
                   { title: 'Top Notes', notes: product?.notes_top || [], desc: product?.notes_top_desc },
                   { title: 'Heart Notes', notes: product?.notes_middle || [], desc: product?.notes_middle_desc },
                   { title: 'Base Notes', notes: product?.notes_base || [], desc: product?.notes_base_desc },
                 ].map((block) => (
-                  <div key={block.title} className="bg-white border border-emerald-100 rounded-xl p-6 md:p-8">
-                    <div className="text-emerald-800 font-bold text-lg mb-2">
+                  <div key={block.title} className="bg-white border border-emerald-100 rounded-xl p-4 md:p-6">
+                    <div className="lg:hidden text-[10px] uppercase font-bold tracking-widest text-[#4B4136] mb-1">
+                      {block.title}
+                    </div>
+                    <div className="text-emerald-950 font-serif text-lg mb-1.5">
                       {block.notes.length > 0 ? block.notes.join(', ') : 'Notes coming soon'}
                     </div>
                     <p className="text-slate-600 text-sm leading-relaxed">
@@ -324,9 +327,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* No Fake Discount Promise */}
-      <section className="py-12">
+      <section className="py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-8 md:p-10">
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-6 md:p-10">
             <div className="absolute -top-8 right-0 w-32 h-32 rounded-full bg-emerald-50" />
             <div className="absolute -bottom-8 left-0 w-32 h-32 rounded-full bg-emerald-50" />
             <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
@@ -364,9 +367,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       </section>
 
       {/* Conviction CTA */}
-      <section className="py-16">
+      <section className="py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-10 md:p-14">
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-6 md:p-14">
             <div className="absolute -top-12 right-0 w-48 h-48 rounded-full bg-emerald-50" />
             <div className="absolute -bottom-12 left-0 w-40 h-40 rounded-full bg-emerald-50" />
             <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">

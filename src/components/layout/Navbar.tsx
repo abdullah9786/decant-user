@@ -86,14 +86,24 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100 p-4 space-y-4">
-          <Link href="/products" className="block text-lg font-medium text-gray-800">Shop All</Link>
-          <Link href="/brands" className="block text-lg font-medium text-gray-800">Brands</Link>
-          <Link href="/new-arrivals" className="block text-lg font-medium text-gray-800">New Arrivals</Link>
-          <Link href="/track-order" className="block text-lg font-medium text-gray-800">Track Order</Link>
-        </div>
+        <>
+          {/* Backdrop for clicking outside */}
+          <div 
+            className="fixed inset-0 top-20 bg-black/40 z-40 md:hidden animate-in fade-in"
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="Close menu"
+          />
+          
+          {/* Slide-down Menu Drawer */}
+          <div className="absolute top-full left-0 right-0 md:hidden bg-white border-t border-gray-100 p-6 space-y-5 z-50 shadow-xl animate-in slide-in-from-top-4 duration-300">
+            <Link href="/products" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Shop All</Link>
+            <Link href="/brands" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Brands</Link>
+            <Link href="/new-arrivals" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">New Arrivals</Link>
+            <Link href="/track-order" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Track Order</Link>
+          </div>
+        </>
       )}
     </nav>
   );

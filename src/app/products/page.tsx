@@ -154,13 +154,30 @@ function ProductListingContent() {
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6 md:mt-0 w-full md:w-auto">
-             <input
-               type="text"
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               placeholder="Search fragrances..."
-               className="w-full sm:w-64 px-4 py-2.5 rounded-none border-b border-gray-200 text-xs font-bold uppercase tracking-widest text-gray-600 placeholder:text-gray-400 focus:outline-none focus:border-emerald-600 bg-transparent"
-             />
+             <div className="relative w-full sm:w-64">
+               <input
+                 type="text"
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 onKeyDown={(e) => {
+                   if (e.key === 'Enter') {
+                     e.preventDefault();
+                     e.currentTarget.blur();
+                   }
+                 }}
+                 placeholder="Search fragrances..."
+                 className="w-full px-4 py-2.5 pr-10 rounded-none border-b border-gray-200 text-base font-serif text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-emerald-600 bg-transparent"
+               />
+               {searchTerm && (
+                 <button
+                   onClick={() => setSearchTerm('')}
+                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 p-1 transition-colors"
+                   aria-label="Clear search"
+                 >
+                   <X size={16} />
+                 </button>
+               )}
+             </div>
           </div>
         </div>
 
@@ -354,7 +371,7 @@ function ProductListingContent() {
         ) : filteredAndSortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8 lg:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {filteredAndSortedProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
+              <ProductCard key={product._id || product.id} {...product} />
             ))}
           </div>
         ) : (
