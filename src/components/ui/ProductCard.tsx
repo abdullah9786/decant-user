@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { useCartStore } from '@/store/useCartStore';
+import toast from 'react-hot-toast';
+import { Plus } from 'lucide-react';
 
 interface Variant {
   size_ml: number;
@@ -42,13 +45,76 @@ const ProductCard = ({
   // Extract up to 3 notes for a quick 'scent profile' preview right on the card
   const allNotes = [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3);
 
+  const { items, addItem, updateQuantity, removeItem } = useCartStore();
+
+  const defaultVariant = variants && variants.length > 0 
+    ? variants.reduce((min, v) => v.price < min.price ? v : min, variants[0])
+    : null;
+
+  const cartItem = defaultVariant 
+    ? items.find(item => item.id === (productId as string) && item.size_ml === defaultVariant.size_ml)
+    : null;
+    
+  const quantityInCart = cartItem?.quantity || 0;
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault(); // Don't navigate to product page
+    e.stopPropagation();
+    
+    if (!defaultVariant) {
+      toast.error('No sizes available');
+      return;
+    }
+
+    addItem({
+      id: productId as string,
+      name,
+      brand,
+      size_ml: defaultVariant.size_ml,
+      price: defaultVariant.price,
+      quantity: 1,
+      image_url
+    });
+
+    toast.success(`${name} (${defaultVariant.size_ml}ml) added to bag!`, {
+      icon: '✨',
+      style: {
+        borderRadius: '10px',
+        background: '#022c22',
+        color: '#fff',
+        fontSize: '12px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em'
+      },
+    });
+  };
+
+  const handleDecrement = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!defaultVariant) return;
+    
+    if (quantityInCart > 1) {
+      updateQuantity(productId as string, defaultVariant.size_ml, quantityInCart - 1);
+    } else {
+      removeItem(productId as string, defaultVariant.size_ml);
+    }
+  };
+
+  const handleIncrement = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!defaultVariant) return;
+    updateQuantity(productId as string, defaultVariant.size_ml, quantityInCart + 1);
+  };
+
   return (
     <Link 
       href={`/products/${productId}`} 
-      className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-all duration-300"
+      className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-all duration-300 flex flex-col h-full"
     >
       {/* Image Container */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10 shrink-0">
         
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5">
@@ -92,16 +158,46 @@ const ProductCard = ({
       </div>
 
       {/* Product Details - Boxed Flow */}
-      <div className="p-3 md:p-5 flex flex-col">
-        <p className="text-[10px] uppercase tracking-wider text-emerald-800/80 font-bold mb-1 leading-tight line-clamp-1">
+      <div className="p-3 md:p-5 flex flex-col flex-1">
+        <p className="text-[11px] uppercase tracking-wider text-emerald-950 font-bold mb-1 leading-tight line-clamp-1">
           {brand}
         </p>
         <h3 className="font-serif text-[15px] md:text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700 mb-1.5">
           {name}
         </h3>
-        <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
+        <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap mb-auto">
           {priceNode}
         </p>
+        
+        {/* Shopify Dawn style Add To Cart / Counter */}
+        <div className="mt-4 w-full" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+          {quantityInCart > 0 ? (
+            <div className="flex flex-row items-center justify-between border border-emerald-950 rounded-md bg-transparent w-full text-emerald-950 h-[42px]">
+              <button 
+                onClick={handleDecrement}
+                className="w-10 h-full flex items-center justify-center hover:bg-emerald-50 transition-colors text-lg"
+                aria-label="Decrease quantity"
+              >
+                -
+              </button>
+              <span className="text-[13px] font-bold w-12 text-center select-none">{quantityInCart}</span>
+              <button 
+                onClick={handleIncrement}
+                className="w-10 h-full flex items-center justify-center hover:bg-emerald-50 transition-colors text-lg"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={handleQuickAdd}
+              className="w-full text-center py-0 h-[42px] text-[10px] font-bold uppercase tracking-widest border border-emerald-950 text-emerald-950 bg-transparent rounded-md hover:bg-emerald-50 transition-colors cursor-pointer"
+            >
+              Add to Cart
+            </button>
+          )}
+        </div>
       </div>
     </Link>
   );
