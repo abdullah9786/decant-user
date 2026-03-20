@@ -17,7 +17,7 @@ export default function HomePage() {
     const fetchFeatured = async () => {
       try {
         const response = await productApi.getAll({ is_featured: true });
-        const featured = response.data.filter((p: any) => p.is_featured).slice(0, 6);
+        const featured = response.data.filter((p: any) => p.is_featured).slice(0, 8);
         setFeaturedProducts(featured);
       } catch (err) {
         console.error("Error fetching featured products", err);
@@ -111,7 +111,97 @@ export default function HomePage() {
         </div>
       </section>
 
-      <FairPricing
+      {/* Featured Products */}
+      <section className="py-12 md:py-20 bg-white/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">The Edit</div>
+              <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">Featured Fragrances</h2>
+            </div>
+            <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700">
+              Shop all
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="animate-spin text-emerald-200" size={32} />
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product._id || product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-slate-400 italic py-12">
+              Browse our collection to see all perfumes.
+            </div>
+          )}
+        </div>
+      </section>
+
+      
+{/* Collections Bento */}
+      <section className="py-12 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--hero-accent)] font-bold">Collections</div>
+              <h2 className="text-3xl md:text-4xl font-serif text-[color:var(--hero-text)]">Signature Curations</h2>
+            </div>
+            <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-[color:var(--hero-accent)] border-b border-[color:var(--hero-accent)]">
+              View all
+            </Link>
+          </div>
+
+          {catsLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="animate-spin text-emerald-200" size={32} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredCategories.length > 0 ? (
+                featuredCategories.map((cat, idx) => (
+                  <Link
+                    key={cat._id}
+                    href={`/products?category=${cat.name}`}
+                    className="group relative overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-lg h-64 md:h-72"
+                  >
+                    {cat.image_url ? (
+                      <img
+                        src={cat.image_url}
+                        alt={cat.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-emerald-50 flex items-center justify-center text-4xl">
+                        {cat.icon || '✨'}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+                    <div className="relative p-6 h-full flex flex-col justify-end">
+                      <div className="text-[10px] uppercase tracking-[0.35em] text-white/70 mb-2">Curated</div>
+                      <h3 className="text-white text-2xl font-serif uppercase tracking-widest">{cat.name}</h3>
+                      <span className="mt-4 inline-flex items-center text-[10px] uppercase tracking-widest text-white/80">
+                        Explore Collection <ArrowRight size={12} className="ml-2" />
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="col-span-full text-center text-slate-400 italic py-10">
+                  No featured collections yet.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      
+<FairPricing
         bottlePrice={5000}
         ourPrice={500}
         sizeLabel="10ml"
@@ -119,6 +209,70 @@ export default function HomePage() {
         othersHigh={700}
         introText="If a 100ml bottle is ₹5,000, a 10ml decant should be ₹500."
       />
+
+      {/* Trust / Authenticity */}
+      <section className="py-12 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-6 md:p-14">
+
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]"></div>
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-12 items-center">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--accent-muted)] font-bold">Authenticity Promise</div>
+                <h3 className="text-3xl md:text-4xl font-serif mt-3">
+                  Decanted exclusively from original, sealed retail bottles.
+                </h3>
+                <p className="text-[color:var(--accent-muted)] mt-4 max-w-2xl">
+                  We never use refills or clones. Every decant is hand‑filled, labeled, and sealed
+                  to preserve the exact character of the fragrance you’d experience from a full bottle.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                  {[
+                    { label: 'Verified', value: 'Originals' },
+                    { label: 'Small‑batch', value: 'Hand‑filled' },
+                    { label: 'Clean tools', value: 'Sanitized' },
+                    { label: 'Secure', value: 'Leak‑proof' },
+                  ].map((item) => (
+                    <div key={item.label} className="bg-white/10 border border-white/10 rounded-2xl p-4">
+                      <div className="text-sm font-bold">{item.value}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-[color:var(--accent-muted)] mt-1">{item.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white text-emerald-950 rounded-3xl p-6 md:p-8 shadow-2xl border border-emerald-50">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">Certificate</div>
+                  <div className="w-10 h-10 rounded-full bg-emerald-900 text-white flex items-center justify-center">
+                    <ShieldCheck size={18} />
+                  </div>
+                </div>
+                <div className="text-lg font-serif text-emerald-950 mb-2">Original Source Guarantee</div>
+                <p className="text-sm text-slate-600">
+                  Each decant is sourced from verified retail stock and checked before dispatch.
+                </p>
+                <div className="mt-6 space-y-3">
+                  {[
+                    'Retail bottle verification',
+                    'Batch‑tracked decanting',
+                    'Tamper‑safe sealing',
+                  ].map((item) => (
+                    <div key={item} className="flex items-center space-x-3 text-sm">
+                      <BadgeCheck size={16} className="text-emerald-700" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-4 border-t border-emerald-100 text-[10px] uppercase tracking-widest text-emerald-700">
+                  Verified by SCENTS Atelier
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Signature Atelier Section */}
       <section className="py-12 md:py-20">
@@ -197,157 +351,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust / Authenticity */}
-      <section className="py-12 md:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-6 md:p-14">
-
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]"></div>
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
-            <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-12 items-center">
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--accent-muted)] font-bold">Authenticity Promise</div>
-                <h3 className="text-3xl md:text-4xl font-serif mt-3">
-                  Decanted exclusively from original, sealed retail bottles.
-                </h3>
-                <p className="text-[color:var(--accent-muted)] mt-4 max-w-2xl">
-                  We never use refills or clones. Every decant is hand‑filled, labeled, and sealed
-                  to preserve the exact character of the fragrance you’d experience from a full bottle.
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                  {[
-                    { label: 'Verified', value: 'Originals' },
-                    { label: 'Small‑batch', value: 'Hand‑filled' },
-                    { label: 'Clean tools', value: 'Sanitized' },
-                    { label: 'Secure', value: 'Leak‑proof' },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-white/10 border border-white/10 rounded-2xl p-4">
-                      <div className="text-sm font-bold">{item.value}</div>
-                      <div className="text-[10px] uppercase tracking-widest text-[color:var(--accent-muted)] mt-1">{item.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white text-emerald-950 rounded-3xl p-6 md:p-8 shadow-2xl border border-emerald-50">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">Certificate</div>
-                  <div className="w-10 h-10 rounded-full bg-emerald-900 text-white flex items-center justify-center">
-                    <ShieldCheck size={18} />
-                  </div>
-                </div>
-                <div className="text-lg font-serif text-emerald-950 mb-2">Original Source Guarantee</div>
-                <p className="text-sm text-slate-600">
-                  Each decant is sourced from verified retail stock and checked before dispatch.
-                </p>
-                <div className="mt-6 space-y-3">
-                  {[
-                    'Retail bottle verification',
-                    'Batch‑tracked decanting',
-                    'Tamper‑safe sealing',
-                  ].map((item) => (
-                    <div key={item} className="flex items-center space-x-3 text-sm">
-                      <BadgeCheck size={16} className="text-emerald-700" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 pt-4 border-t border-emerald-100 text-[10px] uppercase tracking-widest text-emerald-700">
-                  Verified by SCENTS Atelier
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Collections Bento */}
-      <section className="py-12 md:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--hero-accent)] font-bold">Collections</div>
-              <h2 className="text-3xl md:text-4xl font-serif text-[color:var(--hero-text)]">Signature Curations</h2>
-            </div>
-            <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-[color:var(--hero-accent)] border-b border-[color:var(--hero-accent)]">
-              View all
-            </Link>
-          </div>
-
-          {catsLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="animate-spin text-emerald-200" size={32} />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredCategories.length > 0 ? (
-                featuredCategories.map((cat, idx) => (
-                  <Link
-                    key={cat._id}
-                    href={`/products?category=${cat.name}`}
-                    className="group relative overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-lg h-64 md:h-72"
-                  >
-                    {cat.image_url ? (
-                      <img
-                        src={cat.image_url}
-                        alt={cat.name}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-emerald-50 flex items-center justify-center text-4xl">
-                        {cat.icon || '✨'}
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-                    <div className="relative p-6 h-full flex flex-col justify-end">
-                      <div className="text-[10px] uppercase tracking-[0.35em] text-white/70 mb-2">Curated</div>
-                      <h3 className="text-white text-2xl font-serif uppercase tracking-widest">{cat.name}</h3>
-                      <span className="mt-4 inline-flex items-center text-[10px] uppercase tracking-widest text-white/80">
-                        Explore Collection <ArrowRight size={12} className="ml-2" />
-                      </span>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-full text-center text-slate-400 italic py-10">
-                  No featured collections yet.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-12 md:py-20 bg-white/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">The Edit</div>
-              <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">Featured Fragrances</h2>
-            </div>
-            <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700">
-              Shop all
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="animate-spin text-emerald-200" size={32} />
-            </div>
-          ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product._id || product.id} {...product} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-slate-400 italic py-12">
-              Browse our collection to see all perfumes.
-            </div>
-          )}
-        </div>
-      </section>
+      
 
       {/* Closing CTA */}
       <section className="py-12 md:py-20">
@@ -362,7 +366,7 @@ export default function HomePage() {
                   Explore by note profiles, occasions, or designer houses — and build a collection you’ll love.
                 </p>
               </div>
-              <Link href="/search" className="bg-white text-emerald-950 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-emerald-50 transition-all">
+              <Link href="/search" className="bg-white text-emerald-950 px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-emerald-50 transition-all text-center">
                 Start the Scent Finder
               </Link>
             </div>

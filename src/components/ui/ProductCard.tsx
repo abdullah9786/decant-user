@@ -13,53 +13,99 @@ interface ProductCardProps {
   variants?: Variant[];
   image_url?: string;
   is_featured?: boolean;
+  is_new_arrival?: boolean;
+  notes_top?: string[];
+  notes_middle?: string[];
+  notes_base?: string[];
 }
 
-const ProductCard = ({ id, _id, name, brand, variants, image_url, is_featured }: ProductCardProps) => {
+const ProductCard = ({ 
+  id, _id, name, brand, variants, image_url, is_featured, is_new_arrival,
+  notes_top = [], notes_middle = [], notes_base = []
+}: ProductCardProps) => {
   const productId = id || _id;
-  const displayPrice = variants && variants.length > 0 
-    ? Math.min(...variants.map(v => v.price)) 
-    : 0;
+  let minPrice = 0;
+  let maxPrice = 0;
+  
+  if (variants && variants.length > 0) {
+    const prices = variants.map(v => v.price);
+    minPrice = Math.min(...prices);
+    maxPrice = Math.max(...prices);
+  }
+
+  const priceNode = (minPrice === maxPrice || !variants || variants.length === 1) ? (
+    <>₹{minPrice} <span className="text-[9px] font-normal text-slate-400 uppercase tracking-wider">/ decant</span></>
+  ) : (
+    <>₹{minPrice} - ₹{maxPrice}</>
+  );
+
+  // Extract up to 3 notes for a quick 'scent profile' preview right on the card
+  const allNotes = [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3);
+
   return (
-    <div className="group bg-white border border-gray-100 p-4 transition-all hover:shadow-2xl hover:-translate-y-1 relative">
-      {is_featured && (
-        <span className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 z-10">
-          Featured
-        </span>
-      )}
-      
-      <Link href={`/products/${productId}`} className="block overflow-hidden bg-gray-50 aspect-[4/5] mb-6 relative">
+    <Link 
+      href={`/products/${productId}`} 
+      className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-all duration-300"
+    >
+      {/* Image Container */}
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10">
+        
+        {/* Badges */}
+        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5">
+          {is_new_arrival && (
+            <span className="bg-white/95 text-emerald-950 px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max border border-emerald-50">
+              New Arrival
+            </span>
+          )}
+          {is_featured && !is_new_arrival && (
+            <span className="bg-emerald-950/90 backdrop-blur-md text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
+              Featured
+            </span>
+          )}
+        </div>
+        
+        {/* Image */}
         {image_url ? (
           <img 
             src={image_url} 
             alt={name} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center italic text-gray-200 font-serif text-lg">
-             [ Fragrance Image ]
+          <div className="w-full h-full flex items-center justify-center font-serif text-slate-300 italic text-sm">
+            [ Fragrance Image ]
           </div>
         )}
-        
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
-           <button className="bg-white text-emerald-950 px-6 py-2 text-[10px] font-bold uppercase tracking-widest shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
-             Quick View
-           </button>
-        </div>
-      </Link>
 
-      <div className="text-center">
-        <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">{brand}</p>
-        <h3 className="font-serif text-lg text-emerald-950 mb-2 truncate px-2">{name}</h3>
-        <p className="text-emerald-600 font-bold mb-4">From ₹{displayPrice}</p>
-        <Link 
-          href={`/products/${productId}`}
-          className="inline-block w-full py-4 bg-gray-50 text-emerald-950 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-950 hover:text-white transition-all duration-300 text-center"
-        >
-          Select Options
-        </Link>
+        {/* Scent Profile Overlay (Always visible for Mobile UX) */}
+        {allNotes.length > 0 && (
+          <div className="absolute inset-x-0 bottom-0 p-3 pt-12 bg-gradient-to-t from-emerald-950/60 to-transparent z-10 pointer-events-none">
+            <div className="flex flex-wrap gap-1.5 justify-center">
+              {allNotes.map((note, idx) => (
+                <span key={idx} className="bg-white/20 backdrop-blur-md text-white border border-white/20 px-2 py-0.5 text-[8px] uppercase tracking-widest rounded-full flex items-center">
+                  {note}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Product Details - Boxed Flow */}
+      <div className="p-4 md:p-5">
+        <div className="flex justify-between items-start gap-2 mb-1">
+          <p className="text-[11px] uppercase tracking-wider text-emerald-950 font-bold leading-tight line-clamp-1">
+            {brand}
+          </p>
+          <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
+            {priceNode}
+          </p>
+        </div>
+        <h3 className="font-serif text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700">
+          {name}
+        </h3>
+      </div>
+    </Link>
   );
 };
 
