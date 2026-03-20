@@ -129,7 +129,7 @@ export default function HomePage() {
               <Loader2 className="animate-spin text-emerald-200" size={32} />
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
               {featuredProducts.map((product) => (
                 <ProductCard key={product._id || product.id} {...product} />
               ))}
@@ -167,7 +167,7 @@ export default function HomePage() {
               <Loader2 className="animate-spin text-emerald-200" size={32} />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
               {featuredCategories.length > 0 ? (
                 featuredCategories.map((cat, idx) => (
                   <Link

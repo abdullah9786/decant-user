@@ -92,18 +92,16 @@ const ProductCard = ({
       </div>
 
       {/* Product Details - Boxed Flow */}
-      <div className="p-4 md:p-5">
-        <div className="flex justify-between items-start gap-2 mb-1">
-          <p className="text-[11px] uppercase tracking-wider text-emerald-950 font-bold leading-tight line-clamp-1">
-            {brand}
-          </p>
-          <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
-            {priceNode}
-          </p>
-        </div>
-        <h3 className="font-serif text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700">
+      <div className="p-3 md:p-5 flex flex-col">
+        <p className="text-[10px] uppercase tracking-wider text-emerald-800/80 font-bold mb-1 leading-tight line-clamp-1">
+          {brand}
+        </p>
+        <h3 className="font-serif text-[15px] md:text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700 mb-1.5">
           {name}
         </h3>
+        <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
+          {priceNode}
+        </p>
       </div>
     </Link>
   );
