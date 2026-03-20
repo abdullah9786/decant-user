@@ -119,7 +119,7 @@ export default function HomePage() {
               <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">The Edit</div>
               <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">Featured Fragrances</h2>
             </div>
-            <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700">
+            <Link href="/products" className="hidden md:inline-block text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700">
               Shop all
             </Link>
           </div>
@@ -139,6 +139,12 @@ export default function HomePage() {
               Browse our collection to see all perfumes.
             </div>
           )}
+
+          <div className="mt-8 md:hidden">
+            <Link href="/products" className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200 bg-white/50 hover:bg-emerald-50 transition-colors">
+              Shop all fragrances
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -151,7 +157,7 @@ export default function HomePage() {
               <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--hero-accent)] font-bold">Collections</div>
               <h2 className="text-3xl md:text-4xl font-serif text-[color:var(--hero-text)]">Signature Curations</h2>
             </div>
-            <Link href="/products" className="text-xs font-bold uppercase tracking-widest text-[color:var(--hero-accent)] border-b border-[color:var(--hero-accent)]">
+            <Link href="/products" className="hidden md:inline-block text-xs font-bold uppercase tracking-widest text-[color:var(--hero-accent)] border-b border-[color:var(--hero-accent)]">
               View all
             </Link>
           </div>
@@ -197,6 +203,12 @@ export default function HomePage() {
               )}
             </div>
           )}
+
+          <div className="mt-8 md:hidden">
+            <Link href="/products" className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-[color:var(--hero-accent)] border border-[color:var(--hero-accent)]/20 hover:bg-[color:var(--hero-accent)]/5 transition-colors">
+              View all collections
+            </Link>
+          </div>
         </div>
       </section>
 
