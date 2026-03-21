@@ -41,3 +41,23 @@ body {
   --font-serif: var(--font-playfair);
   --font-sans: var(--font-inter);
 }
+
+.rich-content ul {
+  list-style-type: disc !important;
+  margin-left: 1.5rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+.rich-content ol {
+  list-style-type: decimal !important;
+  margin-left: 1.5rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+.rich-content li {
+  margin-bottom: 0.5rem !important;
+  display: list-item !important;
+}
+.rich-content p {
+  margin-bottom: 1rem !important;
+}

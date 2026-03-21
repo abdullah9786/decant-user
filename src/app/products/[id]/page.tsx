@@ -6,6 +6,7 @@ import { ShoppingBag, ChevronRight, Star, ShieldCheck, Truck, Loader2, ChevronLe
 import { useCartStore } from '@/store/useCartStore';
 import { productApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
+import dompurify from 'dompurify';
 import FairPricing from '@/components/home/FairPricing';
 
 
@@ -104,12 +105,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <span className="text-emerald-600 font-bold">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-20 items-start">
           {/* Left Column: Image Gallery (Dawn Style) */}
           <div className="lg:col-span-7 flex flex-col md:flex-row-reverse gap-4">
             {/* Main Image Viewer */}
             <div className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group">
-               {/* CSS cross-fade — no JS animation library needed */}
+               {/* ... images ... */}
                {allImages.map((img, i) => (
                  <img
                    key={i}
@@ -120,7 +121,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                    alt={product.name}
                  />
                ))}
-
+               
                {/* Mobile Controls */}
                <div className="absolute inset-0 flex items-center justify-between p-4 md:hidden pointer-events-none z-20">
                   <button 
@@ -251,9 +252,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               <div className="pt-8 border-t border-gray-100">
                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-6">Fragrance Description</h3>
-                 <div className="prose prose-sm font-serif italic text-gray-600 leading-relaxed text-lg">
-                    {product.description}
-                 </div>
+                 <div 
+                    className="prose prose-sm font-serif italic text-gray-600 leading-relaxed text-lg break-words rich-content"
+                    dangerouslySetInnerHTML={{ __html: dompurify.sanitize(product.description || '') }}
+                 />
               </div>
             </div>
           </div>
