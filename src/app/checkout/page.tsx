@@ -276,7 +276,7 @@ export default function CheckoutPage() {
             <div className="text-center py-10 animate-in zoom-in-95 duration-700">
                <CheckCircle2 size={100} className="text-green-500 mx-auto mb-8" />
                <h2 className="text-4xl font-serif text-emerald-950 mb-4">Order Confirmed!</h2>
-               <p className="text-gray-500 text-sm uppercase tracking-[0.2em] mb-12">Thank you for choosing SCENTS. Your order #{orderId} is being prepared.</p>
+               <p className="text-gray-500 text-sm uppercase tracking-[0.2em] mb-12">Thank you for choosing DECUME. Your order #{orderId} is being prepared.</p>
                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <Link href={`/track-order?orderId=${encodeURIComponent(orderId || '')}`} className="w-full sm:w-auto bg-emerald-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all">
                         Track Order
