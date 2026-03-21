@@ -57,6 +57,8 @@ export const orderApi = {
     getOne: (id: string) => api.get(`/orders/${id}`),
     track: (id: string) => api.get(`/orders/track/${id}`),
     syncGuestOrders: () => api.post('/orders/sync'),
+    initiatePayment: (orderId: string) => api.post(`/orders/${orderId}/initiate-payment`),
+    verifyPayment: (data: any) => api.post('/orders/verify-payment', data),
 };
 
 export default api;

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { orderApi } from '@/lib/api';
@@ -47,7 +48,7 @@ export default function CheckoutPage() {
         user_id: isAuthenticated ? (user?.id || (user as any)._id) : "guest",
         customer_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
         customer_email: customerEmail,
-        items: items.map(item => ({
+        items: items.map((item: any) => ({
           product_id: item.id || (item as any)._id,
           name: item.name,
           size_ml: item.size_ml,
@@ -59,15 +60,62 @@ export default function CheckoutPage() {
         status: 'pending'
       };
 
+      // 1. Create order in our DB
       const response = await orderApi.create(orderData);
       const realId = response.data?.id || response.data?._id;
-      setOrderId(realId || 'SD-' + Math.floor(Math.random() * 10000));
-      setStep(3);
-      setTimeout(() => clearCart(), 100);
+      
+      // 2. Initiate Razorpay Payment
+      const rzpResponse = await orderApi.initiatePayment(realId);
+      const rzpData = rzpResponse.data;
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '', // We need to ensure this is set
+        amount: rzpData.amount,
+        currency: rzpData.currency,
+        name: "SCENTS",
+        description: `Order #${realId}`,
+        order_id: rzpData.id,
+        handler: async function (response: any) {
+             try {
+                setLoading(true);
+                // 3. Verify Payment
+                await orderApi.verifyPayment({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature
+                });
+                
+                setOrderId(realId);
+                setStep(3);
+                setTimeout(() => clearCart(), 100);
+             } catch (err) {
+                 console.error("Payment verification failed", err);
+                 alert("Payment verification failed. Please contact support if your amount was deducted.");
+             } finally {
+                 setLoading(false);
+             }
+        },
+        prefill: {
+          name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+          email: customerEmail,
+          contact: shippingAddress.phone
+        },
+        theme: {
+          color: "#022c22"
+        },
+        modal: {
+            ondismiss: function() {
+                setLoading(false);
+            }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
     } catch (err) {
       console.error("Error creating order", err);
-      alert("Failed to place order. Please try again.");
-    } finally {
+      alert("Failed to initiate payment. Please try again.");
       setLoading(false);
     }
   };
@@ -92,6 +140,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="py-20 bg-white">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-around mb-20 relative">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -translate-y-1/2 z-0"></div>
@@ -100,7 +149,7 @@ export default function CheckoutPage() {
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
                   step > i ? 'bg-emerald-600 text-white border-emerald-600' : (step === i + 1 ? 'bg-emerald-950 text-white shadow-lg border-emerald-950' : 'bg-white border border-gray-200 text-gray-300')
                 } border-2`}>
-                  <s.icon size={20} />
+                   <s.icon size={20} />
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-widest ${step === i + 1 ? 'text-emerald-950' : 'text-gray-400'}`}>{s.title}</span>
              </div>
