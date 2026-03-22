@@ -80,10 +80,9 @@ export default function BrandsPage() {
                           <div className="text-emerald-50/5 text-7xl font-serif absolute inset-0 -top-6 -left-4 scale-150 blur-[1px] opacity-20 whitespace-nowrap uppercase tracking-widest leading-none">
                             {brand.name}
                           </div>
-                          <h2 className="relative text-2xl md:text-3xl font-serif text-emerald-50/90 uppercase tracking-[0.35em] leading-tight drop-shadow-lg">
+                          <h2 className="relative text-2xl md:text-3xl font-serif text-emerald-50/90 uppercase tracking-[0.3em] leading-tight drop-shadow-lg [text-shadow:6px_2px_3px_black]">
                             {brand.name}
                           </h2>
-                          <div className="w-16 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mx-auto mt-6" />
                         </div>
                       </div>
                     )}
