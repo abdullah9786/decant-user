@@ -57,19 +57,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       price: currentVariant.price,
       quantity: 1
     });
-    toast.success(`${product.name} added to cart!`, {
+    toast.success(`${product.name} (${selectedSize}ml) added to bag!`, {
+      icon: '✨',
       style: {
-        background: '#1e1b4b',
+        borderRadius: '10px',
+        background: '#022c22',
         color: '#fff',
-        fontSize: '10px',
-        fontWeight: 'bold',
-        letterSpacing: '0.1em',
+        fontSize: '12px',
         textTransform: 'uppercase',
-        borderRadius: '0',
-      },
-      iconTheme: {
-        primary: '#fff',
-        secondary: '#1e1b4b',
+        letterSpacing: '0.1em'
       },
     });
   };

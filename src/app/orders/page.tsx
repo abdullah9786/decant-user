@@ -35,29 +35,27 @@ export default function OrdersPage() {
       const response = await orderApi.getUserOrders(user?.id || (user as any)?._id);
       setOrders(response.data);
       toast.success('Orders synced', {
-        duration: 1500,
+        duration: 2000,
         style: {
-          background: '#1e1b4b',
+          borderRadius: '10px',
+          background: '#022c22',
           color: '#fff',
-          fontSize: '10px',
-          fontWeight: 'bold',
-          letterSpacing: '0.1em',
+          fontSize: '12px',
           textTransform: 'uppercase',
-          borderRadius: '0',
+          letterSpacing: '0.1em'
         },
       });
     } catch (err) {
       console.error("Error syncing orders", err);
       toast.error('Sync failed', {
-        duration: 1500,
+        duration: 2000,
         style: {
-          background: '#1e1b4b',
+          borderRadius: '10px',
+          background: '#991b1b',
           color: '#fff',
-          fontSize: '10px',
-          fontWeight: 'bold',
-          letterSpacing: '0.1em',
+          fontSize: '12px',
           textTransform: 'uppercase',
-          borderRadius: '0',
+          letterSpacing: '0.1em'
         },
       });
     } finally {
@@ -131,13 +129,12 @@ export default function OrdersPage() {
                         toast.success('ID Copied', {
                           duration: 1500,
                           style: {
-                            background: '#1e1b4b',
+                            borderRadius: '10px',
+                            background: '#022c22',
                             color: '#fff',
-                            fontSize: '10px',
-                            fontWeight: 'bold',
-                            letterSpacing: '0.1em',
+                            fontSize: '12px',
                             textTransform: 'uppercase',
-                            borderRadius: '0',
+                            letterSpacing: '0.1em'
                           },
                         });
                       }}
