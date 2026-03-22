@@ -253,8 +253,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="pt-8 border-t border-gray-100">
                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-6">Fragrance Description</h3>
                  <div 
-                    className="prose prose-sm font-serif italic text-gray-600 leading-relaxed text-lg break-words rich-content"
-                    dangerouslySetInnerHTML={{ __html: dompurify.sanitize(product.description || '') }}
+                    className="prose prose-sm font-serif italic text-gray-600 leading-relaxed text-lg rich-content"
+                    style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: dompurify.sanitize((product.description || '').replace(/&nbsp;|\u00A0/g, ' ')) 
+                    }}
                  />
               </div>
             </div>
@@ -262,25 +265,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <FairPricing
-        bottlePrice={bottlePrice}
-        ourPrice={selectedPrice}
-        sizeLabel={selectedMl ? `${selectedMl}ml` : 'Decant'}
-        othersLow={othersLow}
-        othersHigh={othersHigh}
-        introText={
-          selectedMl
-            ? `For ${selectedMl}ml, fair price is ₹${selectedPrice.toLocaleString('en-IN')}.`
-            : 'Choose a size to see fair pricing.'
-        }
-      />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Scent Pyramid */}
         {((product?.notes_top?.length ?? 0) + (product?.notes_middle?.length ?? 0) + (product?.notes_base?.length ?? 0) > 0) && (
           <div className="mt-10 md:mt-20">
             <div className="text-center mb-12">
-              <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-emerald-700">SCENT PYRAMID</span>
+              <span className="text-xs md:text-sm font-bold uppercase tracking-[0.35em] text-emerald-700">SCENT PYRAMID</span>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-10">
               <div className="relative hidden lg:flex flex-col items-center">
@@ -327,6 +317,19 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         )}
       </div>
+
+      <FairPricing
+        bottlePrice={bottlePrice}
+        ourPrice={selectedPrice}
+        sizeLabel={selectedMl ? `${selectedMl}ml` : 'Decant'}
+        othersLow={othersLow}
+        othersHigh={othersHigh}
+        introText={
+          selectedMl
+            ? `For ${selectedMl}ml, fair price is ₹${selectedPrice.toLocaleString('en-IN')}.`
+            : 'Choose a size to see fair pricing.'
+        }
+      />
 
       {/* No Fake Discount Promise */}
       <section className="py-8 md:py-12">
