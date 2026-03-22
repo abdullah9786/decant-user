@@ -188,7 +188,7 @@ function ProductListingContent() {
         </div>
 
         {/* Perfume Network Style Filter / Sort Bar */}
-        <div className="w-full border-t border-b border-gray-200 py-3 mb-8 flex justify-between items-center relative z-20">
+        <div className="w-full border-t border-b border-gray-200 py-3 mb-8 flex justify-between items-center relative z-40">
           
           {/* Desktop Filter Dropdowns */}
           <div className="hidden md:flex items-center space-x-8">
@@ -201,8 +201,8 @@ function ProductListingContent() {
               </button>
               {isFilterBrandOpen && (
                 <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsFilterBrandOpen(false)} />
-                  <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-20 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="fixed inset-0 z-30" onClick={() => setIsFilterBrandOpen(false)} />
+                  <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-50 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="max-h-60 overflow-y-auto space-y-2">
                        <button onClick={() => { setFilterBrands([]); setIsFilterBrandOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterBrands.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Brands</button>
                        {brands.map(brand => (
@@ -226,8 +226,8 @@ function ProductListingContent() {
               </button>
               {isFilterCategoryOpen && (
                 <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsFilterCategoryOpen(false)} />
-                  <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-20 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="fixed inset-0 z-30" onClick={() => setIsFilterCategoryOpen(false)} />
+                  <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-50 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="max-h-60 overflow-y-auto space-y-2">
                       <button onClick={() => { setFilterCategories([]); setIsFilterCategoryOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterCategories.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Families</button>
                       {fetchingCategories ? (
@@ -263,8 +263,8 @@ function ProductListingContent() {
             </button>
             {isSortOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsSortOpen(false)} />
-                <div className="absolute top-full right-0 mt-3 w-56 bg-white border border-[#E2E2E2] shadow-sm z-20 p-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="fixed inset-0 z-30" onClick={() => setIsSortOpen(false)} />
+                <div className="absolute top-full right-0 mt-3 w-56 bg-white border border-[#E2E2E2] shadow-sm z-50 p-2 animate-in fade-in slide-in-from-top-1 duration-200">
                   {sortOptions.map(option => (
                     <button
                       key={option.value}
