@@ -394,13 +394,19 @@ export default function SearchPage() {
               </div>
             ) : (
               <div>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-                  <div className="text-xs uppercase tracking-[0.2em] text-gray-400">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10 border-b border-gray-100 pb-8">
+                  <div className="text-xs uppercase tracking-[0.2em] text-gray-500 font-medium leading-relaxed">
                     Found <span className="text-emerald-950 font-bold">{filteredResults.length}</span> results 
                     {submittedQuery && <span> for “{submittedQuery}”</span>}
+                    {(selectedBrands.length > 0 || selectedFamilies.length > 0) && (
+                      <span className="text-emerald-800/60 lowercase italic"> in {[...selectedBrands, ...selectedFamilies].join(', ')}</span>
+                    )}
+                    {selectedNotes.length > 0 && (
+                      <span className="text-emerald-800/60 lowercase italic"> with notes: {selectedNotes.join(', ')}</span>
+                    )}
                   </div>
-                  <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700">
-                    Refine with filters
+                  <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-emerald-700">
+                    Results updated live
                   </div>
                 </div>
 
@@ -415,13 +421,22 @@ export default function SearchPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-20 text-center space-y-4">
-                    <p className="text-gray-400 font-serif italic text-lg">No matches found for this selection.</p>
+                  <div className="py-32 text-center max-w-xl mx-auto space-y-6">
+                    <p className="text-gray-400 font-serif italic text-xl">
+                      No results found for your specific blend of selection.
+                    </p>
+                    <p className="text-xs text-gray-400 uppercase tracking-widest leading-loose">
+                      We have fragrances {submittedQuery && <span>matching “{submittedQuery}”</span>} 
+                      {submittedQuery && (selectedBrands.length > 0 || selectedFamilies.length > 0) && <span> and </span>}
+                      {(selectedBrands.length > 0 || selectedFamilies.length > 0) && <span>from </span>}
+                      {[...selectedBrands, ...selectedFamilies].join(', ')}
+                      <span>, but not in this exact combination.</span>
+                    </p>
                     <button 
                       onClick={clearAllFilters}
-                      className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
+                      className="mt-8 px-8 py-3 bg-emerald-950 text-white text-[10px] uppercase font-bold tracking-[0.3em] hover:bg-emerald-900 transition-colors rounded-full"
                     >
-                      Clear all search & filters
+                      Clear Selection & Try Again
                     </button>
                   </div>
                 )}
