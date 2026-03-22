@@ -57,8 +57,8 @@ export const orderApi = {
     getOne: (id: string) => api.get(`/orders/${id}`),
     track: (id: string) => api.get(`/orders/track/${id}`),
     syncGuestOrders: () => api.post('/orders/sync'),
-    initiatePayment: (orderId: string) => api.post(`/orders/${orderId}/initiate-payment`),
-    verifyPayment: (data: any) => api.post('/orders/verify-payment', data),
+    initiatePaymentOnly: (amount: number) => api.post(`/orders/initiate-payment-only`, null, { params: { amount } }),
+    verifyAndCreate: (paymentDetails: any, orderData: any) => api.post('/orders/verify-and-create', { payment_details: paymentDetails, order_data: orderData }),
 };
 
 export default api;

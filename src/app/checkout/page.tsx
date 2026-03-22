@@ -60,36 +60,33 @@ export default function CheckoutPage() {
         status: 'pending'
       };
 
-      // 1. Create order in our DB
-      const response = await orderApi.create(orderData);
-      const realId = response.data?.id || response.data?._id;
-      
-      // 2. Initiate Razorpay Payment
-      const rzpResponse = await orderApi.initiatePayment(realId);
+      // 1. Initiate Razorpay Payment (No order created in DB yet)
+      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal);
       const rzpData = rzpResponse.data;
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '', // We need to ensure this is set
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
         amount: rzpData.amount,
         currency: rzpData.currency,
-        name: "SCENTS",
-        description: `Order #${realId}`,
+        name: "DECUME",
+        description: `Premium Fragrance Checkout`,
         order_id: rzpData.id,
-        handler: async function (response: any) {
+        handler: async function (paymentResponse: any) {
              try {
                 setLoading(true);
-                // 3. Verify Payment
-                await orderApi.verifyPayment({
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature
-                });
+                // 2. Verify Payment AND Create Order simultaneously
+                const verifyResponse = await orderApi.verifyAndCreate({
+                    razorpay_order_id: paymentResponse.razorpay_order_id,
+                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                    razorpay_signature: paymentResponse.razorpay_signature
+                }, orderData);
                 
-                setOrderId(realId);
+                const finalOrderId = verifyResponse.data?.id || verifyResponse.data?._id;
+                setOrderId(finalOrderId);
                 setStep(3);
                 setTimeout(() => clearCart(), 100);
              } catch (err) {
-                 console.error("Payment verification failed", err);
+                 console.error("Payment and order finalization failed", err);
                  alert("Payment verification failed. Please contact support if your amount was deducted.");
              } finally {
                  setLoading(false);
