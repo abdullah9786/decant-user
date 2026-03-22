@@ -71,7 +71,21 @@ export default function BrandsPage() {
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
                       />
                     ) : (
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.2),_transparent_60%)]" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 flex items-center justify-center p-8 text-center select-none overflow-hidden group-hover:brightness-110 transition-all duration-500">
+                        {/* Luxury Texture/Glow Overlay */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08),_transparent)] opacity-60" />
+                        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-10 mix-blend-overlay" />
+                        
+                        <div className="relative">
+                          <div className="text-emerald-50/5 text-7xl font-serif absolute inset-0 -top-6 -left-4 scale-150 blur-[1px] opacity-20 whitespace-nowrap uppercase tracking-widest leading-none">
+                            {brand.name}
+                          </div>
+                          <h2 className="relative text-2xl md:text-3xl font-serif text-emerald-50/90 uppercase tracking-[0.35em] leading-tight drop-shadow-lg">
+                            {brand.name}
+                          </h2>
+                          <div className="w-16 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mx-auto mt-6" />
+                        </div>
+                      </div>
                     )}
                     <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] uppercase tracking-widest text-emerald-800 font-bold">
                       {count} Fragrances
