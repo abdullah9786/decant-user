@@ -10,7 +10,7 @@ const normalize = (value: string) => value.trim().toLowerCase();
 export default function SearchPage() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]); // Full collection
   const [loading, setLoading] = useState(false);
 
   const [brands, setBrands] = useState<any[]>([]);
@@ -29,6 +29,7 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchMeta = async () => {
       try {
+        setLoading(true);
         const [brandResponse, categoryResponse, productResponse] = await Promise.all([
           brandApi.getAll(),
           categoryApi.getAll(),
@@ -38,11 +39,16 @@ export default function SearchPage() {
         setCategories(categoryResponse.data || []);
 
         const products = productResponse.data || [];
+        setAllProducts(products);
+
         const collect = (key: string): string[] =>
           Array.from(
             new Set<string>(
               products
-                .flatMap((p: any) => (p[key] || []))
+                .flatMap((p: any) => {
+                  const val = p[key];
+                  return Array.isArray(val) ? val : (val ? [val] : []);
+                })
                 .map((v: string) => v.trim())
                 .filter(Boolean)
             )
@@ -54,48 +60,27 @@ export default function SearchPage() {
         console.error("Search page meta fetch error", err);
       } finally {
         setNotesLoading(false);
+        setLoading(false);
       }
     };
     fetchMeta();
   }, []);
 
-  const runSearch = async (term: string) => {
-    const next = term.trim();
-    setSubmittedQuery(next);
-    if (!next) {
-      setResults([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await productApi.getAll({ q: next });
-      setResults(response.data || []);
-    } catch (err) {
-      console.error("Search error", err);
-    } finally {
-      setLoading(false);
-    }
+  const runSearch = (term: string) => {
+    setSubmittedQuery(term.trim());
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    await runSearch(query);
+    runSearch(query);
   };
 
   useEffect(() => {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      setSubmittedQuery('');
-      setResults([]);
-      return;
-    }
     const timer = setTimeout(() => {
-      if (trimmed !== submittedQuery) {
-        runSearch(trimmed);
-      }
+      runSearch(query);
     }, 350);
     return () => clearTimeout(timer);
-  }, [query, submittedQuery]);
+  }, [query]);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands((prev) =>
@@ -119,20 +104,44 @@ export default function SearchPage() {
     setSelectedBrands([]);
     setSelectedFamilies([]);
     setSelectedNotes([]);
+    setQuery('');
+    setSubmittedQuery('');
   };
 
   const filteredResults = useMemo(() => {
+    const term = normalize(submittedQuery);
     const brandSet = new Set(selectedBrands.map(normalize));
     const familySet = new Set(selectedFamilies.map(normalize));
     const noteSet = new Set(selectedNotes.map(normalize));
 
-    return results.filter((product) => {
+    return allProducts.filter((product) => {
+      // 1. Search Query Filter (if active)
+      if (term) {
+        const matchesName = normalize(product.name || '').includes(term);
+        const matchesBrand = normalize(product.brand || '').includes(term);
+        const allNotes = [
+          ...(product.notes_top || []),
+          ...(product.notes_middle || []),
+          ...(product.notes_base || []),
+        ].map(n => normalize(n));
+        const matchesNotes = allNotes.some(n => n.includes(term));
+        
+        if (!matchesName && !matchesBrand && !matchesNotes) {
+          return false;
+        }
+      }
+
+      // 2. Brand Filter (if active)
       if (brandSet.size > 0 && !brandSet.has(normalize(String(product.brand || '')))) {
         return false;
       }
+
+      // 3. Family Filter (if active)
       if (familySet.size > 0 && !familySet.has(normalize(String(product.category || '')))) {
         return false;
       }
+
+      // 4. Note Tags Filter (if active)
       if (noteSet.size > 0) {
         const allNotes = [
           ...(product.notes_top || []),
@@ -142,9 +151,12 @@ export default function SearchPage() {
         const hasNote = allNotes.some((n) => noteSet.has(n));
         if (!hasNote) return false;
       }
+
       return true;
     });
-  }, [results, selectedBrands, selectedFamilies, selectedNotes]);
+  }, [allProducts, submittedQuery, selectedBrands, selectedFamilies, selectedNotes]);
+
+  const isBrowsing = submittedQuery.length > 0 || selectedBrands.length > 0 || selectedFamilies.length > 0 || selectedNotes.length > 0;
 
   const trendingNotes = notesTop.slice(0, 8);
   const popularBrands = brands.slice(0, 8);
@@ -316,7 +328,7 @@ export default function SearchPage() {
           </aside>
 
           <div>
-            {submittedQuery.length === 0 ? (
+            {!isBrowsing ? (
               <div className="space-y-10">
                 <div>
                   <div className="text-xs font-bold uppercase tracking-widest text-emerald-950 mb-4">Trending Notes</div>
@@ -384,7 +396,8 @@ export default function SearchPage() {
               <div>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                   <div className="text-xs uppercase tracking-[0.2em] text-gray-400">
-                    Found <span className="text-emerald-950 font-bold">{filteredResults.length}</span> results for “{submittedQuery}”
+                    Found <span className="text-emerald-950 font-bold">{filteredResults.length}</span> results 
+                    {submittedQuery && <span> for “{submittedQuery}”</span>}
                   </div>
                   <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700">
                     Refine with filters
@@ -398,24 +411,18 @@ export default function SearchPage() {
                 ) : filteredResults.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {filteredResults.map((product) => (
-                      <ProductCard key={product.id} {...product} />
+                      <ProductCard key={product.id || product._id} {...product} />
                     ))}
                   </div>
                 ) : (
                   <div className="py-20 text-center space-y-4">
-                    <p className="text-gray-400 font-serif italic text-lg">No matches found for this search.</p>
-                    <div className="flex flex-wrap gap-3 justify-center">
-                      {(trendingNotes.length ? trendingNotes.slice(0, 6) : ['Amber', 'Citrus', 'Rose']).map((note) => (
-                        <button
-                          key={note}
-                          type="button"
-                          onClick={() => { setQuery(note); runSearch(note); }}
-                          className="px-4 py-2 bg-emerald-50 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-100 transition-colors border border-emerald-100"
-                        >
-                          {note}
-                        </button>
-                      ))}
-                    </div>
+                    <p className="text-gray-400 font-serif italic text-lg">No matches found for this selection.</p>
+                    <button 
+                      onClick={clearAllFilters}
+                      className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
+                    >
+                      Clear all search & filters
+                    </button>
                   </div>
                 )}
               </div>
