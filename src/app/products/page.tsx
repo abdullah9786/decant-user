@@ -28,19 +28,12 @@ function ProductListingContent() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    // Fetch all products so local filtering works on the entire collection
+    const fetchFullCollection = async () => {
       try {
         setLoading(true);
-        const categoryParam = searchParams.get('category');
-        const brandParam = searchParams.get('brand');
-        setFilterCategories(categoryParam ? [categoryParam] : []);
-        setFilterBrands(brandParam ? [brandParam] : []);
-
-        const response = await productApi.getAll({
-          category: categoryParam || undefined,
-          brand: brandParam || undefined,
-        });
-        setProducts(response.data);
+        const response = await productApi.getAll();
+        setProducts(response.data || []);
       } catch (err: any) {
         setError("Failed to load fragrances. Please try again later.");
         console.error(err);
@@ -48,7 +41,20 @@ function ProductListingContent() {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchFullCollection();
+  }, []); // Only once on mount
+
+  useEffect(() => {
+    // Sync local filters with URL query params
+    const categoryParam = searchParams.get('category');
+    const brandParam = searchParams.get('brand');
+    
+    if (categoryParam) {
+      setFilterCategories(prev => prev.includes(categoryParam) ? prev : [categoryParam]);
+    }
+    if (brandParam) {
+      setFilterBrands(prev => prev.includes(brandParam) ? prev : [brandParam]);
+    }
   }, [searchParams]);
 
   useEffect(() => {
