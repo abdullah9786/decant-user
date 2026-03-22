@@ -169,10 +169,11 @@ export default function CheckoutPage() {
               )}
               <div className="grid grid-cols-2 gap-6">
                 <input 
-                    placeholder="First Name" 
+                    placeholder="First Name *" 
+                    required
                     value={shippingAddress.first_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, first_name: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
                     placeholder="Last Name" 
@@ -183,30 +184,34 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <input 
-                    placeholder="Building Name / House No" 
+                    placeholder="Building Name / House No *" 
+                    required
                     value={shippingAddress.building_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, building_name: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
-                    placeholder="Floor / Apartment No (Optional)" 
+                    placeholder="Floor / Apartment No *" 
+                    required
                     value={shippingAddress.floor_no}
                     onChange={(e) => setShippingAddress({...shippingAddress, floor_no: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               </div>
               <input 
-                placeholder="Street Address / Landmark" 
+                placeholder="Street Address / Landmark *" 
+                required
                 value={shippingAddress.street}
                 onChange={(e) => setShippingAddress({...shippingAddress, street: e.target.value})}
-                className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
+                className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
               <div className="grid grid-cols-2 gap-6">
                 <input 
-                    placeholder="City" 
+                    placeholder="City *" 
+                    required
                     value={shippingAddress.city}
                     onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
                     placeholder="PIN Code *" 
@@ -229,6 +234,9 @@ export default function CheckoutPage() {
                 disabled={
                   !shippingAddress.first_name || 
                   !shippingAddress.building_name || 
+                  !shippingAddress.floor_no || 
+                  !shippingAddress.street || 
+                  !shippingAddress.city || 
                   !shippingAddress.zip || 
                   !shippingAddress.phone ||
                   (!isAuthenticated && !shippingAddress.email)
