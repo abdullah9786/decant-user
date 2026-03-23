@@ -165,7 +165,7 @@ export default async function HomePage() {
             </div>
           )}
 
-          <div className="mt-8 md:hidden">
+          <div className="mt-8">
             <Link
               href="/products"
               className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200 bg-white/50 hover:bg-emerald-50 transition-colors"
@@ -239,7 +239,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="mt-8 md:hidden">
+          <div className="mt-8">
             <Link
               href="/products"
               className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-[color:var(--hero-accent)] border border-[color:var(--hero-accent)]/20 hover:bg-[color:var(--hero-accent)]/5 transition-colors"
