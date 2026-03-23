@@ -25,9 +25,30 @@ export async function generateMetadata({
   const { id } = await params;
   const product = await getProduct(id);
   if (!product) return { title: "Product Not Found | Decume" };
+
+  const title = `${product.name} by ${product.brand} — Perfume Decant`;
+  const description = `Buy ${product.name} by ${product.brand} perfume decant. ${product.variants?.[0] ? `Starting at ₹${product.variants[0].price}.` : ""} Authentic, hand-filled, pan-India delivery.`;
+  const url = `https://decume.in/products/${product._id || product.id}`;
+
   return {
-    title: `${product.name} by ${product.brand} | Decume`,
-    description: `Buy ${product.name} by ${product.brand} perfume decant. ${product.variants?.[0] ? `Starting at ₹${product.variants[0].price}.` : ""} Authentic, hand-filled, pan-India delivery.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      ...(product.image_url && {
+        images: [{ url: product.image_url, alt: product.name }],
+      }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(product.image_url && { images: [product.image_url] }),
+    },
   };
 }
 
@@ -55,5 +76,35 @@ export default async function ProductDetailPage({
     );
   }
 
-  return <ProductDetailClient product={product} />;
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description?.replace(/<[^>]*>/g, "").slice(0, 300),
+    brand: { "@type": "Brand", name: product.brand },
+    ...(product.image_url && { image: product.image_url }),
+    ...(product.variants?.length > 0 && {
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "INR",
+        lowPrice: Math.min(...product.variants.map((v: any) => v.price)),
+        highPrice: Math.max(...product.variants.map((v: any) => v.price)),
+        availability:
+          (product.stock_ml ?? 0) > 0
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+        offerCount: product.variants.length,
+      },
+    }),
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <ProductDetailClient product={product} />
+    </>
+  );
 }

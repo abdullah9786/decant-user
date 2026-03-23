@@ -18,8 +18,54 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Decume | Premium Perfume Decants India",
-  description: "Experience luxury fragrances with our curated collection of authentic perfume decants. Authentic, affordable, and accessible across India.",
+  metadataBase: new URL("https://decume.in"),
+  title: {
+    default: "Decume | Premium Perfume Decants India",
+    template: "%s | Decume",
+  },
+  description:
+    "Experience luxury fragrances with our curated collection of authentic perfume decants. Authentic, affordable, and accessible across India.",
+  keywords: [
+    "perfume decants",
+    "perfume samples India",
+    "fragrance decants",
+    "designer perfume India",
+    "niche perfume decant",
+    "buy perfume decant online",
+    "trial size perfume",
+    "Decume",
+  ],
+  authors: [{ name: "Decume" }],
+  creator: "Decume",
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://decume.in",
+    siteName: "Decume",
+    title: "Decume | Premium Perfume Decants India",
+    description:
+      "Authentic perfume decants from designer and niche houses. Trial sizes, fair pricing, pan-India delivery.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Decume | Premium Perfume Decants India",
+    description:
+      "Authentic perfume decants from designer and niche houses. Trial sizes, fair pricing, pan-India delivery.",
+  },
+  alternates: {
+    canonical: "https://decume.in",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({

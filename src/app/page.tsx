@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -9,6 +10,13 @@ import {
 } from "lucide-react";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import FairPricing from "@/components/home/FairPricing";
+
+export const metadata: Metadata = {
+  title: "Decume | Premium Perfume Decants India — Authentic Trial Sizes",
+  description:
+    "Discover authentic designer and niche perfume decants at fair prices. Hand-filled, leak-proof, 48-72h pan-India delivery. Try before you commit to a full bottle.",
+  alternates: { canonical: "https://decume.in" },
+};
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -39,6 +47,29 @@ async function getFeaturedCategories() {
   }
 }
 
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Decume",
+  url: "https://decume.in",
+  description:
+    "Authentic perfume decants from designer and niche houses. Trial sizes, fair pricing, pan-India delivery.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://decume.in/search?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Decume",
+  url: "https://decume.in",
+  description:
+    "Premium perfume decanting service in India. Authentic fragrances in trial sizes.",
+};
+
 export default async function HomePage() {
   const [featuredProducts, featuredCategories] = await Promise.all([
     getFeaturedProducts(),
@@ -47,6 +78,14 @@ export default async function HomePage() {
 
   return (
     <div className="bg-transparent">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_55%)]"></div>
