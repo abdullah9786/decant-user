@@ -2,6 +2,7 @@
 
 import React, { Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 
@@ -38,8 +39,12 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-8">
             {items.map((item) => (
               <div key={`${item.id}-${item.size_ml}`} className="flex items-center space-x-6 border-b border-gray-100 pb-8">
-                <div className="w-24 h-32 bg-gray-50 flex-shrink-0 flex items-center justify-center italic text-gray-200 text-[10px] border border-gray-100">
-                  Image
+                <div className="w-24 h-32 bg-gray-50 flex-shrink-0 relative border border-gray-100 overflow-hidden">
+                  {item.image_url ? (
+                    <Image src={item.image_url} alt={item.name} fill sizes="96px" className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center italic text-gray-200 text-[10px]">Image</div>
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.brand}</p>
