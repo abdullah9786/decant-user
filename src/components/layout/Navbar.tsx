@@ -28,16 +28,16 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
-          {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600">
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Logo />
+          {/* Mobile: Hamburger + Logo grouped together */}
+          <div className="flex items-center space-x-4 md:space-x-0">
+            <div className="flex items-center md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600">
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+            <div className="flex-shrink-0 flex items-center">
+              <Logo />
+            </div>
           </div>
 
           {/* Desktop Nav */}
