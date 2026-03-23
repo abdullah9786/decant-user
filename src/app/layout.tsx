@@ -35,6 +35,11 @@ export const metadata: Metadata = {
     "trial size perfume",
     "Decume",
   ],
+  icons: {
+    icon: "https://ik.imagekit.io/smhon4suw/image.png?updatedAt=1774281578448",
+    apple:
+      "https://ik.imagekit.io/smhon4suw/image.png?updatedAt=1774281578448",
+  },
   authors: [{ name: "Decume" }],
   creator: "Decume",
   openGraph: {
