@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { categoryApi } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
@@ -47,10 +48,12 @@ export default function FamiliesPage() {
               >
                 <div className="relative aspect-[16/10] bg-emerald-50/60">
                   {family.image_url ? (
-                    <img
+                    <Image
                       src={family.image_url}
                       alt={family.name}
-                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover group-hover:scale-[1.02] transition-transform"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.2),_transparent_60%)]" />

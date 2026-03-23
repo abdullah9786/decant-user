@@ -29,7 +29,12 @@
 body {
   color: var(--text-primary);
   background: var(--page-bg);
-  background-attachment: fixed;
+}
+
+@media (min-width: 769px) {
+  body {
+    background-attachment: fixed;
+  }
 }
 
 ::selection {

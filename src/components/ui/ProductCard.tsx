@@ -1,7 +1,9 @@
+"use client";
+
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import toast from 'react-hot-toast';
-import { Plus } from 'lucide-react';
 
 interface Variant {
   size_ml: number;
@@ -132,10 +134,12 @@ const ProductCard = ({
         
         {/* Image */}
         {image_url ? (
-          <img 
+          <Image 
             src={image_url} 
-            alt={name} 
-            className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03]"
+            alt={name}
+            fill
+            sizes="(max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03]"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center font-serif text-slate-300 italic text-sm">

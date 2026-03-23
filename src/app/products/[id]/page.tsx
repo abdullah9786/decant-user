@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingBag, ChevronRight, Star, ShieldCheck, Truck, Loader2, ChevronLeft } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { productApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
-import dompurify from 'dompurify';
 import FairPricing from '@/components/home/FairPricing';
 
 
@@ -36,6 +36,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    if (!product?.description) return;
+    import('dompurify').then((mod) => {
+      const DOMPurify = mod.default;
+      setSanitizedDescription(
+        DOMPurify.sanitize((product.description || '').replace(/&nbsp;|\u00A0/g, ' '))
+      );
+    });
+  }, [product?.description]);
+
+  const [sanitizedDescription, setSanitizedDescription] = useState('');
   const allImages = product ? [product.image_url, ...(product.images || [])].filter(Boolean) : [];
   const currentVariant = product?.variants?.find((v: any) => v.size_ml === selectedSize) || product?.variants?.[0];
   const selectedMl = selectedSize ?? currentVariant?.size_ml ?? 0;
@@ -108,13 +119,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group">
                {/* ... images ... */}
                {allImages.map((img, i) => (
-                 <img
+                 <Image
                    key={i}
                    src={img}
-                   className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                   alt={product.name}
+                   fill
+                   sizes="(max-width: 1024px) 100vw, 58vw"
+                   priority={i === 0}
+                   className={`object-cover transition-opacity duration-500 ${
                      i === activeImageIdx ? 'opacity-100 z-10' : 'opacity-0 z-0'
                    }`}
-                   alt={product.name}
                  />
                ))}
                
@@ -155,7 +169,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       i === activeImageIdx ? 'border-emerald-600 ring-2 ring-emerald-50' : 'border-transparent hover:border-gray-200'
                     }`}
                  >
-                    <img src={img} className="w-full h-full object-cover" />
+                    <Image src={img} alt="" fill sizes="96px" className="object-cover" />
                  </button>
                ))}
             </div>
@@ -166,11 +180,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                  <button
                     key={i}
                     onClick={() => setActiveImageIdx(i)}
-                    className={`flex-shrink-0 w-20 aspect-square border-2 transition-all ${
+                    className={`flex-shrink-0 w-20 aspect-square relative border-2 transition-all ${
                       i === activeImageIdx ? 'border-emerald-600' : 'border-transparent'
                     }`}
                  >
-                    <img src={img} className="w-full h-full object-cover" />
+                    <Image src={img} alt="" fill sizes="80px" className="object-cover" />
                  </button>
                ))}
             </div>
@@ -251,9 +265,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                  <div 
                     className="prose prose-sm font-serif italic text-gray-600 leading-relaxed text-lg rich-content"
                     style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}
-                    dangerouslySetInnerHTML={{ 
-                      __html: dompurify.sanitize((product.description || '').replace(/&nbsp;|\u00A0/g, ' ')) 
-                    }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
                  />
               </div>
             </div>

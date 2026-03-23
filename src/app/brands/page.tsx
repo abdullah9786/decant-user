@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { brandApi, productApi } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
@@ -65,10 +66,12 @@ export default function BrandsPage() {
                 >
                   <div className="relative aspect-[16/9] bg-emerald-50/60">
                     {brand.image_url ? (
-                      <img
+                      <Image
                         src={brand.image_url}
                         alt={brand.name}
-                        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-[1.02] transition-transform"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 flex items-center justify-center p-8 text-center select-none overflow-hidden group-hover:brightness-110 transition-all duration-500">
