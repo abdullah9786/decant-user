@@ -129,27 +129,107 @@ export default async function StorefrontPage({
         {/* Sections */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 space-y-14">
           {sections.length > 0 ? (
-            sections.map((section: any) => (
-              <section key={section._id}>
-                <h2 className="text-2xl md:text-3xl font-serif text-emerald-950 mb-6">
-                  {section.title}
-                </h2>
-                {section.products.length > 0 ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
-                    {section.products.map((product: any) => (
-                      <ProductCard
-                        key={product._id || product.id}
-                        {...product}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">
-                    No products in this section yet.
-                  </p>
-                )}
-              </section>
-            ))
+            sections.map((section: any) => {
+              const sType = section.section_type || "products";
+
+              return (
+                <section key={section._id}>
+                  <h2 className="text-2xl md:text-3xl font-serif text-emerald-950 mb-6">
+                    {section.title}
+                  </h2>
+
+                  {sType === "products" && (
+                    <>
+                      {section.products && section.products.length > 0 ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
+                          {section.products.map((product: any) => (
+                            <ProductCard
+                              key={product._id || product.id}
+                              {...product}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">
+                          No products in this section yet.
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {sType === "brands" && (
+                    <>
+                      {section.brands && section.brands.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                          {section.brands.map((brand: any, idx: number) => (
+                            <Link
+                              key={brand._id || idx}
+                              href={`/products?brand=${encodeURIComponent(brand.name)}`}
+                              className="group rounded-3xl border border-emerald-100 bg-white/80 shadow-sm hover:shadow-xl transition-all overflow-hidden"
+                            >
+                              <div className="relative aspect-[16/9] bg-emerald-50/60">
+                                {brand.image_url ? (
+                                  <Image
+                                    src={brand.image_url}
+                                    alt={brand.name}
+                                    fill
+                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                    className="object-cover group-hover:scale-[1.02] transition-transform"
+                                  />
+                                ) : (
+                                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 flex items-center justify-center p-8 text-center select-none overflow-hidden group-hover:brightness-110 transition-all duration-500">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08),_transparent)] opacity-60" />
+                                    <div className="relative">
+                                      <h2 className="relative text-2xl md:text-3xl font-serif text-emerald-50/90 uppercase tracking-[0.3em] leading-tight drop-shadow-lg [text-shadow:6px_2px_3px_black]">
+                                        {brand.name}
+                                      </h2>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-6">
+                                <h3 className="font-serif text-2xl text-emerald-950 group-hover:text-emerald-900 transition-colors">
+                                  {brand.name}
+                                </h3>
+                                <div className="mt-4 text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">
+                                  Shop this brand
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">
+                          No brands in this section yet.
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {sType === "notes" && (
+                    <>
+                      {section.notes && section.notes.length > 0 ? (
+                        <div className="flex flex-wrap gap-2.5">
+                          {section.notes.map((note: string) => (
+                            <Link
+                              key={note}
+                              href={`/search?note=${encodeURIComponent(note)}`}
+                              className="px-4 py-2 rounded-full border border-emerald-200 bg-emerald-50/50 text-sm font-medium text-emerald-800 hover:bg-emerald-100 hover:border-emerald-300 transition-all"
+                            >
+                              {note}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">
+                          No notes in this section yet.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </section>
+              );
+            })
           ) : (
             <div className="text-center py-20">
               <p className="text-slate-400 italic text-sm">

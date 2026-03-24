@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search as SearchIcon } from 'lucide-react';
 import ProductCard from '@/components/ui/ProductCard';
 import { brandApi, categoryApi, productApi } from '@/lib/api';
@@ -8,9 +9,12 @@ import { brandApi, categoryApi, productApi } from '@/lib/api';
 const normalize = (value: string) => value.trim().toLowerCase();
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const noteParam = searchParams.get('note');
+
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
-  const [allProducts, setAllProducts] = useState<any[]>([]); // Full collection
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [brands, setBrands] = useState<any[]>([]);
@@ -24,7 +28,9 @@ export default function SearchPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
-  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+  const [selectedNotes, setSelectedNotes] = useState<string[]>(
+    noteParam ? [noteParam] : []
+  );
 
   useEffect(() => {
     const fetchMeta = async () => {
