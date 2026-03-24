@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { orderApi } from '@/lib/api';
-import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2 } from 'lucide-react';
+import { orderApi, influencerApi } from '@/lib/api';
+import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation
@@ -28,9 +28,38 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCartStore();
   const subtotal = totalPrice();
   const shippingFee = subtotal > 999 ? 0 : 90;
-  const grandTotal = subtotal + shippingFee;
+
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState<{ discount_percent: number; influencer_id: string } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  const discountAmount = couponApplied ? Math.round(subtotal * couponApplied.discount_percent / 100) : 0;
+  const grandTotal = subtotal + shippingFee - discountAmount;
+
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const res = await influencerApi.validateCoupon(couponCode.trim());
+      const data = res.data;
+      if (data.valid) {
+        setCouponApplied({ discount_percent: data.discount_percent, influencer_id: data.influencer_id });
+      } else {
+        setCouponError(data.message || 'Invalid coupon');
+        setCouponApplied(null);
+      }
+    } catch {
+      setCouponError('Failed to validate coupon');
+      setCouponApplied(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const handleNext = async () => {
      if (step === 1) {
@@ -44,7 +73,28 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       const customerEmail = isAuthenticated ? (user?.email || '') : shippingAddress.email;
-      const orderData = {
+
+      let influencerId: string | null = null;
+      let referralCode: string | null = null;
+      try {
+        const refRaw = localStorage.getItem("decume-ref");
+        if (refRaw) {
+          const ref = JSON.parse(refRaw);
+          const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+          if (ref.influencer_id && Date.now() - ref.timestamp < SEVEN_DAYS) {
+            const userId = isAuthenticated ? (user?.id || (user as any)?._id) : null;
+            const isSelfReferral = userId && ref.influencer_id === userId;
+            if (!isSelfReferral) {
+              influencerId = ref.influencer_id;
+              referralCode = ref.username || null;
+            }
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+
+      const orderData: any = {
         user_id: isAuthenticated ? (user?.id || (user as any)._id) : "guest",
         customer_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
         customer_email: customerEmail,
@@ -57,7 +107,12 @@ export default function CheckoutPage() {
         })),
         total_amount: grandTotal,
         shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
-        status: 'pending'
+        status: 'pending',
+        ...(influencerId && { influencer_id: influencerId }),
+        ...(referralCode && { referral_code: referralCode }),
+        ...(couponApplied && !influencerId && { influencer_id: couponApplied.influencer_id }),
+        ...(couponApplied && { coupon_code: couponCode.trim().toUpperCase() }),
+        ...(discountAmount > 0 && { discount_amount: discountAmount }),
       };
 
       // 1. Initiate Razorpay Payment (No order created in DB yet)
@@ -85,6 +140,7 @@ export default function CheckoutPage() {
                 setOrderId(finalOrderId);
                 setStep(3);
                 setTimeout(() => clearCart(), 100);
+                try { localStorage.removeItem("decume-ref"); } catch {}
              } catch (err) {
                  console.error("Payment and order finalization failed", err);
                  alert("Payment verification failed. Please contact support if your amount was deducted.");
@@ -229,6 +285,47 @@ export default function CheckoutPage() {
                 className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
               
+              {/* Coupon Code */}
+              <div className="pt-4 border-t border-gray-100">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 block">
+                  <Tag size={12} className="inline mr-1 -mt-0.5" />
+                  Coupon Code
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    placeholder="Enter code"
+                    value={couponCode}
+                    onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                    disabled={!!couponApplied}
+                    className="flex-1 bg-gray-50 border border-gray-100 p-3 text-sm focus:outline-none focus:border-emerald-600 uppercase tracking-widest"
+                  />
+                  {couponApplied ? (
+                    <button
+                      onClick={() => { setCouponApplied(null); setCouponCode(''); }}
+                      className="px-5 py-3 text-xs font-bold uppercase tracking-widest border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !couponCode.trim()}
+                      className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-emerald-950 text-white hover:bg-black transition-all disabled:opacity-50"
+                    >
+                      {couponLoading ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
+                    </button>
+                  )}
+                </div>
+                {couponError && (
+                  <p className="text-xs text-red-500 mt-1">{couponError}</p>
+                )}
+                {couponApplied && (
+                  <p className="text-xs text-emerald-600 font-bold mt-1">
+                    {couponApplied.discount_percent}% discount applied! You save ₹{discountAmount}
+                  </p>
+                )}
+              </div>
+
               <button 
                 onClick={handleNext}
                 disabled={

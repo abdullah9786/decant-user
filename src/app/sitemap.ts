@@ -4,6 +4,19 @@ const BASE_URL = "https://decume.in";
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+async function getInfluencerUsernames(): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_URL}/influencers/public/list`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const profiles = await res.json();
+    return profiles.map((p: any) => p.username);
+  } catch {
+    return [];
+  }
+}
+
 async function getAllProductIds(): Promise<
   { id: string; updated_at?: string }[]
 > {
@@ -23,7 +36,10 @@ async function getAllProductIds(): Promise<
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getAllProductIds();
+  const [products, influencers] = await Promise.all([
+    getAllProductIds(),
+    getInfluencerUsernames(),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -62,6 +78,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.6,
     },
+    {
+      url: `${BASE_URL}/creators`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.7,
+    },
   ];
 
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
@@ -71,5 +93,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...productRoutes];
+  const influencerRoutes: MetadataRoute.Sitemap = influencers.map((username) => ({
+    url: `${BASE_URL}/${username}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...productRoutes, ...influencerRoutes];
 }

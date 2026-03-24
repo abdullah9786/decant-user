@@ -61,4 +61,8 @@ export const orderApi = {
     verifyAndCreate: (paymentDetails: any, orderData: any) => api.post('/orders/verify-and-create', { payment_details: paymentDetails, order_data: orderData }),
 };
 
+export const influencerApi = {
+    validateCoupon: (code: string) => api.post('/influencers/coupons/validate', { code }),
+};
+
 export default api;
