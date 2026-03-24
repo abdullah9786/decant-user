@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
+import CreatorsGrid from "./CreatorsGrid";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -31,7 +30,7 @@ export default async function CreatorsPage() {
     <div className="bg-transparent min-h-screen">
       <section className="py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12">
+          <div className="mb-10">
             <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
               Community
             </div>
@@ -44,63 +43,7 @@ export default async function CreatorsPage() {
             </p>
           </div>
 
-          {influencers.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {influencers.map((inf: any) => (
-                <Link
-                  key={inf._id}
-                  href={`/${inf.username}`}
-                  className="group block bg-white border border-emerald-50 rounded-2xl overflow-hidden hover:shadow-lg hover:border-emerald-200 transition-all"
-                >
-                  <div className="relative h-32 bg-gradient-to-br from-emerald-100 to-emerald-50">
-                    {inf.banner_image_url && (
-                      <Image
-                        src={inf.banner_image_url}
-                        alt={`${inf.display_name}'s banner`}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="px-5 pb-5 -mt-8 relative">
-                    <div className="relative w-16 h-16 rounded-full border-4 border-white shadow-md overflow-hidden bg-emerald-100 mb-3">
-                      {inf.profile_image_url ? (
-                        <Image
-                          src={inf.profile_image_url}
-                          alt={inf.display_name}
-                          fill
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xl font-serif text-emerald-700">
-                          {inf.display_name?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="text-lg font-bold text-emerald-950 group-hover:text-emerald-700 transition-colors">
-                      {inf.display_name}
-                    </h3>
-                    <p className="text-xs text-emerald-600 font-bold uppercase tracking-widest">
-                      @{inf.username}
-                    </p>
-                    {inf.bio && (
-                      <p className="text-sm text-slate-500 mt-2 line-clamp-2">
-                        {inf.bio}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <p className="text-slate-400 italic">
-                No creators yet. Check back soon!
-              </p>
-            </div>
-          )}
+          <CreatorsGrid influencers={influencers} />
         </div>
       </section>
     </div>

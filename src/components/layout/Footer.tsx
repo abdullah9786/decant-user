@@ -18,6 +18,7 @@ const Footer = () => {
               <li><Link href="/products" className="hover:text-emerald-600">Shop All</Link></li>
               <li><Link href="/brands" className="hover:text-emerald-600">Featured Brands</Link></li>
               <li><Link href="/new-arrivals" className="hover:text-emerald-600">New Arrivals</Link></li>
+              <li><Link href="/creators" className="hover:text-emerald-600">Creators</Link></li>
               <li><Link href="/bestsellers" className="hover:text-emerald-600">Best Sellers</Link></li>
             </ul>
           </div>

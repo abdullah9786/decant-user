@@ -46,6 +46,7 @@ const Navbar = () => {
             <Link href="/brands" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">BRANDS</Link>
             <Link href="/families" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">FRAGRANCE FAMILIES</Link>
             <Link href="/new-arrivals" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">NEW ARRIVALS</Link>
+            <Link href="/creators" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">CREATORS</Link>
             <Link href="/track-order" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">TRACK ORDER</Link>
           </div>
 
@@ -101,6 +102,7 @@ const Navbar = () => {
             <Link href="/products" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Shop All</Link>
             <Link href="/brands" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Brands</Link>
             <Link href="/new-arrivals" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">New Arrivals</Link>
+            <Link href="/creators" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Creators</Link>
             <Link href="/track-order" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Track Order</Link>
           </div>
         </>
