@@ -36,9 +36,11 @@ export const metadata: Metadata = {
     "Decume",
   ],
   icons: {
-    icon: "https://ik.imagekit.io/smhon4suw/image.png?updatedAt=1774281578448",
-    apple:
-      "https://ik.imagekit.io/smhon4suw/image.png?updatedAt=1774281578448",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: "/favicon.png",
   },
   authors: [{ name: "Decume" }],
   creator: "Decume",
@@ -50,12 +52,23 @@ export const metadata: Metadata = {
     title: "Decume | Premium Perfume Decants India",
     description:
       "Authentic perfume decants from designer and niche houses. Trial sizes, fair pricing, pan-India delivery.",
+    images: [
+      {
+        url: "https://ik.imagekit.io/smhon4suw/image.png?updatedAt=1774281578448",
+        width: 512,
+        height: 512,
+        alt: "Decume — Premium Perfume Decants India",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Decume | Premium Perfume Decants India",
     description:
       "Authentic perfume decants from designer and niche houses. Trial sizes, fair pricing, pan-India delivery.",
+    images: [
+      "https://ik.imagekit.io/smhon4suw/image.png?updatedAt=1774281578448",
+    ],
   },
   alternates: {
     canonical: "https://decume.in",
