@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ShoppingBag, User, Search, Menu, X } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { revokeRefreshOnServer } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import Logo from './Logo';
 
@@ -19,7 +20,9 @@ const Navbar = () => {
   useEffect(() => { setMounted(true); }, []);
 
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const rt = useAuthStore.getState().refreshToken;
+    await revokeRefreshOnServer(rt);
     logout();
     router.push('/');
   };

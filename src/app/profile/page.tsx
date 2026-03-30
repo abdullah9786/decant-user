@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Package, Heart, LogOut, ChevronRight, Settings, Loader2, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
-import { orderApi } from '@/lib/api';
+import { orderApi, revokeRefreshOnServer } from '@/lib/api';
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -89,8 +89,13 @@ export default function ProfilePage() {
               <p className="text-xs text-gray-400 uppercase tracking-widest">{user.email}</p>
             </div>
 
-            <button 
-              onClick={() => { logout(); router.push('/'); }}
+            <button
+              onClick={async () => {
+                const rt = useAuthStore.getState().refreshToken;
+                await revokeRefreshOnServer(rt);
+                logout();
+                router.push('/');
+              }}
               className="w-full flex items-center justify-center space-x-3 py-4 border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 transition-all text-xs font-bold uppercase tracking-widest"
             >
               <LogOut size={16} />

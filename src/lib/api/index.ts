@@ -1,6 +1,27 @@
-import axios from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+const rawAuthClient = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+let refreshPromise: Promise<string> | null = null;
+
+function skipRefreshForUrl(url: string | undefined): boolean {
+    if (!url) return true;
+    const paths = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
+    return paths.some((p) => url.includes(p));
+}
+
+export function revokeRefreshOnServer(refreshToken: string | null | undefined) {
+    if (!refreshToken) return Promise.resolve();
+    return rawAuthClient.post('/auth/logout', { refresh_token: refreshToken }).catch(() => {});
+}
 
 const api = axios.create({
     baseURL: API_URL,
@@ -9,24 +30,60 @@ const api = axios.create({
     },
 });
 
-// Interceptor for Auth tokens
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('auth-storage');
+        const token = useAuthStore.getState().token;
         if (token) {
-            try {
-                const parsed = JSON.parse(token);
-                const actualToken = parsed.state.token;
-                if (actualToken) {
-                    config.headers.Authorization = `Bearer ${actualToken}`;
-                }
-            } catch (e) {
-                console.error("Error parsing auth token", e);
-            }
+            config.headers.Authorization = `Bearer ${token}`;
         }
     }
     return config;
 });
+
+api.interceptors.response.use(
+    (r) => r,
+    async (error: AxiosError) => {
+        const original = error.config as InternalAxiosRequestConfig & { _retryRefresh?: boolean };
+        if (!original || original._retryRefresh) return Promise.reject(error);
+        if (error.response?.status !== 401) return Promise.reject(error);
+        if (skipRefreshForUrl(original.url)) return Promise.reject(error);
+
+        const refresh = useAuthStore.getState().refreshToken;
+        if (!refresh) {
+            useAuthStore.getState().logout();
+            if (typeof window !== 'undefined') {
+                window.location.assign('/login?session=expired');
+            }
+            return Promise.reject(error);
+        }
+
+        try {
+            if (!refreshPromise) {
+                refreshPromise = rawAuthClient
+                    .post('/auth/refresh', { refresh_token: refresh })
+                    .then((res) => {
+                        const { access_token, refresh_token, user } = res.data;
+                        useAuthStore.getState().setAuth(user, access_token, refresh_token);
+                        return access_token as string;
+                    })
+                    .finally(() => {
+                        refreshPromise = null;
+                    });
+            }
+            const newAccess = await refreshPromise;
+            original.headers = original.headers || {};
+            (original.headers as Record<string, string>).Authorization = `Bearer ${newAccess}`;
+            original._retryRefresh = true;
+            return api(original);
+        } catch {
+            useAuthStore.getState().logout();
+            if (typeof window !== 'undefined') {
+                window.location.assign('/login?session=expired');
+            }
+            return Promise.reject(error);
+        }
+    }
+);
 
 export const authApi = {
     login: (data: any) => api.post('/auth/login', data),

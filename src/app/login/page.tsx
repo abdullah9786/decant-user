@@ -1,22 +1,30 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/lib/api';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  
+  const searchParams = useSearchParams();
+  const sessionExpired = searchParams.get('session') === 'expired';
+
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  useEffect(() => {
+    if (sessionExpired) {
+      setError('Your session expired. Please sign in again.');
+    }
+  }, [sessionExpired]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +33,9 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login({ email, password });
-      const { access_token, user } = response.data;
-      
-      setAuth(user, access_token);
+      const { access_token, refresh_token, user } = response.data;
+
+      setAuth(user, access_token, refresh_token);
       router.push('/profile');
     } catch (err: any) {
       const detail = err.response?.data?.detail;
@@ -132,5 +140,19 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[80vh] flex items-center justify-center bg-white">
+          <Loader2 className="animate-spin text-emerald-700" size={32} />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
