@@ -18,6 +18,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Analytics (GA4)
+
+1. Copy [`.env.example`](.env.example) to `.env.local` and set **`NEXT_PUBLIC_GA_MEASUREMENT_ID`** to your GA4 web stream ID (`G-XXXXXXXXXX`). If unset, Google Analytics is not loaded.
+2. The app sends **`begin_checkout`** when Razorpay opens and **`purchase`** after payment verification succeeds (transaction id, value in INR, line items).
+3. In **GA4**: Admin → **Data display** → **Events** — mark **`purchase`** as a **Key event** (conversion) if you use it as your primary goal.
+4. **Google Ads**: Admin → **Product links** → **Google Ads links** — link your Ads account. In Google Ads, **Goals** → **Conversions** → import the GA4 **`purchase`** key event (or other key events you define).
+5. Verify with GA4 **Realtime** / **DebugView** after deploy.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

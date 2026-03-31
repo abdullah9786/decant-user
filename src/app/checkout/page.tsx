@@ -7,6 +7,7 @@ import Script from 'next/script';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { orderApi, influencerApi } from '@/lib/api';
+import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
 import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -119,6 +120,8 @@ export default function CheckoutPage() {
       const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal);
       const rzpData = rzpResponse.data;
 
+      const gaItems = cartItemsToGaItems(items);
+
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
         amount: rzpData.amount,
@@ -139,6 +142,12 @@ export default function CheckoutPage() {
                 const finalOrderId = verifyResponse.data?.id || verifyResponse.data?._id;
                 setOrderId(finalOrderId);
                 setStep(3);
+                gaEvent('purchase', {
+                  transaction_id: String(finalOrderId ?? ''),
+                  value: grandTotal,
+                  currency: 'INR',
+                  items: gaItems,
+                });
                 setTimeout(() => clearCart(), 100);
                 try { localStorage.removeItem("decume-ref"); } catch {}
              } catch (err) {
@@ -162,6 +171,12 @@ export default function CheckoutPage() {
             }
         }
       };
+
+      gaEvent('begin_checkout', {
+        currency: 'INR',
+        value: grandTotal,
+        items: gaItems,
+      });
 
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
