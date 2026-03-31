@@ -1,26 +1,32 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 
 type LogoProps = {
   className?: string;
-  textClassName?: string;
-  iconClassName?: string;
+  imgClassName?: string;
+  width?: number;
+  height?: number;
 };
 
 const Logo = ({
   className = '',
-  textClassName = '',
-  iconClassName = '',
+  imgClassName = '',
+  width = 140,
+  height = 56,
 }: LogoProps) => {
   return (
     <Link href="/" className={`inline-flex items-center ${className}`}>
-      <span
-        className={`text-2xl sm:text-3xl font-extrabold italic tracking-tighter text-emerald-950 ${textClassName}`}
-        style={{ fontFamily: "var(--font-playfair), 'Times New Roman', serif" }}
-      >
-        Decume
-      </span>
+      <Image
+        src="/logo.png"
+        alt="Decume"
+        width={width}
+        height={height}
+        priority
+        className={imgClassName}
+      />
+      <span className="sr-only">Decume</span>
     </Link>
   );
 };
