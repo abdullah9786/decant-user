@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search as SearchIcon } from 'lucide-react';
+import { Loader2, Search as SearchIcon } from 'lucide-react';
 import ProductCard from '@/components/ui/ProductCard';
 import { brandApi, categoryApi, productApi } from '@/lib/api';
 
 const normalize = (value: string) => value.trim().toLowerCase();
 
-export default function SearchPage() {
+function SearchClient() {
   const searchParams = useSearchParams();
   const noteParam = searchParams.get('note');
 
@@ -452,5 +452,19 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[70vh] flex items-center justify-center bg-white">
+          <Loader2 className="animate-spin text-emerald-700" size={32} />
+        </div>
+      }
+    >
+      <SearchClient />
+    </Suspense>
   );
 }
