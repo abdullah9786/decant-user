@@ -116,8 +116,13 @@ export default function CheckoutPage() {
         ...(discountAmount > 0 && { discount_amount: discountAmount }),
       };
 
-      // 1. Initiate Razorpay Payment (No order created in DB yet)
-      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal);
+      // 1. Validate stock + initiate Razorpay Payment (no DB order yet)
+      const stockCheckItems = orderData.items.map((it: any) => ({
+        product_id: it.product_id,
+        size_ml: it.size_ml,
+        quantity: it.quantity,
+      }));
+      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems);
       const rzpData = rzpResponse.data;
 
       const gaItems = cartItemsToGaItems(items);
@@ -150,9 +155,14 @@ export default function CheckoutPage() {
                 });
                 setTimeout(() => clearCart(), 100);
                 try { localStorage.removeItem("decume-ref"); } catch {}
-             } catch (err) {
+             } catch (err: any) {
                  console.error("Payment and order finalization failed", err);
-                 alert("Payment verification failed. Please contact support if your amount was deducted.");
+                 const detail = err?.response?.data?.detail;
+                 alert(
+                   typeof detail === "string"
+                     ? detail
+                     : "Payment verification failed. Please contact support if your amount was deducted."
+                 );
              } finally {
                  setLoading(false);
              }
@@ -181,9 +191,14 @@ export default function CheckoutPage() {
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating order", err);
-      alert("Failed to initiate payment. Please try again.");
+      const detail = err?.response?.data?.detail;
+      alert(
+        typeof detail === "string"
+          ? detail
+          : "Failed to initiate payment. Please try again."
+      );
       setLoading(false);
     }
   };
