@@ -124,6 +124,11 @@ export const orderApi = {
         api.post(`/orders/${orderId}/customer-cancel`, { customer_email: customerEmail || undefined }),
 };
 
+export const giftBoxApi = {
+    getAll: (params?: any) => api.get('/gift-boxes', { params }),
+    getOne: (id: string) => api.get(`/gift-boxes/${id}`),
+};
+
 export const influencerApi = {
     validateCoupon: (code: string) => api.post('/influencers/coupons/validate', { code }),
 };

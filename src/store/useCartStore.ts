@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface GiftBoxSelectedProduct {
+    product_id: string;
+    name: string;
+    size_ml: number;
+    price: number;
+}
+
 export interface CartItem {
     id: string;
     name: string;
@@ -10,9 +17,16 @@ export interface CartItem {
     quantity: number;
     image_url?: string;
     is_pack?: boolean;
+    gift_box_id?: string;
+    gift_box_name?: string;
+    selected_products?: GiftBoxSelectedProduct[];
 }
 
-function cartKey(item: { id: string; size_ml: number; is_pack?: boolean }) {
+function cartKey(item: { id: string; size_ml: number; is_pack?: boolean; gift_box_id?: string; selected_products?: GiftBoxSelectedProduct[] }) {
+    if (item.gift_box_id && item.selected_products) {
+        const ids = [...item.selected_products].map(s => s.product_id).sort().join(',');
+        return `giftbox|${item.gift_box_id}|${ids}`;
+    }
     return `${item.id}|${item.size_ml}|${item.is_pack ? '1' : '0'}`;
 }
 

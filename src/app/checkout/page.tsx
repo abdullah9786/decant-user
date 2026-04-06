@@ -102,11 +102,15 @@ export default function CheckoutPage() {
         customer_phone: shippingAddress.phone,
         items: items.map((item: any) => ({
           product_id: item.id || (item as any)._id,
-          name: item.name,
+          name: item.gift_box_id ? `${item.name} (Gift Box)` : item.name,
           size_ml: item.size_ml,
           price: item.price,
           quantity: item.quantity,
           is_pack: !!item.is_pack,
+          ...(item.gift_box_id && {
+            gift_box_id: item.gift_box_id,
+            selected_products: item.selected_products,
+          }),
         })),
         total_amount: grandTotal,
         shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
@@ -124,6 +128,10 @@ export default function CheckoutPage() {
         size_ml: it.size_ml,
         quantity: it.quantity,
         is_pack: !!it.is_pack,
+        ...(it.gift_box_id && {
+          gift_box_id: it.gift_box_id,
+          selected_products: it.selected_products,
+        }),
       }));
       const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData);
       const rzpData = rzpResponse.data;

@@ -37,8 +37,8 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-8">
-            {items.map((item) => (
-              <div key={`${item.id}-${item.size_ml}-${item.is_pack ? 'p' : 'd'}`} className="flex items-center space-x-6 border-b border-gray-100 pb-8">
+            {items.map((item, idx) => (
+              <div key={item.gift_box_id ? `gb-${item.gift_box_id}-${idx}` : `${item.id}-${item.size_ml}-${item.is_pack ? 'p' : 'd'}`} className="flex items-start space-x-6 border-b border-gray-100 pb-8">
                 <div className="w-24 h-32 bg-gray-50 flex-shrink-0 relative border border-gray-100 overflow-hidden">
                   {item.image_url ? (
                     <Image src={item.image_url} alt={item.name} fill sizes="96px" className="object-cover" />
@@ -47,11 +47,24 @@ export default function CartPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.brand}</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.gift_box_id ? 'Gift Box' : item.brand}</p>
                   <h3 className="font-serif text-xl text-emerald-950 mb-1">{item.name}</h3>
-                  <p className="text-xs text-emerald-600 font-bold mb-4">
-                    {item.size_ml}ML {item.is_pack ? 'Pack' : 'Decant'}
+                  <p className="text-xs text-emerald-600 font-bold mb-2">
+                    {item.gift_box_id
+                      ? `${item.selected_products?.length || 0} × ${item.size_ml}ML`
+                      : `${item.size_ml}ML ${item.is_pack ? 'Pack' : 'Decant'}`}
                   </p>
+
+                  {item.gift_box_id && item.selected_products && (
+                    <div className="mb-3 space-y-1 pl-2 border-l-2 border-emerald-200">
+                      {item.selected_products.map((sp: any, i: number) => (
+                        <div key={i} className="flex justify-between text-[10px] text-gray-500">
+                          <span className="truncate max-w-[180px]">{sp.name}</span>
+                          <span className="font-bold text-gray-600 ml-2">₹{sp.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   
                   <div className="flex items-center space-x-6">
                     <div className="flex items-center border border-gray-200">
