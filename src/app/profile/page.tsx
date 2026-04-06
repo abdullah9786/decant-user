@@ -131,7 +131,7 @@ export default function ProfilePage() {
               ) : recentOrder ? (
                 <div className="bg-emerald-950 text-white p-8 relative overflow-hidden transition-all hover:bg-black">
                   <div className="relative z-10">
-                     <p className="text-[10px] uppercase tracking-widest opacity-60 mb-2">Order #{(recentOrder.id || recentOrder._id).substring(0, 8)}</p>
+                     <p className="text-[10px] uppercase tracking-widest opacity-60 mb-2 truncate">Order #{recentOrder.id || recentOrder._id}</p>
                      <p className="text-xl font-serif mb-4 truncate pr-16">
                         {recentOrder.items?.[0]?.name} {recentOrder.items?.length > 1 ? `+ ${recentOrder.items.length - 1} more` : ''}
                      </p>

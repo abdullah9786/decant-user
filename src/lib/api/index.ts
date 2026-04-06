@@ -120,6 +120,8 @@ export const orderApi = {
         orderData?: any,
     ) => api.post(`/orders/initiate-payment-only`, { amount, items, order_data: orderData }),
     verifyAndCreate: (paymentDetails: any, orderData: any) => api.post('/orders/verify-and-create', { payment_details: paymentDetails, order_data: orderData }),
+    customerCancel: (orderId: string, customerEmail?: string) =>
+        api.post(`/orders/${orderId}/customer-cancel`, { customer_email: customerEmail || undefined }),
 };
 
 export const influencerApi = {

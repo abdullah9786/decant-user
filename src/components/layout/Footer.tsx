@@ -23,11 +23,12 @@ const Footer = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-xs font-bold text-gray-900 tracking-widest uppercase mb-6">Support</h4>
+            <h4 className="text-xs font-bold text-gray-900 tracking-widest uppercase mb-6">Policies</h4>
             <ul className="space-y-4 text-sm text-gray-600">
-              <li><Link href="/faq" className="hover:text-emerald-600">FAQs</Link></li>
-              <li><Link href="/shipping" className="hover:text-emerald-600">Shipping & Returns</Link></li>
-              <li><Link href="/contact" className="hover:text-emerald-600">Contact Us</Link></li>
+              <li><Link href="/about" className="hover:text-emerald-600">About Us</Link></li>
+              <li><Link href="/shipping-policy" className="hover:text-emerald-600">Shipping Policy</Link></li>
+              <li><Link href="/return-policy" className="hover:text-emerald-600">Return Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-emerald-600">Terms & Conditions</Link></li>
               <li><Link href="/privacy" className="hover:text-emerald-600">Privacy Policy</Link></li>
             </ul>
           </div>
@@ -47,7 +48,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-          <p>© 2024 Decume. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Decume. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <span>Instagram</span>
             <span>Facebook</span>
