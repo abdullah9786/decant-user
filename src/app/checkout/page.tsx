@@ -99,6 +99,7 @@ export default function CheckoutPage() {
         user_id: isAuthenticated ? (user?.id || (user as any)._id) : "guest",
         customer_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
         customer_email: customerEmail,
+        customer_phone: shippingAddress.phone,
         items: items.map((item: any) => ({
           product_id: item.id || (item as any)._id,
           name: item.name,
