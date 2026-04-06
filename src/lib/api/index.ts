@@ -116,8 +116,9 @@ export const orderApi = {
     syncGuestOrders: () => api.post('/orders/sync'),
     initiatePaymentOnly: (
         amount: number,
-        items: { product_id: string; size_ml: number; quantity: number }[]
-    ) => api.post(`/orders/initiate-payment-only`, { amount, items }),
+        items: { product_id: string; size_ml: number; quantity: number }[],
+        orderData?: any,
+    ) => api.post(`/orders/initiate-payment-only`, { amount, items, order_data: orderData }),
     verifyAndCreate: (paymentDetails: any, orderData: any) => api.post('/orders/verify-and-create', { payment_details: paymentDetails, order_data: orderData }),
 };
 

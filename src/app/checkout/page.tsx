@@ -11,7 +11,7 @@ import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
 import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
-  const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation
+  const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [shippingAddress, setShippingAddress] = useState({
@@ -123,7 +123,7 @@ export default function CheckoutPage() {
         size_ml: it.size_ml,
         quantity: it.quantity,
       }));
-      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems);
+      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData);
       const rzpData = rzpResponse.data;
 
       const gaItems = cartItemsToGaItems(items);
@@ -136,9 +136,9 @@ export default function CheckoutPage() {
         description: `Premium Fragrance Checkout`,
         order_id: rzpData.id,
         handler: async function (paymentResponse: any) {
+             setStep(4);
+             setLoading(true);
              try {
-                setLoading(true);
-                // 2. Verify Payment AND Create Order simultaneously
                 const verifyResponse = await orderApi.verifyAndCreate({
                     razorpay_order_id: paymentResponse.razorpay_order_id,
                     razorpay_payment_id: paymentResponse.razorpay_payment_id,
@@ -164,6 +164,7 @@ export default function CheckoutPage() {
                      ? detail
                      : "Payment verification failed. Please contact support if your amount was deducted."
                  );
+                 setStep(2);
              } finally {
                  setLoading(false);
              }
@@ -210,7 +211,7 @@ export default function CheckoutPage() {
     { title: 'Success', icon: CheckCircle2 }
   ];
 
-  if (items.length === 0 && step !== 3) {
+  if (items.length === 0 && step !== 3 && step !== 4) {
       return (
           <div className="py-40 text-center">
               <ShoppingBag size={48} className="mx-auto text-gray-200 mb-6" />
@@ -402,6 +403,16 @@ export default function CheckoutPage() {
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : 'Place Order'}
               </button>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="text-center py-20 animate-in fade-in duration-500">
+              <Loader2 size={56} className="animate-spin text-emerald-700 mx-auto mb-8" />
+              <h2 className="text-3xl font-serif text-emerald-950 mb-3">Confirming your order…</h2>
+              <p className="text-sm text-gray-400 uppercase tracking-widest">
+                Payment received. Please do not close this page.
+              </p>
             </div>
           )}
 
