@@ -69,21 +69,21 @@ export default function CartPage() {
                   <div className="flex items-center space-x-6">
                     <div className="flex items-center border border-gray-200">
                       <button 
-                        onClick={() => updateQuantity(item.id, item.size_ml, Math.max(1, item.quantity - 1), item.is_pack)}
+                        onClick={() => updateQuantity(item.id, item.size_ml, Math.max(1, item.quantity - 1), item.is_pack, item.gift_box_id, item.selected_products)}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="w-10 text-center text-xs font-bold">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, item.size_ml, item.quantity + 1, item.is_pack)}
+                        onClick={() => updateQuantity(item.id, item.size_ml, item.quantity + 1, item.is_pack, item.gift_box_id, item.selected_products)}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Plus size={14} />
                       </button>
                     </div>
                     <button 
-                      onClick={() => removeItem(item.id, item.size_ml, item.is_pack)}
+                      onClick={() => removeItem(item.id, item.size_ml, item.is_pack, item.gift_box_id, item.selected_products)}
                       className="text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={18} />

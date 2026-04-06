@@ -96,7 +96,9 @@ export default async function GiftBoxesPage() {
                       {box.name}
                     </h3>
                     <p className="text-xs text-gray-400 uppercase tracking-widest mb-4">
-                      {box.slot_count} Fragrances &middot; {box.size_ml}ml each
+                      {box.box_type === "combo"
+                        ? `${(box.slot_sizes || []).length} Fragrances · Mixed sizes (${[...new Set<number>(box.slot_sizes || [])].sort((a, b) => a - b).join(", ")}ml)`
+                        : `${box.slot_count} Fragrances · ${box.size_ml}ml each`}
                     </p>
                     {box.description && (
                       <p className="text-sm text-gray-500 mb-4 line-clamp-2">

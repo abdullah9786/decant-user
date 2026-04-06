@@ -24,22 +24,36 @@ export default function BuilderClient({
   allProducts: any[];
 }) {
   const boxId = box.id || box._id;
+  const isCombo = box.box_type === "combo";
+  const slotSizes: number[] = isCombo ? (box.slot_sizes || []) : [];
+  const slotCount = isCombo ? slotSizes.length : box.slot_count;
+
   const [slots, setSlots] = useState<(SelectedProduct | null)[]>(
-    Array(box.slot_count).fill(null)
+    Array(slotCount).fill(null)
   );
+  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const addItem = useCartStore((s) => s.addItem);
 
+  const activeSlotSize = useMemo(() => {
+    if (!isCombo) return box.size_ml as number;
+    if (activeSlotIndex !== null && slots[activeSlotIndex] === null)
+      return slotSizes[activeSlotIndex];
+    const firstEmpty = slots.findIndex((s) => s === null);
+    return firstEmpty !== -1 ? slotSizes[firstEmpty] : null;
+  }, [isCombo, activeSlotIndex, slotSizes, slots, box.size_ml]);
+
   const eligibleProducts = useMemo(() => {
+    if (activeSlotSize === null) return [];
     return allProducts.filter((p: any) => {
       if (!p.is_active && p.is_active !== undefined) return false;
       const hasVariant = (p.variants || []).some(
-        (v: any) => v.size_ml === box.size_ml && !v.is_pack
+        (v: any) => v.size_ml === activeSlotSize && !v.is_pack
       );
       return hasVariant;
     });
-  }, [allProducts, box.size_ml]);
+  }, [allProducts, activeSlotSize]);
 
   const brands = useMemo(() => {
     const set = new Set(eligibleProducts.map((p: any) => p.brand));
@@ -60,11 +74,13 @@ export default function BuilderClient({
   }, [eligibleProducts, searchTerm, brandFilter]);
 
   const selectedCounts = new Map<string, number>();
+  const selectedMlMap = new Map<string, number>();
   slots.filter(Boolean).forEach((s) => {
     selectedCounts.set(s!.product_id, (selectedCounts.get(s!.product_id) || 0) + 1);
+    selectedMlMap.set(s!.product_id, (selectedMlMap.get(s!.product_id) || 0) + s!.size_ml);
   });
   const filledCount = slots.filter(Boolean).length;
-  const allFilled = filledCount === box.slot_count;
+  const allFilled = filledCount === slotCount;
 
   const fragranceTotal = slots.reduce(
     (sum, s) => sum + (s?.price || 0),
@@ -73,14 +89,21 @@ export default function BuilderClient({
   const grandTotal = box.box_price + fragranceTotal;
 
   function handleSelect(product: any) {
-    const nextEmpty = slots.findIndex((s) => s === null);
-    if (nextEmpty === -1) return;
+    let targetIdx: number;
+    if (activeSlotIndex !== null && slots[activeSlotIndex] === null) {
+      targetIdx = activeSlotIndex;
+    } else {
+      const firstEmpty = slots.findIndex((s) => s === null);
+      if (firstEmpty === -1) return;
+      targetIdx = firstEmpty;
+    }
+    const targetSize = isCombo ? slotSizes[targetIdx] : box.size_ml;
     const variant = (product.variants || []).find(
-      (v: any) => v.size_ml === box.size_ml && !v.is_pack
+      (v: any) => v.size_ml === targetSize && !v.is_pack
     );
     if (!variant) return;
     const updated = [...slots];
-    updated[nextEmpty] = {
+    updated[targetIdx] = {
       product_id: product.id || product._id,
       name: product.name,
       brand: product.brand,
@@ -89,12 +112,15 @@ export default function BuilderClient({
       price: variant.price,
     };
     setSlots(updated);
+    const nextEmpty = updated.findIndex((s) => s === null);
+    setActiveSlotIndex(nextEmpty !== -1 ? nextEmpty : null);
   }
 
   function handleRemoveSlot(index: number) {
     const updated = [...slots];
     updated[index] = null;
     setSlots(updated);
+    setActiveSlotIndex(index);
   }
 
   function handleAddToCart() {
@@ -104,7 +130,7 @@ export default function BuilderClient({
       id: boxId,
       name: box.name,
       brand: "Gift Box",
-      size_ml: box.size_ml,
+      size_ml: isCombo ? 0 : box.size_ml,
       price: grandTotal,
       quantity: 1,
       image_url: box.image_url || "",
@@ -176,7 +202,10 @@ export default function BuilderClient({
                   {box.name}
                 </h1>
                 <p className="text-xs text-gray-400 uppercase tracking-widest">
-                  {box.slot_count} Fragrances &middot; {box.size_ml}ml each
+                  {slotCount} Fragrances &middot;{" "}
+                  {isCombo
+                    ? `Mixed sizes (${[...new Set(slotSizes)].sort((a, b) => a - b).join(", ")}ml)`
+                    : `${box.size_ml}ml each`}
                 </p>
                 {box.description && (
                   <p className="text-sm text-gray-500 mt-3">
@@ -188,16 +217,21 @@ export default function BuilderClient({
               {/* Slots */}
               <div className="space-y-3">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-900">
-                  Your Selections ({filledCount}/{box.slot_count})
+                  Your Selections ({filledCount}/{slotCount})
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {slots.map((slot, i) => (
                     <div
                       key={i}
+                      onClick={() => {
+                        if (!slot) setActiveSlotIndex(i);
+                      }}
                       className={`relative rounded-xl border-2 border-dashed p-3 transition-all ${
                         slot
                           ? "border-emerald-300 bg-emerald-50/50"
-                          : "border-gray-200 bg-gray-50"
+                          : activeSlotIndex === i
+                          ? "border-indigo-400 bg-indigo-50/50 ring-2 ring-indigo-200 cursor-pointer"
+                          : "border-gray-200 bg-gray-50 cursor-pointer hover:border-indigo-300"
                       }`}
                     >
                       {slot ? (
@@ -230,15 +264,15 @@ export default function BuilderClient({
                           </div>
                           <button
                             onClick={() => handleRemoveSlot(i)}
-                            className="absolute top-1 right-1 p-0.5 text-gray-300 hover:text-red-500 transition-colors"
+                            className="absolute top-1 right-1 p-1 bg-white/80 rounded-full text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm"
                           >
-                            <X size={12} />
+                            <X size={14} />
                           </button>
                         </div>
                       ) : (
-                        <div className="h-10 flex items-center justify-center">
-                          <span className="text-[10px] text-gray-300 uppercase tracking-widest">
-                            Slot {i + 1}
+                        <div className="h-10 flex flex-col items-center justify-center">
+                          <span className={`text-[10px] uppercase tracking-widest ${activeSlotIndex === i ? "text-indigo-500 font-bold" : "text-gray-300"}`}>
+                            Slot {i + 1}{isCombo ? ` — ${slotSizes[i]}ml` : ""}
                           </span>
                         </div>
                       )}
@@ -255,7 +289,7 @@ export default function BuilderClient({
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>
-                    Fragrances ({filledCount}/{box.slot_count})
+                    Fragrances ({filledCount}/{slotCount})
                   </span>
                   <span className="font-bold">₹{fragranceTotal}</span>
                 </div>
@@ -277,7 +311,7 @@ export default function BuilderClient({
                     ? "Out of Stock"
                     : allFilled
                     ? "Add to Cart"
-                    : `Select ${box.slot_count - filledCount} more`}
+                    : `Select ${slotCount - filledCount} more`}
                 </span>
               </button>
             </div>
@@ -290,7 +324,7 @@ export default function BuilderClient({
                 Choose Your Fragrances
               </h2>
               <p className="text-xs text-gray-400 uppercase tracking-widest">
-                Pick {box.slot_count} fragrances for your box
+                Pick {slotCount} fragrances for your box
               </p>
             </div>
 
@@ -330,12 +364,13 @@ export default function BuilderClient({
                 const timesUsed = selectedCounts.get(pid) || 0;
                 const variant = (product.variants || []).find(
                   (v: any) =>
-                    v.size_ml === box.size_ml && !v.is_pack
+                    v.size_ml === activeSlotSize && !v.is_pack
                 );
                 const stockMl = product.stock_ml || 0;
-                const mlNeededForNext = box.size_ml * (timesUsed + 1);
-                const canAddMore = stockMl >= mlNeededForNext && !allFilled;
-                const outOfStock = stockMl < box.size_ml;
+                const currentMlUsed = selectedMlMap.get(pid) || 0;
+                const nextSize = activeSlotSize || 0;
+                const canAddMore = stockMl >= currentMlUsed + nextSize && !allFilled;
+                const outOfStock = stockMl < nextSize;
 
                 return (
                   <div
@@ -400,9 +435,25 @@ export default function BuilderClient({
 
             {filtered.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-gray-400 text-sm">
-                  No fragrances found matching your search.
-                </p>
+                {allFilled ? (
+                  <>
+                    <Check size={40} className="mx-auto text-emerald-400 mb-4" />
+                    <p className="text-emerald-700 font-bold text-sm mb-1">All slots filled!</p>
+                    <p className="text-gray-400 text-xs mb-6">Review your selections and add the box to your cart.</p>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={box.stock < 1}
+                      className="inline-flex items-center space-x-3 bg-emerald-950 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ShoppingBag size={18} />
+                      <span>{box.stock < 1 ? "Out of Stock" : `Add to Cart · ₹${grandTotal}`}</span>
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-gray-400 text-sm">
+                    No fragrances found matching your search.
+                  </p>
+                )}
               </div>
             )}
           </div>

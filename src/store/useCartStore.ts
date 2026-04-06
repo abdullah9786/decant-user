@@ -33,8 +33,8 @@ function cartKey(item: { id: string; size_ml: number; is_pack?: boolean; gift_bo
 interface CartState {
     items: CartItem[];
     addItem: (item: CartItem) => void;
-    removeItem: (id: string, size_ml: number, is_pack?: boolean) => void;
-    updateQuantity: (id: string, size_ml: number, quantity: number, is_pack?: boolean) => void;
+    removeItem: (id: string, size_ml: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[]) => void;
+    updateQuantity: (id: string, size_ml: number, quantity: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[]) => void;
     clearCart: () => void;
     totalItems: () => number;
     totalPrice: () => number;
@@ -59,14 +59,14 @@ export const useCartStore = create<CartState>()(
                     set({ items: [...currentItems, newItem] });
                 }
             },
-            removeItem: (id, size_ml, is_pack) => {
-                const key = cartKey({ id, size_ml, is_pack });
+            removeItem: (id, size_ml, is_pack, gift_box_id, selected_products) => {
+                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products });
                 set({
                     items: get().items.filter((item) => cartKey(item) !== key),
                 });
             },
-            updateQuantity: (id, size_ml, quantity, is_pack) => {
-                const key = cartKey({ id, size_ml, is_pack });
+            updateQuantity: (id, size_ml, quantity, is_pack, gift_box_id, selected_products) => {
+                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products });
                 const updatedItems = get().items.map((item) =>
                     cartKey(item) === key ? { ...item, quantity } : item
                 );
