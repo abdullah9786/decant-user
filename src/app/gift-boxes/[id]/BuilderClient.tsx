@@ -319,6 +319,37 @@ export default function BuilderClient({
 
           {/* Right: Product picker */}
           <div className="space-y-6">
+            {/* Mobile sticky slot indicator */}
+              <div className="lg:hidden sticky top-20 z-30 bg-white/95 backdrop-blur-sm border border-gray-100 rounded-xl p-3 shadow-sm -mx-1">
+                <div className="flex items-center justify-between mb-2">
+                  <p className={`text-[10px] font-bold uppercase tracking-widest ${allFilled ? "text-emerald-600" : "text-indigo-600"}`}>
+                    {allFilled
+                      ? "All slots filled!"
+                      : activeSlotIndex !== null
+                      ? `Filling Slot ${activeSlotIndex + 1}${isCombo ? ` · ${slotSizes[activeSlotIndex]}ml` : ` · ${box.size_ml}ml`}`
+                      : "Select a slot"}
+                  </p>
+                  <p className="text-[10px] font-bold text-gray-400">
+                    {filledCount}/{slotCount}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  {slots.map((slot, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { if (!slot) setActiveSlotIndex(i); }}
+                      className={`h-2 flex-1 rounded-full transition-all ${
+                        slot
+                          ? "bg-emerald-400"
+                          : activeSlotIndex === i
+                          ? "bg-indigo-500 scale-y-150"
+                          : "bg-gray-200 hover:bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
             <div>
               <h2 className="text-xl font-serif text-emerald-950 mb-1">
                 Choose Your Fragrances
@@ -375,7 +406,10 @@ export default function BuilderClient({
                 return (
                   <div
                     key={pid}
+                    onClick={() => { if (canAddMore && !outOfStock) handleSelect(product); }}
                     className={`relative rounded-xl border overflow-hidden transition-all ${
+                      canAddMore && !outOfStock ? "cursor-pointer" : ""
+                    } ${
                       timesUsed > 0
                         ? "border-emerald-400 bg-emerald-50/50 ring-2 ring-emerald-200"
                         : "border-gray-100 bg-white hover:border-emerald-200 hover:shadow-sm"
