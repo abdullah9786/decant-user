@@ -50,11 +50,11 @@ const ProductCard = ({
   const { items, addItem, updateQuantity, removeItem } = useCartStore();
 
   const defaultVariant = variants && variants.length > 0 
-    ? variants.reduce((min, v) => v.price < min.price ? v : min, variants[0])
+    ? variants.reduce((min: any, v: any) => v.price < min.price ? v : min, variants[0])
     : null;
 
   const cartItem = defaultVariant 
-    ? items.find(item => item.id === (productId as string) && item.size_ml === defaultVariant.size_ml)
+    ? items.find(item => item.id === (productId as string) && item.size_ml === defaultVariant.size_ml && !!item.is_pack === !!defaultVariant.is_pack)
     : null;
     
   const quantityInCart = cartItem?.quantity || 0;
@@ -75,7 +75,8 @@ const ProductCard = ({
       size_ml: defaultVariant.size_ml,
       price: defaultVariant.price,
       quantity: 1,
-      image_url
+      image_url,
+      is_pack: !!defaultVariant.is_pack,
     });
 
     toast.success(`${name} (${defaultVariant.size_ml}ml) added to bag!`, {
@@ -97,9 +98,9 @@ const ProductCard = ({
     if (!defaultVariant) return;
     
     if (quantityInCart > 1) {
-      updateQuantity(productId as string, defaultVariant.size_ml, quantityInCart - 1);
+      updateQuantity(productId as string, defaultVariant.size_ml, quantityInCart - 1, defaultVariant.is_pack);
     } else {
-      removeItem(productId as string, defaultVariant.size_ml);
+      removeItem(productId as string, defaultVariant.size_ml, defaultVariant.is_pack);
     }
   };
 
@@ -107,7 +108,7 @@ const ProductCard = ({
     e.preventDefault();
     e.stopPropagation();
     if (!defaultVariant) return;
-    updateQuantity(productId as string, defaultVariant.size_ml, quantityInCart + 1);
+    updateQuantity(productId as string, defaultVariant.size_ml, quantityInCart + 1, defaultVariant.is_pack);
   };
 
   return (

@@ -16,8 +16,12 @@ import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
 
 export default function ProductDetailClient({ product }: { product: any }) {
+  const firstVariant = product.variants?.[0];
   const [selectedSize, setSelectedSize] = useState<number | null>(
-    product.variants?.[0]?.size_ml ?? null
+    firstVariant?.size_ml ?? null
+  );
+  const [selectedIsPack, setSelectedIsPack] = useState<boolean>(
+    !!firstVariant?.is_pack
   );
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [sanitizedDescription, setSanitizedDescription] = useState("");
@@ -39,15 +43,22 @@ export default function ProductDetailClient({ product }: { product: any }) {
     Boolean
   );
   const currentVariant =
-    product.variants?.find((v: any) => v.size_ml === selectedSize) ||
-    product.variants?.[0];
+    product.variants?.find(
+      (v: any) => v.size_ml === selectedSize && !!v.is_pack === selectedIsPack
+    ) || product.variants?.[0];
   const selectedMl = selectedSize ?? currentVariant?.size_ml ?? 0;
   const selectedPrice = currentVariant?.price ?? 0;
   const availableMl = product.stock_ml ?? 0;
-  const canFulfill = selectedMl > 0 && availableMl >= selectedMl;
+  const isPack = !!currentVariant?.is_pack;
+  const canFulfill = isPack
+    ? (currentVariant?.stock ?? 0) >= 1
+    : selectedMl > 0 && availableMl >= selectedMl;
   const bottlePrice = selectedMl
     ? Math.round((selectedPrice / selectedMl) * 100)
     : 5000;
+
+  const decantVariants = (product.variants || []).filter((v: any) => !v.is_pack);
+  const packVariants = (product.variants || []).filter((v: any) => v.is_pack);
   const othersLow = selectedPrice ? selectedPrice + 200 : 0;
   const othersHigh = selectedPrice ? selectedPrice + 250 : 0;
 
@@ -61,8 +72,10 @@ export default function ProductDetailClient({ product }: { product: any }) {
       size_ml: selectedSize!,
       price: currentVariant.price,
       quantity: 1,
+      is_pack: isPack,
     });
-    toast.success(`${product.name} (${selectedSize}ml) added to bag!`, {
+    const label = isPack ? `${selectedSize}ml Pack` : `${selectedSize}ml`;
+    toast.success(`${product.name} (${label}) added to bag!`, {
       icon: "✨",
       style: {
         borderRadius: "10px",
@@ -234,29 +247,65 @@ export default function ProductDetailClient({ product }: { product: any }) {
               </div>
 
               <div className="space-y-6">
+                {decantVariants.length > 0 && (
                 <div className="space-y-4">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-gray-900 block">
                     Select Size (ML)
                   </label>
                   <div className="flex flex-wrap gap-3">
-                    {product.variants?.map((v: any) => (
+                    {decantVariants.map((v: any) => {
+                      const outOfStock = availableMl < v.size_ml;
+                      const isSelected = selectedSize === v.size_ml && !selectedIsPack;
+                      return (
                       <button
                         key={v.size_ml}
-                        onClick={() => setSelectedSize(v.size_ml)}
-                        disabled={availableMl < v.size_ml}
+                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(false); }}
+                        disabled={outOfStock}
                         className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
-                          selectedSize === v.size_ml
+                          isSelected
                             ? "bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5"
-                            : availableMl < v.size_ml
+                            : outOfStock
                               ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
                               : "border-gray-200 text-gray-500 hover:border-emerald-600 hover:text-emerald-950"
                         }`}
                       >
-                        {v.size_ml}ML {availableMl < v.size_ml && "(Out)"}
+                        {v.size_ml}ML {outOfStock && "(Out)"}
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
+                )}
+
+                {packVariants.length > 0 && (
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-900 block">
+                    Sealed Bottles
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {packVariants.map((v: any) => {
+                      const outOfStock = (v.stock ?? 0) < 1;
+                      const isSelected = selectedSize === v.size_ml && selectedIsPack;
+                      return (
+                      <button
+                        key={`pack-${v.size_ml}`}
+                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(true); }}
+                        disabled={outOfStock}
+                        className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
+                          isSelected
+                            ? "bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5"
+                            : outOfStock
+                              ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                              : "border-gray-200 text-gray-500 hover:border-emerald-600 hover:text-emerald-950"
+                        }`}
+                      >
+                        {v.size_ml}ML Pack {outOfStock && "(Out)"}
+                      </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                )}
 
                 <div className="space-y-4 pt-4">
                   <button
@@ -388,6 +437,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
         )}
       </div>
 
+      {!isPack && (
       <FairPricing
         bottlePrice={bottlePrice}
         ourPrice={selectedPrice}
@@ -400,6 +450,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
             : "Choose a size to see fair pricing."
         }
       />
+      )}
 
       {/* No Fake Discount Promise */}
       <section className="py-8 md:py-12">
@@ -494,7 +545,9 @@ export default function ProductDetailClient({ product }: { product: any }) {
                 </div>
                 <div className="mt-2 text-sm text-slate-500">
                   {canFulfill
-                    ? `In stock · ${availableMl}ml available`
+                    ? isPack
+                      ? `In stock · ${currentVariant?.stock ?? 0} units available`
+                      : `In stock · ${availableMl}ml available`
                     : "Currently out of stock"}
                 </div>
                 <div className="mt-6 text-3xl font-serif text-emerald-950">

@@ -9,13 +9,18 @@ export interface CartItem {
     price: number;
     quantity: number;
     image_url?: string;
+    is_pack?: boolean;
+}
+
+function cartKey(item: { id: string; size_ml: number; is_pack?: boolean }) {
+    return `${item.id}|${item.size_ml}|${item.is_pack ? '1' : '0'}`;
 }
 
 interface CartState {
     items: CartItem[];
     addItem: (item: CartItem) => void;
-    removeItem: (id: string, size_ml: number) => void;
-    updateQuantity: (id: string, size_ml: number, quantity: number) => void;
+    removeItem: (id: string, size_ml: number, is_pack?: boolean) => void;
+    updateQuantity: (id: string, size_ml: number, quantity: number, is_pack?: boolean) => void;
     clearCart: () => void;
     totalItems: () => number;
     totalPrice: () => number;
@@ -27,8 +32,9 @@ export const useCartStore = create<CartState>()(
             items: [],
             addItem: (newItem) => {
                 const currentItems = get().items;
+                const key = cartKey(newItem);
                 const existingItemIndex = currentItems.findIndex(
-                    (item) => item.id === newItem.id && item.size_ml === newItem.size_ml
+                    (item) => cartKey(item) === key
                 );
 
                 if (existingItemIndex > -1) {
@@ -39,14 +45,16 @@ export const useCartStore = create<CartState>()(
                     set({ items: [...currentItems, newItem] });
                 }
             },
-            removeItem: (id, size_ml) => {
+            removeItem: (id, size_ml, is_pack) => {
+                const key = cartKey({ id, size_ml, is_pack });
                 set({
-                    items: get().items.filter((item) => !(item.id === id && item.size_ml === size_ml)),
+                    items: get().items.filter((item) => cartKey(item) !== key),
                 });
             },
-            updateQuantity: (id, size_ml, quantity) => {
+            updateQuantity: (id, size_ml, quantity, is_pack) => {
+                const key = cartKey({ id, size_ml, is_pack });
                 const updatedItems = get().items.map((item) =>
-                    item.id === id && item.size_ml === size_ml ? { ...item, quantity } : item
+                    cartKey(item) === key ? { ...item, quantity } : item
                 );
                 set({ items: updatedItems });
             },

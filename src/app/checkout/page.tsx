@@ -105,7 +105,8 @@ export default function CheckoutPage() {
           name: item.name,
           size_ml: item.size_ml,
           price: item.price,
-          quantity: item.quantity
+          quantity: item.quantity,
+          is_pack: !!item.is_pack,
         })),
         total_amount: grandTotal,
         shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
@@ -122,6 +123,7 @@ export default function CheckoutPage() {
         product_id: it.product_id,
         size_ml: it.size_ml,
         quantity: it.quantity,
+        is_pack: !!it.is_pack,
       }));
       const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData);
       const rzpData = rzpResponse.data;

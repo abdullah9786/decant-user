@@ -38,7 +38,7 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-8">
             {items.map((item) => (
-              <div key={`${item.id}-${item.size_ml}`} className="flex items-center space-x-6 border-b border-gray-100 pb-8">
+              <div key={`${item.id}-${item.size_ml}-${item.is_pack ? 'p' : 'd'}`} className="flex items-center space-x-6 border-b border-gray-100 pb-8">
                 <div className="w-24 h-32 bg-gray-50 flex-shrink-0 relative border border-gray-100 overflow-hidden">
                   {item.image_url ? (
                     <Image src={item.image_url} alt={item.name} fill sizes="96px" className="object-cover" />
@@ -49,26 +49,28 @@ export default function CartPage() {
                 <div className="flex-1">
                   <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.brand}</p>
                   <h3 className="font-serif text-xl text-emerald-950 mb-1">{item.name}</h3>
-                  <p className="text-xs text-emerald-600 font-bold mb-4">{item.size_ml}ML Decant</p>
+                  <p className="text-xs text-emerald-600 font-bold mb-4">
+                    {item.size_ml}ML {item.is_pack ? 'Pack' : 'Decant'}
+                  </p>
                   
                   <div className="flex items-center space-x-6">
                     <div className="flex items-center border border-gray-200">
                       <button 
-                        onClick={() => updateQuantity(item.id, item.size_ml, Math.max(1, item.quantity - 1))}
+                        onClick={() => updateQuantity(item.id, item.size_ml, Math.max(1, item.quantity - 1), item.is_pack)}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="w-10 text-center text-xs font-bold">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, item.size_ml, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.size_ml, item.quantity + 1, item.is_pack)}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Plus size={14} />
                       </button>
                     </div>
                     <button 
-                      onClick={() => removeItem(item.id, item.size_ml)}
+                      onClick={() => removeItem(item.id, item.size_ml, item.is_pack)}
                       className="text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={18} />
