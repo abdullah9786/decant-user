@@ -129,6 +129,10 @@ export const giftBoxApi = {
     getOne: (id: string) => api.get(`/gift-boxes/${id}`),
 };
 
+export const bottleApi = {
+    getAll: (params?: any) => api.get('/bottles', { params }),
+};
+
 export const influencerApi = {
     validateCoupon: (code: string) => api.post('/influencers/coupons/validate', { code }),
 };

@@ -17,6 +17,18 @@ async function getProduct(id: string) {
   }
 }
 
+async function getBottles() {
+  try {
+    const res = await fetch(`${API_URL}/bottles`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -58,7 +70,7 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = await getProduct(id);
+  const [product, bottles] = await Promise.all([getProduct(id), getBottles()]);
 
   if (!product) {
     return (
@@ -104,7 +116,7 @@ export default async function ProductDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
-      <ProductDetailClient product={product} />
+      <ProductDetailClient product={product} bottles={bottles} />
     </>
   );
 }

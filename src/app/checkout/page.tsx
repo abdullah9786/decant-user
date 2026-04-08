@@ -111,6 +111,9 @@ export default function CheckoutPage() {
             gift_box_id: item.gift_box_id,
             selected_products: item.selected_products,
           }),
+          bottle_id: item.bottle_id || null,
+          bottle_name: item.bottle_name || null,
+          bottle_price: item.bottle_price || 0,
         })),
         total_amount: grandTotal,
         shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
@@ -132,6 +135,7 @@ export default function CheckoutPage() {
           gift_box_id: it.gift_box_id,
           selected_products: it.selected_products,
         }),
+        ...(it.bottle_id && { bottle_id: it.bottle_id }),
       }));
       const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData);
       const rzpData = rzpResponse.data;

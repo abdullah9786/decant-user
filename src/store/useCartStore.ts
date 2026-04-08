@@ -20,21 +20,24 @@ export interface CartItem {
     gift_box_id?: string;
     gift_box_name?: string;
     selected_products?: GiftBoxSelectedProduct[];
+    bottle_id?: string;
+    bottle_name?: string;
+    bottle_price?: number;
 }
 
-function cartKey(item: { id: string; size_ml: number; is_pack?: boolean; gift_box_id?: string; selected_products?: GiftBoxSelectedProduct[] }) {
+function cartKey(item: { id: string; size_ml: number; is_pack?: boolean; gift_box_id?: string; selected_products?: GiftBoxSelectedProduct[]; bottle_id?: string }) {
     if (item.gift_box_id && item.selected_products) {
         const ids = [...item.selected_products].map(s => s.product_id).sort().join(',');
         return `giftbox|${item.gift_box_id}|${ids}`;
     }
-    return `${item.id}|${item.size_ml}|${item.is_pack ? '1' : '0'}`;
+    return `${item.id}|${item.size_ml}|${item.is_pack ? '1' : '0'}|${item.bottle_id || ''}`;
 }
 
 interface CartState {
     items: CartItem[];
     addItem: (item: CartItem) => void;
-    removeItem: (id: string, size_ml: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[]) => void;
-    updateQuantity: (id: string, size_ml: number, quantity: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[]) => void;
+    removeItem: (id: string, size_ml: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[], bottle_id?: string) => void;
+    updateQuantity: (id: string, size_ml: number, quantity: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[], bottle_id?: string) => void;
     clearCart: () => void;
     totalItems: () => number;
     totalPrice: () => number;
@@ -59,14 +62,14 @@ export const useCartStore = create<CartState>()(
                     set({ items: [...currentItems, newItem] });
                 }
             },
-            removeItem: (id, size_ml, is_pack, gift_box_id, selected_products) => {
-                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products });
+            removeItem: (id, size_ml, is_pack, gift_box_id, selected_products, bottle_id) => {
+                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products, bottle_id });
                 set({
                     items: get().items.filter((item) => cartKey(item) !== key),
                 });
             },
-            updateQuantity: (id, size_ml, quantity, is_pack, gift_box_id, selected_products) => {
-                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products });
+            updateQuantity: (id, size_ml, quantity, is_pack, gift_box_id, selected_products, bottle_id) => {
+                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products, bottle_id });
                 const updatedItems = get().items.map((item) =>
                     cartKey(item) === key ? { ...item, quantity } : item
                 );

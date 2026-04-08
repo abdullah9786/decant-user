@@ -15,7 +15,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
 
-export default function ProductDetailClient({ product }: { product: any }) {
+export default function ProductDetailClient({ product, bottles = [] }: { product: any; bottles?: any[] }) {
   const firstVariant = product.variants?.[0];
   const [selectedSize, setSelectedSize] = useState<number | null>(
     firstVariant?.size_ml ?? null
@@ -25,6 +25,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
   );
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [sanitizedDescription, setSanitizedDescription] = useState("");
+  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -62,6 +63,30 @@ export default function ProductDetailClient({ product }: { product: any }) {
   const othersLow = selectedPrice ? selectedPrice + 200 : 0;
   const othersHigh = selectedPrice ? selectedPrice + 250 : 0;
 
+  const productBottleIds: string[] = product.bottle_ids || [];
+  const availableBottles = productBottleIds.length === 0 ? [] : bottles.filter((b: any) => {
+    if (isPack) return false;
+    if (!(b.compatible_sizes || []).includes(selectedMl)) return false;
+    const bid = b.id || b._id;
+    return productBottleIds.includes(bid);
+  });
+
+  const selectedBottle = availableBottles.find(
+    (b: any) => (b.id || b._id) === selectedBottleId
+  );
+  const bottleAddon = selectedBottle?.size_prices?.[String(selectedMl)] ?? 0;
+
+  useEffect(() => {
+    if (availableBottles.length === 0) {
+      setSelectedBottleId(null);
+      return;
+    }
+    const current = availableBottles.find((b: any) => (b.id || b._id) === selectedBottleId);
+    if (current) return;
+    const def = availableBottles.find((b: any) => b.is_default);
+    setSelectedBottleId((def?.id || def?._id) ?? (availableBottles[0]?.id || availableBottles[0]?._id) ?? null);
+  }, [selectedMl, isPack, availableBottles.length]);
+
   const handleAddToCart = () => {
     if (!product || !currentVariant) return;
 
@@ -70,10 +95,15 @@ export default function ProductDetailClient({ product }: { product: any }) {
       name: product.name,
       brand: product.brand,
       size_ml: selectedSize!,
-      price: currentVariant.price,
+      price: currentVariant.price + bottleAddon,
       quantity: 1,
       is_pack: isPack,
-    });
+      ...(selectedBottle && {
+        bottle_id: selectedBottle.id || selectedBottle._id,
+        bottle_name: selectedBottle.name,
+        bottle_price: bottleAddon,
+      }),
+    } as any);
     const label = isPack ? `${selectedSize}ml Pack` : `${selectedSize}ml`;
     toast.success(`${product.name} (${label}) added to bag!`, {
       icon: "✨",
@@ -239,7 +269,10 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
               <div className="space-y-4">
                 <p className="text-3xl font-bold text-emerald-950">
-                  ₹{currentVariant?.price}
+                  ₹{(currentVariant?.price || 0) + bottleAddon}
+                  {bottleAddon > 0 && (
+                    <span className="text-sm font-medium text-gray-400 ml-2">(incl. ₹{bottleAddon} bottle)</span>
+                  )}
                 </p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
                   Tax included. Shipping calculated at checkout.
@@ -301,6 +334,47 @@ export default function ProductDetailClient({ product }: { product: any }) {
                       >
                         {v.size_ml}ML Pack {outOfStock && "(Out)"}
                       </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                )}
+
+                {availableBottles.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-900">
+                    Choose Your Bottle
+                  </p>
+                  <div className="flex gap-3 overflow-x-auto pb-1">
+                    {availableBottles.map((b: any) => {
+                      const bid = b.id || b._id;
+                      const isSelected = selectedBottleId === bid;
+                      return (
+                        <button
+                          key={bid}
+                          type="button"
+                          onClick={() => setSelectedBottleId(bid)}
+                          className={`flex-shrink-0 flex items-center space-x-3 px-4 py-3 rounded-xl border-2 transition-all ${
+                            isSelected
+                              ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200"
+                              : "border-gray-200 hover:border-emerald-300"
+                          }`}
+                        >
+                          {b.image_url && (
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0 relative">
+                              <Image src={b.image_url} alt={b.name} fill sizes="40px" className="object-cover" />
+                            </div>
+                          )}
+                          <div className="text-left">
+                            <p className="text-xs font-bold text-emerald-950">{b.name}</p>
+                            <p className="text-[10px] text-gray-400">
+                              {(() => { const p = b.size_prices?.[String(selectedMl)] ?? 0; return p > 0 ? `+₹${p}` : "Included"; })()}
+                            </p>
+                          </div>
+                          {b.is_default && (
+                            <span className="text-[8px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">Default</span>
+                          )}
+                        </button>
                       );
                     })}
                   </div>
@@ -440,13 +514,13 @@ export default function ProductDetailClient({ product }: { product: any }) {
       {!isPack && (
       <FairPricing
         bottlePrice={bottlePrice}
-        ourPrice={selectedPrice}
+        ourPrice={selectedPrice + bottleAddon}
         sizeLabel={selectedMl ? `${selectedMl}ml` : "Decant"}
         othersLow={othersLow}
         othersHigh={othersHigh}
         introText={
           selectedMl
-            ? `For ${selectedMl}ml, fair price is ₹${selectedPrice.toLocaleString("en-IN")}.`
+            ? `For ${selectedMl}ml, fair price is ₹${(selectedPrice + bottleAddon).toLocaleString("en-IN")}.`
             : "Choose a size to see fair pricing."
         }
       />
@@ -491,7 +565,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                       Decume
                     </span>
                     <span className="text-lg font-bold">
-                      ₹{selectedPrice || 0}
+                      ₹{(selectedPrice || 0) + bottleAddon}
                     </span>
                   </div>
                 </div>
