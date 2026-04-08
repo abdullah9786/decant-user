@@ -139,7 +139,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-20 items-start">
           {/* Left Column: Image Gallery */}
-          <div className="lg:col-span-7 flex flex-col md:flex-row-reverse gap-4">
+          <div className="lg:col-span-7 lg:sticky lg:top-24 lg:self-start flex flex-col md:flex-row-reverse gap-4">
             {/* Main Image Viewer */}
             <div className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group">
               {allImages.map((img, i) => (
@@ -244,7 +244,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
 
           {/* Right Column: Details (Sticky) */}
           <div className="lg:col-span-5 relative">
-            <div className="lg:sticky lg:top-24 space-y-8">
+            <div className="space-y-8">
               <div>
                 <p className="text-xs font-bold tracking-[0.4em] uppercase text-emerald-600 mb-4">
                   {product.brand}
@@ -345,7 +345,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-900">
                     Choose Your Bottle
                   </p>
-                  <div className="flex gap-3 overflow-x-auto pb-1">
+                  <div className="grid grid-cols-2 gap-3">
                     {availableBottles.map((b: any) => {
                       const bid = b.id || b._id;
                       const isSelected = selectedBottleId === bid;
@@ -354,7 +354,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                           key={bid}
                           type="button"
                           onClick={() => setSelectedBottleId(bid)}
-                          className={`flex-shrink-0 flex items-center space-x-3 px-4 py-3 rounded-xl border-2 transition-all ${
+                          className={`flex items-center space-x-3 px-4 py-3 rounded-xl border-2 transition-all ${
                             isSelected
                               ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200"
                               : "border-gray-200 hover:border-emerald-300"
@@ -368,16 +368,16 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                           <div className="text-left">
                             <p className="text-xs font-bold text-emerald-950">{b.name}</p>
                             <p className="text-[10px] text-gray-400">
-                              {(() => { const p = b.size_prices?.[String(selectedMl)] ?? 0; return p > 0 ? `+₹${p}` : "Included"; })()}
+                              {(() => { const p = b.size_prices?.[String(selectedMl)] ?? 0; return p > 0 ? `+₹${p}` : "+₹0"; })()}
                             </p>
                           </div>
-                          {b.is_default && (
-                            <span className="text-[8px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">Default</span>
-                          )}
                         </button>
                       );
                     })}
                   </div>
+                  <p className="text-xs text-gray-500">
+                    Want to know more about our bottles? <Link href="/bottles" className="font-bold text-emerald-600 hover:underline">View bottles</Link>
+                  </p>
                 </div>
                 )}
 
