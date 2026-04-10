@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Wine } from "lucide-react";
+import { PerfumeBottle } from "@/components/icons/PerfumeBottle";
 
 export const metadata: Metadata = {
   title: "Our Bottles | Decume",
@@ -59,7 +59,7 @@ export default async function BottlesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {bottles.length === 0 ? (
             <div className="text-center py-20">
-              <Wine size={64} className="mx-auto text-gray-200 mb-6" />
+              <PerfumeBottle size={64} className="mx-auto text-gray-200 mb-6" />
               <p className="text-gray-400 uppercase tracking-widest text-xs">
                 Bottles coming soon.
               </p>
@@ -90,7 +90,7 @@ export default async function BottlesPage() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Wine size={48} className="text-gray-200" />
+                          <PerfumeBottle size={48} className="text-gray-200" />
                         </div>
                       )}
                     </div>
