@@ -156,6 +156,21 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                 />
               ))}
 
+              {/* Bottle Overlay */}
+              {!isPack && selectedBottle?.image_url && (
+                <div className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 flex flex-col items-center transition-all duration-500 ease-out">
+                  <div className="relative w-14 h-20 sm:w-20 sm:h-28 bg-emerald-950/85 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
+                    <Image
+                      src={selectedBottle.image_url}
+                      alt={selectedBottle.name || "Decant bottle"}
+                      fill
+                      sizes="112px"
+                      className="object-cover transition-opacity duration-500 scale-130"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Mobile Controls */}
               <div className="absolute inset-0 flex items-center justify-between p-4 md:hidden pointer-events-none z-20">
                 <button
@@ -181,7 +196,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
               </div>
 
               {/* Mobile Indicators */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 md:hidden z-20">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 md:hidden z-30">
                 {allImages.map((_: string, i: number) => (
                   <div
                     key={i}
