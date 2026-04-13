@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -107,6 +108,16 @@ export default function RootLayout({
         {gaMeasurementId ? (
           <GoogleAnalytics gaId={gaMeasurementId} />
         ) : null}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18052135357"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-tag" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'AW-18052135357');`}
+        </Script>
       </body>
     </html>
   );
