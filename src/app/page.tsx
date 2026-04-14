@@ -179,6 +179,17 @@ export default async function HomePage() {
       {/* Shop for Him & Her */}
       <section className="py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
+              Gift a Fragrance
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif text-emerald-950 mt-1">
+              A Scent They&#39;ll Never Forget
+            </h2>
+            <p className="text-sm text-slate-500 mt-3 max-w-md mx-auto">
+              Not sure what to pick? Shop by who it&#39;s for and surprise someone special.
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {/* Shop for Him */}
             <Link
