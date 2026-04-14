@@ -65,7 +65,7 @@ export default function CategoryDetailPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero */}
-      <div className="relative h-56 md:h-72 overflow-hidden">
+      <div className="relative h-72 md:h-72 overflow-hidden">
         {category.image_url ? (
           <Image
             src={category.image_url}
