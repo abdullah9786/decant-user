@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ClientToaster from "@/components/ui/ClientToaster";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import ProgressBar from "@/components/ui/ProgressBar";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -98,6 +99,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans text-[color:var(--text-primary)] antialiased`}>
+        <ProgressBar />
         <ScrollToTop />
         <Navbar />
         <ClientToaster />
