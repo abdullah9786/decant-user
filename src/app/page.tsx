@@ -34,9 +34,9 @@ async function getFeaturedProducts() {
   }
 }
 
-async function getFeaturedCategories() {
+async function getFeaturedFamilies() {
   try {
-    const res = await fetch(`${API_URL}/categories`, {
+    const res = await fetch(`${API_URL}/fragrance-families`, {
       next: { revalidate: 120 },
     });
     if (!res.ok) return [];
@@ -71,9 +71,9 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredCategories] = await Promise.all([
+  const [featuredProducts, featuredFamilies] = await Promise.all([
     getFeaturedProducts(),
-    getFeaturedCategories(),
+    getFeaturedFamilies(),
   ]);
 
   return (
@@ -236,11 +236,11 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            {featuredCategories.length > 0 ? (
-              featuredCategories.map((cat: any) => (
+            {featuredFamilies.length > 0 ? (
+              featuredFamilies.map((cat: any) => (
                 <Link
                   key={cat._id}
-                  href={`/products?category=${cat.name}`}
+                  href={`/products?fragrance_family=${cat.name}`}
                   className="group relative overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-lg h-64 md:h-72"
                 >
                   {cat.image_url ? (

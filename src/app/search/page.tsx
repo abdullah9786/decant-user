@@ -4,7 +4,7 @@ import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, Search as SearchIcon } from 'lucide-react';
 import ProductCard from '@/components/ui/ProductCard';
-import { brandApi, categoryApi, productApi } from '@/lib/api';
+import { brandApi, fragranceFamilyApi, productApi } from '@/lib/api';
 
 const normalize = (value: string) => value.trim().toLowerCase();
 
@@ -18,7 +18,7 @@ function SearchClient() {
   const [loading, setLoading] = useState(false);
 
   const [brands, setBrands] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [fragranceFamilies, setFragranceFamilies] = useState<any[]>([]);
 
   const [notesTop, setNotesTop] = useState<string[]>([]);
   const [notesMiddle, setNotesMiddle] = useState<string[]>([]);
@@ -36,13 +36,13 @@ function SearchClient() {
     const fetchMeta = async () => {
       try {
         setLoading(true);
-        const [brandResponse, categoryResponse, productResponse] = await Promise.all([
+        const [brandResponse, familyResponse, productResponse] = await Promise.all([
           brandApi.getAll(),
-          categoryApi.getAll(),
+          fragranceFamilyApi.getAll(),
           productApi.getAll(),
         ]);
         setBrands(brandResponse.data || []);
-        setCategories(categoryResponse.data || []);
+        setFragranceFamilies(familyResponse.data || []);
 
         const products = productResponse.data || [];
         setAllProducts(products);
@@ -143,7 +143,7 @@ function SearchClient() {
       }
 
       // 3. Family Filter (if active)
-      if (familySet.size > 0 && !familySet.has(normalize(String(product.category || '')))) {
+      if (familySet.size > 0 && !familySet.has(normalize(String(product.fragrance_family || '')))) {
         return false;
       }
 
@@ -279,16 +279,16 @@ function SearchClient() {
                     </button>
                   </div>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {categories.length > 0 ? (
-                      categories.map((cat: any) => (
-                        <label key={cat._id || cat.name} className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-gray-600 cursor-pointer">
+                    {fragranceFamilies.length > 0 ? (
+                      fragranceFamilies.map((fam: any) => (
+                        <label key={fam._id || fam.name} className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-gray-600 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={selectedFamilies.includes(cat.name)}
-                            onChange={() => toggleFamily(cat.name)}
+                            checked={selectedFamilies.includes(fam.name)}
+                            onChange={() => toggleFamily(fam.name)}
                             className="h-3.5 w-3.5 accent-emerald-700"
                           />
-                          <span className={selectedFamilies.includes(cat.name) ? 'text-emerald-700 font-bold' : ''}>{cat.name}</span>
+                          <span className={selectedFamilies.includes(fam.name) ? 'text-emerald-700 font-bold' : ''}>{fam.name}</span>
                         </label>
                       ))
                     ) : (

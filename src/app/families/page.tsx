@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { categoryApi } from '@/lib/api';
+import { fragranceFamilyApi } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
 export default function FamiliesPage() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [families, setFamilies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFamilies = async () => {
       try {
-        const response = await categoryApi.getAll();
-        setCategories(response.data || []);
+        const response = await fragranceFamilyApi.getAll();
+        setFamilies(response.data || []);
       } catch (err) {
         console.error("Error fetching families", err);
       } finally {
@@ -36,14 +36,14 @@ export default function FamiliesPage() {
     <div className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-serif text-emerald-950 mb-4 text-center">Fragrance Families</h1>
-        <p className="text-gray-500 text-center uppercase tracking-[0.2em] text-xs mb-16">Discover your preferred olfactory category</p>
+        <p className="text-gray-500 text-center uppercase tracking-[0.2em] text-xs mb-16">Discover your preferred olfactory family</p>
 
-        {categories.length > 0 ? (
+        {families.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {categories.map((family) => (
+            {families.map((family) => (
               <Link 
                 key={family._id || family.name}
-                href={`/products?category=${family.name}`}
+                href={`/products?fragrance_family=${family.name}`}
                 className="group rounded-3xl border border-emerald-100 bg-white/80 shadow-sm hover:shadow-xl transition-all overflow-hidden"
               >
                 <div className="relative aspect-[16/10] bg-emerald-50/60">

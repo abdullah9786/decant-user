@@ -99,8 +99,8 @@ export const productApi = {
     getOne: (id: string) => api.get(`/products/${id}`),
 };
 
-export const categoryApi = {
-    getAll: (params?: any) => api.get('/categories', { params }),
+export const fragranceFamilyApi = {
+    getAll: (params?: any) => api.get('/fragrance-families', { params }),
 };
 
 export const brandApi = {

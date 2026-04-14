@@ -23,9 +23,9 @@ async function getAllProducts() {
   }
 }
 
-async function getAllCategories() {
+async function getAllFragranceFamilies() {
   try {
-    const res = await fetch(`${API_URL}/categories`, {
+    const res = await fetch(`${API_URL}/fragrance-families`, {
       next: { revalidate: 120 },
     });
     if (!res.ok) return [];
@@ -36,9 +36,9 @@ async function getAllCategories() {
 }
 
 export default async function ProductListingPage() {
-  const [products, categories] = await Promise.all([
+  const [products, fragranceFamilies] = await Promise.all([
     getAllProducts(),
-    getAllCategories(),
+    getAllFragranceFamilies(),
   ]);
 
   return (
@@ -51,7 +51,7 @@ export default async function ProductListingPage() {
     >
       <ProductListingClient
         initialProducts={products}
-        initialCategories={categories}
+        initialFragranceFamilies={fragranceFamilies}
       />
     </Suspense>
   );

@@ -8,29 +8,29 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ProductListingClientProps {
   initialProducts: any[];
-  initialCategories: any[];
+  initialFragranceFamilies: any[];
 }
 
 export default function ProductListingClient({
   initialProducts,
-  initialCategories,
+  initialFragranceFamilies,
 }: ProductListingClientProps) {
   const [sortBy, setSortBy] = useState('custom');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBrands, setFilterBrands] = useState<string[]>([]);
-  const [filterCategories, setFilterCategories] = useState<string[]>([]);
+  const [filterFamilies, setFilterFamilies] = useState<string[]>([]);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterBrandOpen, setIsFilterBrandOpen] = useState(false);
-  const [isFilterCategoryOpen, setIsFilterCategoryOpen] = useState(false);
+  const [isFilterFamilyOpen, setIsFilterFamilyOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState<null | 'filter' | 'sort'>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
 
   React.useEffect(() => {
-    const categoryParam = searchParams.get('category');
+    const familyParam = searchParams.get('fragrance_family');
     const brandParam = searchParams.get('brand');
-    if (categoryParam) {
-      setFilterCategories(prev => prev.includes(categoryParam) ? prev : [categoryParam]);
+    if (familyParam) {
+      setFilterFamilies(prev => prev.includes(familyParam) ? prev : [familyParam]);
     }
     if (brandParam) {
       setFilterBrands(prev => prev.includes(brandParam) ? prev : [brandParam]);
@@ -54,8 +54,8 @@ export default function ProductListingClient({
     if (filterBrands.length > 0) {
       result = result.filter(p => filterBrands.includes(p.brand));
     }
-    if (filterCategories.length > 0) {
-      result = result.filter(p => filterCategories.includes(p.category));
+    if (filterFamilies.length > 0) {
+      result = result.filter(p => filterFamilies.includes(p.fragrance_family));
     }
 
     if (sortBy === 'price-asc') {
@@ -67,7 +67,7 @@ export default function ProductListingClient({
     }
 
     return result;
-  }, [initialProducts, filterBrands, filterCategories, sortBy, searchTerm]);
+  }, [initialProducts, filterBrands, filterFamilies, sortBy, searchTerm]);
 
   const toggleBrand = (brand: string) => {
     setFilterBrands((prev) =>
@@ -75,15 +75,15 @@ export default function ProductListingClient({
     );
   };
 
-  const toggleCategory = (category: string) => {
-    setFilterCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+  const toggleFamily = (family: string) => {
+    setFilterFamilies((prev) =>
+      prev.includes(family) ? prev.filter((c) => c !== family) : [...prev, family]
     );
   };
 
   const clearAllFilters = () => {
     setFilterBrands([]);
-    setFilterCategories([]);
+    setFilterFamilies([]);
     router.replace('/products');
   };
 
@@ -140,7 +140,7 @@ export default function ProductListingClient({
           <div className="hidden md:flex items-center space-x-8">
             <div className="relative">
               <button 
-                onClick={() => { setIsFilterBrandOpen(!isFilterBrandOpen); setIsFilterCategoryOpen(false); setIsSortOpen(false); }}
+                onClick={() => { setIsFilterBrandOpen(!isFilterBrandOpen); setIsFilterFamilyOpen(false); setIsSortOpen(false); }}
                 className={`font-serif text-lg flex items-center transition-colors ${filterBrands.length > 0 ? 'text-emerald-700' : 'hover:text-emerald-700'}`}
               >
                 Brand {filterBrands.length > 0 && `(${filterBrands.length})`} <ChevronDown size={14} className="ml-1 opacity-60" />
@@ -165,21 +165,21 @@ export default function ProductListingClient({
 
             <div className="relative">
               <button 
-                onClick={() => { setIsFilterCategoryOpen(!isFilterCategoryOpen); setIsFilterBrandOpen(false); setIsSortOpen(false); }}
-                className={`font-serif text-lg flex items-center transition-colors ${filterCategories.length > 0 ? 'text-emerald-700' : 'hover:text-emerald-700'}`}
+                onClick={() => { setIsFilterFamilyOpen(!isFilterFamilyOpen); setIsFilterBrandOpen(false); setIsSortOpen(false); }}
+                className={`font-serif text-lg flex items-center transition-colors ${filterFamilies.length > 0 ? 'text-emerald-700' : 'hover:text-emerald-700'}`}
               >
-                Fragrance Family {filterCategories.length > 0 && `(${filterCategories.length})`} <ChevronDown size={14} className="ml-1 opacity-60" />
+                Fragrance Family {filterFamilies.length > 0 && `(${filterFamilies.length})`} <ChevronDown size={14} className="ml-1 opacity-60" />
               </button>
-              {isFilterCategoryOpen && (
+              {isFilterFamilyOpen && (
                 <>
-                  <div className="fixed inset-0 z-30" onClick={() => setIsFilterCategoryOpen(false)} />
+                  <div className="fixed inset-0 z-30" onClick={() => setIsFilterFamilyOpen(false)} />
                   <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-50 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="max-h-60 overflow-y-auto space-y-2">
-                      <button onClick={() => { setFilterCategories([]); setIsFilterCategoryOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterCategories.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Families</button>
-                      {initialCategories.map((cat: any) => (
-                        <label key={cat._id || cat.name} className="flex items-center gap-2 text-sm font-serif text-gray-600 hover:text-emerald-600 cursor-pointer py-1">
-                          <input type="checkbox" checked={filterCategories.includes(cat.name)} onChange={() => toggleCategory(cat.name)} className="h-3.5 w-3.5 accent-emerald-700" />
-                          <span className={filterCategories.includes(cat.name) ? 'text-emerald-700' : ''}>{cat.name}</span>
+                      <button onClick={() => { setFilterFamilies([]); setIsFilterFamilyOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterFamilies.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Families</button>
+                      {initialFragranceFamilies.map((fam: any) => (
+                        <label key={fam._id || fam.name} className="flex items-center gap-2 text-sm font-serif text-gray-600 hover:text-emerald-600 cursor-pointer py-1">
+                          <input type="checkbox" checked={filterFamilies.includes(fam.name)} onChange={() => toggleFamily(fam.name)} className="h-3.5 w-3.5 accent-emerald-700" />
+                          <span className={filterFamilies.includes(fam.name) ? 'text-emerald-700' : ''}>{fam.name}</span>
                         </label>
                       ))}
                     </div>
@@ -188,7 +188,7 @@ export default function ProductListingClient({
               )}
             </div>
             
-            {(filterBrands.length > 0 || filterCategories.length > 0) && (
+            {(filterBrands.length > 0 || filterFamilies.length > 0) && (
               <button onClick={clearAllFilters} className="text-[10px] uppercase font-bold tracking-widest text-emerald-700 border-b border-emerald-700">
                 Clear Filters
               </button>
@@ -198,7 +198,7 @@ export default function ProductListingClient({
           {/* Desktop Sort Dropdown */}
           <div className="hidden md:flex relative ml-auto">
             <button 
-              onClick={() => { setIsSortOpen(!isSortOpen); setIsFilterBrandOpen(false); setIsFilterCategoryOpen(false); }}
+              onClick={() => { setIsSortOpen(!isSortOpen); setIsFilterBrandOpen(false); setIsFilterFamilyOpen(false); }}
               className="font-serif text-lg flex items-center hover:text-emerald-700 transition-colors"
             >
               Sort by: {sortOptions.find(o => o.value === sortBy)?.label} <ChevronDown size={14} className="ml-1 opacity-60" />
@@ -224,7 +224,7 @@ export default function ProductListingClient({
           {/* Mobile Buttons */}
           <div className="flex md:hidden w-full divide-x divide-gray-200">
             <button onClick={() => setMobileDrawerOpen('filter')} className="flex-1 py-1 text-center font-serif text-lg flex items-center justify-center">
-              Filter {(filterBrands.length > 0 || filterCategories.length > 0) && `(${filterBrands.length + filterCategories.length})`}
+              Filter {(filterBrands.length > 0 || filterFamilies.length > 0) && `(${filterBrands.length + filterFamilies.length})`}
             </button>
             <button onClick={() => setMobileDrawerOpen('sort')} className="flex-1 py-1 text-center font-serif text-lg flex items-center justify-center">
               Sort
@@ -259,10 +259,10 @@ export default function ProductListingClient({
                 <div>
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-950 mb-4 border-b border-gray-100 pb-2">Fragrance Family</h3>
                   <div className="space-y-3">
-                    {initialCategories.map((cat: any) => (
-                      <label key={cat._id || cat.name} className="flex items-center gap-3 font-serif text-lg cursor-pointer">
-                        <input type="checkbox" checked={filterCategories.includes(cat.name)} onChange={() => toggleCategory(cat.name)} className="h-4 w-4 accent-[#4B4136]" />
-                        <span className={filterCategories.includes(cat.name) ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{cat.name}</span>
+                    {initialFragranceFamilies.map((fam: any) => (
+                      <label key={fam._id || fam.name} className="flex items-center gap-3 font-serif text-lg cursor-pointer">
+                        <input type="checkbox" checked={filterFamilies.includes(fam.name)} onChange={() => toggleFamily(fam.name)} className="h-4 w-4 accent-[#4B4136]" />
+                        <span className={filterFamilies.includes(fam.name) ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{fam.name}</span>
                       </label>
                     ))}
                   </div>
@@ -320,7 +320,7 @@ export default function ProductListingClient({
           <div className="py-40 text-center">
             <p className="font-serif italic text-gray-400 text-xl">No products match your selection.</p>
             <button 
-              onClick={() => { setFilterBrands([]); setFilterCategories([]); setSortBy('custom'); }}
+              onClick={() => { setFilterBrands([]); setFilterFamilies([]); setSortBy('custom'); }}
               className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
             >
               Clear All Filters
