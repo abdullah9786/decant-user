@@ -8,7 +8,7 @@ const API_URL =
 async function getGiftBox(id: string) {
   try {
     const res = await fetch(`${API_URL}/gift-boxes/${id}`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return null;
     return await res.json();
@@ -20,7 +20,7 @@ async function getGiftBox(id: string) {
 async function getProducts() {
   try {
     const res = await fetch(`${API_URL}/products`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     return await res.json();

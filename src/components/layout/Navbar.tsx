@@ -77,6 +77,9 @@ const Navbar = () => {
                 <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50">
                   <div className="w-52 bg-white border border-gray-100 rounded-xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     <Link href="/products" onClick={() => setShopOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors">Shop All</Link>
+                    <Link href="/products?type=decant" onClick={() => setShopOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors">Decants</Link>
+                    <Link href="/products?type=full-bottle" onClick={() => setShopOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors">Full Bottles</Link>
+                    <div className="my-1 border-t border-gray-100" />
                     <Link href="/brands" onClick={() => setShopOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors">Brands</Link>
                     <Link href="/families" onClick={() => setShopOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors">Fragrance Families</Link>
                     <Link href="/new-arrivals" onClick={() => setShopOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors">New Arrivals</Link>
@@ -169,6 +172,8 @@ const Navbar = () => {
           {/* Slide-down Menu Drawer */}
           <div className="absolute top-full left-0 right-0 md:hidden bg-white border-t border-gray-100 p-6 space-y-5 z-50 shadow-xl animate-in slide-in-from-top-4 duration-300">
             <Link href="/products" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Shop All</Link>
+            <Link href="/products?type=decant" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Decants</Link>
+            <Link href="/products?type=full-bottle" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Full Bottles</Link>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pt-2">Categories</p>
             {categories.map((cat) => (
               <Link key={cat._id || cat.slug} href={`/categories/${cat.slug}`} onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors pl-4">{cat.name}</Link>

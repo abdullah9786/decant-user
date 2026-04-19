@@ -24,7 +24,7 @@ const API_URL =
 async function getFeaturedProducts() {
   try {
     const res = await fetch(`${API_URL}/products?is_featured=true`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -34,10 +34,22 @@ async function getFeaturedProducts() {
   }
 }
 
+async function getAllProducts() {
+  try {
+    const res = await fetch(`${API_URL}/products`, {
+      next: { revalidate: 600 },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 async function getFeaturedFamilies() {
   try {
     const res = await fetch(`${API_URL}/fragrance-families`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -71,10 +83,18 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredFamilies] = await Promise.all([
+  const [featuredProducts, featuredFamilies, allProducts] = await Promise.all([
     getFeaturedProducts(),
     getFeaturedFamilies(),
+    getAllProducts(),
   ]);
+
+  const decantProducts = allProducts
+    .filter((p: any) => p.variants?.some((v: any) => !v.is_pack))
+    .slice(0, 8);
+  const fullBottleProducts = allProducts
+    .filter((p: any) => p.variants?.some((v: any) => v.is_pack))
+    .slice(0, 8);
 
   return (
     <div className="bg-transparent">
@@ -242,40 +262,79 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Decants */}
       <section className="py-12 md:py-20 bg-white/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
               <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
-                The Edit
+                Try Before You Commit
               </div>
               <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">
-                Featured Fragrances
+                Decants
               </h2>
             </div>
             <Link
-              href="/products"
+              href="/products?type=decant"
               className="hidden md:inline-block text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700"
             >
-              Shop all
+              View all
             </Link>
           </div>
 
-          {featuredProducts.length > 0 ? (
-            <FeaturedProducts products={featuredProducts} />
+          {decantProducts.length > 0 ? (
+            <FeaturedProducts products={decantProducts} />
           ) : (
             <div className="text-center text-slate-400 italic py-12">
-              Browse our collection to see all perfumes.
+              No decants available yet.
             </div>
           )}
 
           <div className="mt-8">
             <Link
-              href="/products"
+              href="/products?type=decant"
               className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200 bg-white/50 hover:bg-emerald-50 transition-colors"
             >
-              Shop all fragrances
+              Shop all decants
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Full Bottles */}
+      <section className="py-12 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
+                The Full Experience
+              </div>
+              <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">
+                Sealed Bottles
+              </h2>
+            </div>
+            <Link
+              href="/products?type=full-bottle"
+              className="hidden md:inline-block text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700"
+            >
+              View all
+            </Link>
+          </div>
+
+          {fullBottleProducts.length > 0 ? (
+            <FeaturedProducts products={fullBottleProducts} priceMode="pack" />
+          ) : (
+            <div className="text-center text-slate-400 italic py-12">
+              No sealed bottles available yet.
+            </div>
+          )}
+
+          <div className="mt-8">
+            <Link
+              href="/products?type=full-bottle"
+              className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200 bg-white/50 hover:bg-emerald-50 transition-colors"
+            >
+              Shop all sealed bottles
             </Link>
           </div>
         </div>

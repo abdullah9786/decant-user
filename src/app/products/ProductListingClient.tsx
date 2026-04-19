@@ -19,6 +19,7 @@ export default function ProductListingClient({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBrands, setFilterBrands] = useState<string[]>([]);
   const [filterFamilies, setFilterFamilies] = useState<string[]>([]);
+  const [filterType, setFilterType] = useState<'all' | 'decant' | 'full-bottle'>('all');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterBrandOpen, setIsFilterBrandOpen] = useState(false);
   const [isFilterFamilyOpen, setIsFilterFamilyOpen] = useState(false);
@@ -29,12 +30,10 @@ export default function ProductListingClient({
   React.useEffect(() => {
     const familyParam = searchParams.get('fragrance_family');
     const brandParam = searchParams.get('brand');
-    if (familyParam) {
-      setFilterFamilies(prev => prev.includes(familyParam) ? prev : [familyParam]);
-    }
-    if (brandParam) {
-      setFilterBrands(prev => prev.includes(brandParam) ? prev : [brandParam]);
-    }
+    const typeParam = searchParams.get('type');
+    setFilterFamilies(familyParam ? [familyParam] : []);
+    setFilterBrands(brandParam ? [brandParam] : []);
+    setFilterType(typeParam === 'decant' || typeParam === 'full-bottle' ? typeParam : 'all');
   }, [searchParams]);
 
   const brands = useMemo(() => {
@@ -58,6 +57,12 @@ export default function ProductListingClient({
       result = result.filter(p => filterFamilies.includes(p.fragrance_family));
     }
 
+    if (filterType === 'decant') {
+      result = result.filter(p => p.variants?.some((v: any) => !v.is_pack));
+    } else if (filterType === 'full-bottle') {
+      result = result.filter(p => p.variants?.some((v: any) => v.is_pack));
+    }
+
     if (sortBy === 'price-asc') {
       result.sort((a, b) => (a.variants?.[0]?.price || 0) - (b.variants?.[0]?.price || 0));
     } else if (sortBy === 'price-desc') {
@@ -67,24 +72,43 @@ export default function ProductListingClient({
     }
 
     return result;
-  }, [initialProducts, filterBrands, filterFamilies, sortBy, searchTerm]);
+  }, [initialProducts, filterBrands, filterFamilies, filterType, sortBy, searchTerm]);
+
+  const updateUrl = (brands: string[], families: string[], type: 'all' | 'decant' | 'full-bottle') => {
+    const params = new URLSearchParams();
+    if (brands.length === 1) params.set('brand', brands[0]);
+    if (families.length === 1) params.set('fragrance_family', families[0]);
+    if (type !== 'all') params.set('type', type);
+    const qs = params.toString();
+    router.replace(qs ? `/products?${qs}` : '/products', { scroll: false });
+  };
 
   const toggleBrand = (brand: string) => {
-    setFilterBrands((prev) =>
-      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
-    );
+    setFilterBrands((prev) => {
+      const next = prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand];
+      updateUrl(next, filterFamilies, filterType);
+      return next;
+    });
   };
 
   const toggleFamily = (family: string) => {
-    setFilterFamilies((prev) =>
-      prev.includes(family) ? prev.filter((c) => c !== family) : [...prev, family]
-    );
+    setFilterFamilies((prev) => {
+      const next = prev.includes(family) ? prev.filter((c) => c !== family) : [...prev, family];
+      updateUrl(filterBrands, next, filterType);
+      return next;
+    });
+  };
+
+  const handleTypeChange = (type: 'all' | 'decant' | 'full-bottle') => {
+    setFilterType(type);
+    updateUrl(filterBrands, filterFamilies, type);
   };
 
   const clearAllFilters = () => {
     setFilterBrands([]);
     setFilterFamilies([]);
-    router.replace('/products');
+    setFilterType('all');
+    router.replace('/products', { scroll: false });
   };
 
   const sortOptions = [
@@ -188,7 +212,19 @@ export default function ProductListingClient({
               )}
             </div>
             
-            {(filterBrands.length > 0 || filterFamilies.length > 0) && (
+            <div className="flex items-center space-x-1 border border-gray-200 rounded-lg overflow-hidden">
+              {([['all', 'All'], ['decant', 'Decants'], ['full-bottle', 'Full Bottles']] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => handleTypeChange(value)}
+                  className={`px-4 py-1.5 text-sm font-serif transition-colors ${filterType === value ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-emerald-50'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {(filterBrands.length > 0 || filterFamilies.length > 0 || filterType !== 'all') && (
               <button onClick={clearAllFilters} className="text-[10px] uppercase font-bold tracking-widest text-emerald-700 border-b border-emerald-700">
                 Clear Filters
               </button>
@@ -224,7 +260,7 @@ export default function ProductListingClient({
           {/* Mobile Buttons */}
           <div className="flex md:hidden w-full divide-x divide-gray-200">
             <button onClick={() => setMobileDrawerOpen('filter')} className="flex-1 py-1 text-center font-serif text-lg flex items-center justify-center">
-              Filter {(filterBrands.length > 0 || filterFamilies.length > 0) && `(${filterBrands.length + filterFamilies.length})`}
+              Filter {(filterBrands.length > 0 || filterFamilies.length > 0 || filterType !== 'all') && `(${filterBrands.length + filterFamilies.length + (filterType !== 'all' ? 1 : 0)})`}
             </button>
             <button onClick={() => setMobileDrawerOpen('sort')} className="flex-1 py-1 text-center font-serif text-lg flex items-center justify-center">
               Sort
@@ -244,6 +280,18 @@ export default function ProductListingClient({
               </div>
               
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                <div>
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-950 mb-4 border-b border-gray-100 pb-2">Type</h3>
+                  <div className="space-y-3">
+                    {([['all', 'All Products'], ['decant', 'Decants'], ['full-bottle', 'Full Bottles']] as const).map(([value, label]) => (
+                      <label key={value} className="flex items-center gap-3 font-serif text-lg cursor-pointer">
+                        <input type="radio" name="mobile_type" checked={filterType === value} onChange={() => handleTypeChange(value)} className="h-4 w-4 accent-[#4B4136]" />
+                        <span className={filterType === value ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-950 mb-4 border-b border-gray-100 pb-2">Brand</h3>
                   <div className="space-y-3">
@@ -320,7 +368,7 @@ export default function ProductListingClient({
           <div className="py-40 text-center">
             <p className="font-serif italic text-gray-400 text-xl">No products match your selection.</p>
             <button 
-              onClick={() => { setFilterBrands([]); setFilterFamilies([]); setSortBy('custom'); }}
+              onClick={() => { setFilterBrands([]); setFilterFamilies([]); setFilterType('all'); setSortBy('custom'); }}
               className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
             >
               Clear All Filters

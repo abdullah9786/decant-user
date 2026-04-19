@@ -14,7 +14,7 @@ const API_URL =
 async function getAllProducts() {
   try {
     const res = await fetch(`${API_URL}/products`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     return await res.json();
@@ -26,7 +26,7 @@ async function getAllProducts() {
 async function getAllFragranceFamilies() {
   try {
     const res = await fetch(`${API_URL}/fragrance-families`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     return await res.json();

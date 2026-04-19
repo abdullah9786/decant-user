@@ -14,7 +14,7 @@ const API_URL =
 async function getAllBottles() {
   try {
     const res = await fetch(`${API_URL}/bottles`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 900 },
     });
     if (!res.ok) return [];
     return await res.json();

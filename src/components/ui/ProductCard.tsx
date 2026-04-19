@@ -22,11 +22,12 @@ interface ProductCardProps {
   notes_top?: string[];
   notes_middle?: string[];
   notes_base?: string[];
+  priceMode?: 'default' | 'pack';
 }
 
 const ProductCard = ({ 
   id, _id, name, brand, variants, image_url, is_featured, is_new_arrival,
-  notes_top = [], notes_middle = [], notes_base = []
+  notes_top = [], notes_middle = [], notes_base = [], priceMode = 'default'
 }: ProductCardProps) => {
   const productId = id || _id;
   let minPrice = 0;
@@ -38,11 +39,16 @@ const ProductCard = ({
     maxPrice = Math.max(...prices);
   }
 
-  const priceNode = (minPrice === maxPrice || !variants || variants.length === 1) ? (
-    <>₹{minPrice} <span className="text-[9px] font-normal text-slate-400 uppercase tracking-wider">/ decant</span></>
-  ) : (
-    <>₹{minPrice} - ₹{maxPrice}</>
-  );
+  let priceNode: React.ReactNode;
+  if (priceMode === 'pack') {
+    const packVariant = variants?.find((v: any) => v.is_pack);
+    const packPrice = packVariant?.price ?? minPrice;
+    priceNode = <>₹{packPrice}</>;
+  } else if (minPrice === maxPrice || !variants || variants.length === 1) {
+    priceNode = <>₹{minPrice} <span className="text-[9px] font-normal text-slate-400 uppercase tracking-wider">/ decant</span></>;
+  } else {
+    priceNode = <>₹{minPrice} - ₹{maxPrice}</>;
+  }
 
   // Extract up to 3 notes for a quick 'scent profile' preview right on the card
   const allNotes = [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3);

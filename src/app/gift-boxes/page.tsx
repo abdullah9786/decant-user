@@ -16,7 +16,7 @@ const API_URL =
 async function getAllGiftBoxes() {
   try {
     const res = await fetch(`${API_URL}/gift-boxes`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     return await res.json();

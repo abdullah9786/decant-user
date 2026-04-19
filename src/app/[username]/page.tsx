@@ -11,7 +11,7 @@ const API_URL =
 async function getStorefront(username: string) {
   try {
     const res = await fetch(`${API_URL}/influencers/storefront/${username}`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 300 },
     });
     if (!res.ok) return null;
     return await res.json();

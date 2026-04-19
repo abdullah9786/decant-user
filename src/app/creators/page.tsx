@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 async function getInfluencers() {
   try {
     const res = await fetch(`${API_URL}/influencers/public/list`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     return await res.json();
