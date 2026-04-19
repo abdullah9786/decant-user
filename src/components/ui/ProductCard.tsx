@@ -13,6 +13,7 @@ interface Variant {
 interface ProductCardProps {
   id?: string;
   _id?: string;
+  slug?: string;
   name: string;
   brand: string;
   variants?: Variant[];
@@ -26,10 +27,11 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ 
-  id, _id, name, brand, variants, image_url, is_featured, is_new_arrival,
+  id, _id, slug, name, brand, variants, image_url, is_featured, is_new_arrival,
   notes_top = [], notes_middle = [], notes_base = [], priceMode = 'default'
 }: ProductCardProps) => {
   const productId = id || _id;
+  const productSlug = slug || productId;
   let minPrice = 0;
   let maxPrice = 0;
   
@@ -119,7 +121,7 @@ const ProductCard = ({
 
   return (
     <Link 
-      href={`/products/${productId}`} 
+      href={`/products/${productSlug}`} 
       className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-all duration-300 flex flex-col h-full"
     >
       {/* Image Container */}

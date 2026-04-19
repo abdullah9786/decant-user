@@ -17,8 +17,8 @@ async function getInfluencerUsernames(): Promise<string[]> {
   }
 }
 
-async function getAllProductIds(): Promise<
-  { id: string; updated_at?: string }[]
+async function getAllProducts(): Promise<
+  { slug: string; id: string; updated_at?: string }[]
 > {
   try {
     const res = await fetch(`${API_URL}/products`, {
@@ -27,6 +27,7 @@ async function getAllProductIds(): Promise<
     if (!res.ok) return [];
     const products = await res.json();
     return products.map((p: any) => ({
+      slug: p.slug || p._id || p.id,
       id: p._id || p.id,
       updated_at: p.updated_at,
     }));
@@ -37,7 +38,7 @@ async function getAllProductIds(): Promise<
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, influencers] = await Promise.all([
-    getAllProductIds(),
+    getAllProducts(),
     getInfluencerUsernames(),
   ]);
 
@@ -135,7 +136,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
-    url: `${BASE_URL}/products/${p.id}`,
+    url: `${BASE_URL}/products/${p.slug}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,

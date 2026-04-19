@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   ShoppingBag,
   ChevronRight,
@@ -15,18 +16,55 @@ import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
 
-export default function ProductDetailClient({ product, bottles = [] }: { product: any; bottles?: any[] }) {
+interface ProductDetailClientProps {
+  product: any;
+  bottles?: any[];
+  initialSize?: number | null;
+  initialIsPack?: boolean;
+  initialBottleId?: string | null;
+}
+
+export default function ProductDetailClient({
+  product,
+  bottles = [],
+  initialSize = null,
+  initialIsPack = false,
+  initialBottleId = null,
+}: ProductDetailClientProps) {
+  const router = useRouter();
   const firstVariant = product.variants?.[0];
-  const [selectedSize, setSelectedSize] = useState<number | null>(
-    firstVariant?.size_ml ?? null
-  );
-  const [selectedIsPack, setSelectedIsPack] = useState<boolean>(
-    !!firstVariant?.is_pack
-  );
+
+  const resolvedInitialSize =
+    initialSize != null &&
+    product.variants?.some((v: any) => v.size_ml === initialSize && !!v.is_pack === initialIsPack)
+      ? initialSize
+      : firstVariant?.size_ml ?? null;
+  const resolvedInitialIsPack =
+    initialSize != null &&
+    product.variants?.some((v: any) => v.size_ml === initialSize && !!v.is_pack === initialIsPack)
+      ? initialIsPack
+      : !!firstVariant?.is_pack;
+
+  const [selectedSize, setSelectedSize] = useState<number | null>(resolvedInitialSize);
+  const [selectedIsPack, setSelectedIsPack] = useState<boolean>(resolvedInitialIsPack);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [sanitizedDescription, setSanitizedDescription] = useState("");
-  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
+  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(initialBottleId);
   const addItem = useCartStore((state) => state.addItem);
+
+  const slug = product.slug || product._id || product.id;
+
+  const updateUrl = useCallback(
+    (size: number | null, isPack: boolean, bottleId: string | null) => {
+      const params = new URLSearchParams();
+      if (size != null) params.set("size", String(size));
+      if (isPack) params.set("pack", "true");
+      if (bottleId) params.set("bottle", bottleId);
+      const qs = params.toString();
+      router.replace(qs ? `/products/${slug}?${qs}` : `/products/${slug}`, { scroll: false });
+    },
+    [router, slug]
+  );
 
   useEffect(() => {
     if (!product?.description) return;
@@ -76,15 +114,32 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
   );
   const bottleAddon = selectedBottle?.size_prices?.[String(selectedMl)] ?? 0;
 
+  const hasSyncedInitial = useRef(false);
+
   useEffect(() => {
     if (availableBottles.length === 0) {
-      setSelectedBottleId(null);
+      if (selectedBottleId !== null) setSelectedBottleId(null);
+      if (!hasSyncedInitial.current) {
+        hasSyncedInitial.current = true;
+        updateUrl(selectedSize, selectedIsPack, null);
+      }
       return;
     }
     const current = availableBottles.find((b: any) => (b.id || b._id) === selectedBottleId);
-    if (current) return;
+    if (current) {
+      if (!hasSyncedInitial.current) {
+        hasSyncedInitial.current = true;
+        updateUrl(selectedSize, selectedIsPack, selectedBottleId);
+      }
+      return;
+    }
     const def = availableBottles.find((b: any) => b.is_default);
-    setSelectedBottleId((def?.id || def?._id) ?? (availableBottles[0]?.id || availableBottles[0]?._id) ?? null);
+    const newId = (def?.id || def?._id) ?? (availableBottles[0]?.id || availableBottles[0]?._id) ?? null;
+    setSelectedBottleId(newId);
+    if (!hasSyncedInitial.current) {
+      hasSyncedInitial.current = true;
+    }
+    updateUrl(selectedSize, selectedIsPack, newId);
   }, [selectedMl, isPack, availableBottles.length]);
 
   const handleAddToCart = () => {
@@ -307,7 +362,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                       return (
                       <button
                         key={v.size_ml}
-                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(false); }}
+                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(false); updateUrl(v.size_ml, false, selectedBottleId); }}
                         disabled={outOfStock}
                         className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
                           isSelected
@@ -337,7 +392,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                       return (
                       <button
                         key={`pack-${v.size_ml}`}
-                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(true); }}
+                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(true); updateUrl(v.size_ml, true, null); }}
                         disabled={outOfStock}
                         className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
                           isSelected
@@ -368,7 +423,7 @@ export default function ProductDetailClient({ product, bottles = [] }: { product
                         <button
                           key={bid}
                           type="button"
-                          onClick={() => setSelectedBottleId(bid)}
+                          onClick={() => { setSelectedBottleId(bid); updateUrl(selectedSize, selectedIsPack, bid); }}
                           className={`flex items-center space-x-3 px-4 py-3 rounded-xl border-2 transition-all ${
                             isSelected
                               ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200"
