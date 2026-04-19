@@ -47,7 +47,7 @@ const ProductCard = ({
     const packPrice = packVariant?.price ?? minPrice;
     priceNode = <>₹{packPrice}</>;
   } else if (minPrice === maxPrice || !variants || variants.length === 1) {
-    priceNode = <>₹{minPrice} <span className="text-[9px] font-normal text-slate-400 uppercase tracking-wider">/ decant</span></>;
+    priceNode = <>₹{minPrice}</>;
   } else {
     priceNode = <>₹{minPrice} - ₹{maxPrice}</>;
   }
