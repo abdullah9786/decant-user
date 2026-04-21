@@ -52,6 +52,9 @@ const ProductCard = ({
     priceNode = <>₹{minPrice} - ₹{maxPrice}</>;
   }
 
+  const hasDecant = variants?.some((v: any) => !v.is_pack);
+  const hasPack = variants?.some((v: any) => v.is_pack);
+
   // Extract up to 3 notes for a quick 'scent profile' preview right on the card
   const allNotes = [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3);
 
@@ -178,8 +181,11 @@ const ProductCard = ({
         <h3 className="font-serif text-[15px] md:text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700 mb-1.5">
           {name}
         </h3>
-        <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap mb-auto">
+        <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
           {priceNode}
+        </p>
+        <p className="text-[9px] uppercase tracking-widest text-slate-400 font-medium mt-0.5 mb-auto">
+          {hasDecant && hasPack ? 'Decant · Sealed Bottle' : hasDecant ? 'Decant' : 'Sealed Bottle'}
         </p>
         
         {/* Shopify Dawn style Add To Cart / Counter */}
