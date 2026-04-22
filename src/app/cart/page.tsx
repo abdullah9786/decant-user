@@ -1,15 +1,49 @@
 "use client";
 
-import React, { Suspense } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Trash2, ShoppingBag, ArrowRight, Minus, Plus } from 'lucide-react';
-import { useCartStore } from '@/store/useCartStore';
+import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Gift } from 'lucide-react';
+import { useCartStore, getQualifyingCount, type FreeDecantItem } from '@/store/useCartStore';
+import { offerApi, productApi } from '@/lib/api';
+import FreeDecantPicker from '@/components/cart/FreeDecantPicker';
 
 export const dynamic = 'force-dynamic';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
+  const { items, removeItem, updateQuantity, totalPrice, freeDecants, addFreeDecant, removeFreeDecant, trimFreeDecants } = useCartStore();
+  const [offer, setOffer] = useState<any>(null);
+  const [eligibleProducts, setEligibleProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    offerApi.getActive().then(res => {
+      const freeDecantOffer = (res.data || []).find((o: any) => o.type === 'free_decant' && o.is_active);
+      if (freeDecantOffer) {
+        setOffer(freeDecantOffer);
+        const eligibleIds: string[] = freeDecantOffer.config?.eligible_product_ids || [];
+        if (eligibleIds.length > 0) {
+          productApi.getAll().then(pRes => {
+            const allProds = pRes.data || [];
+            setEligibleProducts(allProds.filter((p: any) => eligibleIds.includes(p._id || p.id)));
+          }).catch(() => {});
+        }
+      }
+    }).catch(() => {});
+  }, []);
+
+  const minMl = offer?.config?.min_qualifying_ml ?? 10;
+  const freeSizeMl = offer?.config?.free_size_ml ?? 2;
+  const maxFree = offer?.config?.max_free_per_order;
+  const qualifyingType: string = offer?.config?.qualifying_type ?? 'decant';
+  const qualifyingCount = getQualifyingCount(items, minMl, qualifyingType);
+  const entitledCount = maxFree != null ? Math.min(qualifyingCount, maxFree) : qualifyingCount;
+
+  useEffect(() => {
+    if (entitledCount < freeDecants.length) {
+      trimFreeDecants(entitledCount);
+    }
+  }, [entitledCount, freeDecants.length, trimFreeDecants]);
+
   const subtotal = totalPrice();
   const shippingFee = subtotal > 999 ? 0 : 90;
   const freeDeliveryThreshold = 999;
@@ -100,6 +134,20 @@ export default function CartPage() {
 
           {/* Summary */}
           <div className="h-fit sticky top-32 space-y-6">
+            {offer && entitledCount > 0 && eligibleProducts.length > 0 && (
+              <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-6">
+                <FreeDecantPicker
+                  entitledCount={entitledCount}
+                  selectedDecants={freeDecants}
+                  eligibleProducts={eligibleProducts}
+                  freeSizeMl={freeSizeMl}
+                  offerId={offer._id}
+                  onSelect={addFreeDecant}
+                  onRemove={removeFreeDecant}
+                />
+              </div>
+            )}
+
             <div className="bg-gray-50 p-10 border border-gray-100">
               <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-8 border-b border-gray-200 pb-4">Order Summary</h3>
               <div className="space-y-4 mb-8">
@@ -107,6 +155,17 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>₹{subtotal}</span>
                 </div>
+
+                {freeDecants.length > 0 && freeDecants.map(fd => (
+                  <div key={fd.product_id} className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
+                    <span className="flex items-center space-x-1.5">
+                      <Gift size={12} className="text-amber-500" />
+                      <span className="text-[10px] normal-case tracking-normal">{fd.name} ({fd.size_ml}ml)</span>
+                    </span>
+                    <span className="text-amber-600 font-bold text-xs">FREE</span>
+                  </div>
+                ))}
+
                 <div className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">
                   <span>Shipping</span>
                   <span>{shippingFee === 0 ? 'FREE' : `₹${shippingFee}`}</span>

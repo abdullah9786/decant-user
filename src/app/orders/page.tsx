@@ -14,9 +14,15 @@ import { orderApi } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "react-hot-toast";
 
+function safeDate(v: string | undefined | null): Date {
+  if (!v) return new Date();
+  if (!v.endsWith('Z') && !v.includes('+')) return new Date(v + 'Z');
+  return new Date(v);
+}
+
 function isCancelEligible(order: any): boolean {
   if (!["pending", "processing"].includes(order.status)) return false;
-  const created = new Date(order.created_at).getTime();
+  const created = safeDate(order.created_at).getTime();
   return Date.now() - created <= 24 * 60 * 60 * 1000;
 }
 
@@ -230,7 +236,7 @@ export default function OrdersPage() {
                     </button>
                   </div>
                   <span className="text-gray-500 mb-2 md:mb-0">
-                    {new Date(order.created_at).toLocaleDateString()}
+                    {safeDate(order.created_at).toLocaleDateString()}
                   </span>
                   <span className="font-bold text-emerald-950 mb-2 md:mb-0">
                     ₹{order.total_amount}

@@ -11,10 +11,12 @@ import {
   ShieldCheck,
   Truck,
   ChevronLeft,
+  Gift,
 } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
+import { offerApi } from "@/lib/api";
 
 interface ProductDetailClientProps {
   product: any;
@@ -51,6 +53,15 @@ export default function ProductDetailClient({
   const [sanitizedDescription, setSanitizedDescription] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(initialBottleId);
   const addItem = useCartStore((state) => state.addItem);
+
+  const [activeOffer, setActiveOffer] = useState<any>(null);
+
+  useEffect(() => {
+    offerApi.getActive().then(res => {
+      const offer = (res.data || []).find((o: any) => o.type === "free_decant" && o.is_active);
+      if (offer) setActiveOffer(offer);
+    }).catch(() => {});
+  }, []);
 
   const slug = product.slug || product._id || product.id;
 
@@ -452,6 +463,29 @@ export default function ProductDetailClient({
                 )}
 
                 <div className="space-y-4 pt-4">
+                  {(() => {
+                    if (!activeOffer) return null;
+                    const cfg = activeOffer.config || {};
+                    const minMl = cfg.min_qualifying_ml ?? 10;
+                    const qType = cfg.qualifying_type ?? "decant";
+                    const freeMl = cfg.free_size_ml ?? 2;
+                    const qualifies =
+                      ((qType === "decant" && !isPack) ||
+                       (qType === "sealed" && isPack) ||
+                       qType === "both") &&
+                      selectedSize != null && selectedSize >= minMl;
+                    if (!qualifies) return null;
+                    return (
+                      <div className="flex items-center space-x-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <Gift size={16} className="text-amber-600 flex-shrink-0" />
+                        <p className="text-xs text-amber-800">
+                          <span className="font-bold">FREE {freeMl}ml decant</span>
+                          <span className="text-amber-600"> — pick yours in the cart!</span>
+                        </p>
+                      </div>
+                    );
+                  })()}
+
                   <button
                     onClick={handleAddToCart}
                     disabled={!currentVariant || !canFulfill}
@@ -712,6 +746,7 @@ export default function ProductDetailClient({
           </div>
         </div>
       </section>
+
     </div>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
-import { useCartStore } from '@/store/useCartStore';
+import { useCartStore, getQualifyingCount } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { orderApi, influencerApi } from '@/lib/api';
+import { orderApi, influencerApi, offerApi } from '@/lib/api';
 import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
-import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag } from 'lucide-react';
+import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag, AlertTriangle } from 'lucide-react';
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
@@ -26,9 +26,25 @@ export default function CheckoutPage() {
     phone: '',
   });
 
-  const { items, totalPrice, clearCart } = useCartStore();
+  const { items, totalPrice, clearCart, freeDecants } = useCartStore();
   const subtotal = totalPrice();
   const shippingFee = subtotal > 999 ? 0 : 90;
+
+  const [freeDecantOffer, setFreeDecantOffer] = useState<any>(null);
+
+  useEffect(() => {
+    offerApi.getActive().then(res => {
+      const offer = (res.data || []).find((o: any) => o.type === 'free_decant' && o.is_active);
+      if (offer) setFreeDecantOffer(offer);
+    }).catch(() => {});
+  }, []);
+
+  const minMl = freeDecantOffer?.config?.min_qualifying_ml ?? 10;
+  const maxFree = freeDecantOffer?.config?.max_free_per_order;
+  const qualifyingType: string = freeDecantOffer?.config?.qualifying_type ?? 'decant';
+  const qualifyingCount = getQualifyingCount(items, minMl, qualifyingType);
+  const entitledCount = maxFree != null ? Math.min(qualifyingCount, maxFree) : qualifyingCount;
+  const unclaimedCount = Math.max(0, entitledCount - freeDecants.length);
 
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState<{ discount_percent: number; influencer_id: string } | null>(null);
@@ -123,6 +139,14 @@ export default function CheckoutPage() {
         ...(couponApplied && !influencerId && { influencer_id: couponApplied.influencer_id }),
         ...(couponApplied && { coupon_code: couponCode.trim().toUpperCase() }),
         ...(discountAmount > 0 && { discount_amount: discountAmount }),
+        ...(freeDecants.length > 0 && {
+          free_decants: freeDecants.map(fd => ({
+            product_id: fd.product_id,
+            name: fd.name,
+            size_ml: fd.size_ml,
+            offer_id: fd.offer_id,
+          })),
+        }),
       };
 
       // 1. Validate stock + initiate Razorpay Payment (no DB order yet)
@@ -241,6 +265,28 @@ export default function CheckoutPage() {
     <div className="py-20 bg-white">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {unclaimedCount > 0 && step < 3 && (
+          <div className="mb-8 bg-amber-50 border border-amber-200 rounded-xl px-6 py-4 flex items-center justify-between animate-in slide-in-from-top-2 duration-500">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle size={18} className="text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-amber-800">
+                  You have {unclaimedCount} unclaimed free decant{unclaimedCount > 1 ? 's' : ''}!
+                </p>
+                <p className="text-xs text-amber-600 mt-0.5">
+                  {freeDecantOffer?.display?.banner_text || 'Go back to your cart to pick your free decant.'}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/cart"
+              className="text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+            >
+              Go to Cart
+            </Link>
+          </div>
+        )}
+
         <div className="flex justify-around mb-20 relative">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -translate-y-1/2 z-0"></div>
           {steps.map((s, i) => (

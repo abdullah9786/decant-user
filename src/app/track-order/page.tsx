@@ -3,15 +3,21 @@
 import React, { useState, useEffect } from "react";
 import { orderApi } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Loader2, PackageSearch, XCircle, AlertTriangle } from "lucide-react";
+import { Loader2, PackageSearch, XCircle, AlertTriangle, Gift } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+function safeDate(v: string | undefined | null): Date {
+  if (!v) return new Date();
+  if (!v.endsWith('Z') && !v.includes('+')) return new Date(v + 'Z');
+  return new Date(v);
+}
+
 function isCancelEligible(order: any): boolean {
   if (!order) return false;
   if (!["pending", "processing"].includes(order.status)) return false;
-  const created = new Date(order.created_at).getTime();
+  const created = safeDate(order.created_at).getTime();
   return Date.now() - created <= 24 * 60 * 60 * 1000;
 }
 
@@ -148,7 +154,7 @@ function TrackOrderContent() {
 
             <div className="text-sm text-gray-500 mb-6">
               {order.customer_name ? `Customer: ${order.customer_name} • ` : ""}
-              Placed on {new Date(order.created_at).toLocaleDateString()}
+              Placed on {safeDate(order.created_at).toLocaleDateString()}
             </div>
 
             {order.status === "cancelled" && order.cancelled_by === "customer" && (
@@ -170,6 +176,17 @@ function TrackOrderContent() {
                     </span>
                     <span className="font-bold text-emerald-950">
                       ₹{item.price * item.quantity}
+                    </span>
+                  </div>
+                ))}
+                {order.free_decants?.length > 0 && order.free_decants.map((fd: any, i: number) => (
+                  <div key={`fd-${i}`} className="flex justify-between text-sm text-gray-700 bg-amber-50/60 -mx-2 px-2 py-1.5 rounded">
+                    <span className="flex items-center space-x-2">
+                      <Gift size={14} className="text-amber-500 flex-shrink-0" />
+                      <span>{fd.name} • {fd.size_ml}ml</span>
+                    </span>
+                    <span className="font-bold text-amber-600 text-xs uppercase tracking-widest flex items-center">
+                      FREE
                     </span>
                   </div>
                 ))}

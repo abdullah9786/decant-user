@@ -138,6 +138,10 @@ export const bottleApi = {
     getAll: (params?: any) => api.get('/bottles', { params }),
 };
 
+export const offerApi = {
+    getActive: () => api.get('/offers/active'),
+};
+
 export const influencerApi = {
     validateCoupon: (code: string) => api.post('/influencers/coupons/validate', { code }),
 };
