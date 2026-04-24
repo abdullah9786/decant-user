@@ -14,6 +14,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [confirmedDropReason, setConfirmedDropReason] = useState<string | null>(null);
   const [shippingAddress, setShippingAddress] = useState({
     first_name: '',
     last_name: '',
@@ -26,7 +27,12 @@ export default function CheckoutPage() {
     phone: '',
   });
 
-  const { items, totalPrice, clearCart, freeDecants } = useCartStore();
+  const { items, totalPrice, clearCart, freeDecants, clearFreeDecants } = useCartStore();
+  const [pendingPay, setPendingPay] = useState<{
+    rzpData: any;
+    orderData: any;
+    reason: string;
+  } | null>(null);
   const subtotal = totalPrice();
   const shippingFee = subtotal > 999 ? 0 : 90;
 
@@ -164,72 +170,23 @@ export default function CheckoutPage() {
       const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData);
       const rzpData = rzpResponse.data;
 
-      const gaItems = cartItemsToGaItems(items);
+      // If the backend stripped free decants because the offer is no longer
+      // active, surface that to the user, clear local state, and require an
+      // explicit acknowledgement before opening Razorpay.
+      if (rzpData?.free_decants_removed) {
+        delete orderData.free_decants;
+        orderData.free_decants_dropped_reason = rzpData.free_decants_removed_reason;
+        clearFreeDecants();
+        setPendingPay({
+          rzpData,
+          orderData,
+          reason: rzpData.free_decants_removed_reason || 'The free decant offer has ended.',
+        });
+        setLoading(false);
+        return;
+      }
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
-        amount: rzpData.amount,
-        currency: rzpData.currency,
-        name: "DECUME",
-        description: `Premium Fragrance Checkout`,
-        order_id: rzpData.id,
-        handler: async function (paymentResponse: any) {
-             setStep(4);
-             setLoading(true);
-             try {
-                const verifyResponse = await orderApi.verifyAndCreate({
-                    razorpay_order_id: paymentResponse.razorpay_order_id,
-                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
-                    razorpay_signature: paymentResponse.razorpay_signature
-                }, orderData);
-                
-                const finalOrderId = verifyResponse.data?.id || verifyResponse.data?._id;
-                setOrderId(finalOrderId);
-                setStep(3);
-                gaEvent('purchase', {
-                  transaction_id: String(finalOrderId ?? ''),
-                  value: grandTotal,
-                  currency: 'INR',
-                  items: gaItems,
-                });
-                setTimeout(() => clearCart(), 100);
-                try { localStorage.removeItem("decume-ref"); } catch {}
-             } catch (err: any) {
-                 console.error("Payment and order finalization failed", err);
-                 const detail = err?.response?.data?.detail;
-                 alert(
-                   typeof detail === "string"
-                     ? detail
-                     : "Payment verification failed. Please contact support if your amount was deducted."
-                 );
-                 setStep(2);
-             } finally {
-                 setLoading(false);
-             }
-        },
-        prefill: {
-          name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
-          email: customerEmail,
-          contact: shippingAddress.phone
-        },
-        theme: {
-          color: "#022c22"
-        },
-        modal: {
-            ondismiss: function() {
-                setLoading(false);
-            }
-        }
-      };
-
-      gaEvent('begin_checkout', {
-        currency: 'INR',
-        value: grandTotal,
-        items: gaItems,
-      });
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
+      openRazorpay(rzpData, orderData, customerEmail);
 
     } catch (err: any) {
       console.error("Error creating order", err);
@@ -241,6 +198,92 @@ export default function CheckoutPage() {
       );
       setLoading(false);
     }
+  };
+
+  const openRazorpay = (rzpData: any, orderData: any, customerEmail: string) => {
+    const gaItems = cartItemsToGaItems(items);
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+      amount: rzpData.amount,
+      currency: rzpData.currency,
+      name: "DECUME",
+      description: `Premium Fragrance Checkout`,
+      order_id: rzpData.id,
+      handler: async function (paymentResponse: any) {
+        setStep(4);
+        setLoading(true);
+        try {
+          const verifyResponse = await orderApi.verifyAndCreate({
+            razorpay_order_id: paymentResponse.razorpay_order_id,
+            razorpay_payment_id: paymentResponse.razorpay_payment_id,
+            razorpay_signature: paymentResponse.razorpay_signature,
+          }, orderData);
+
+          const finalOrderId = verifyResponse.data?.id || verifyResponse.data?._id;
+          setOrderId(finalOrderId);
+          if (verifyResponse.data?.free_decants_dropped_reason) {
+            setConfirmedDropReason(verifyResponse.data.free_decants_dropped_reason);
+          }
+          setStep(3);
+          gaEvent('purchase', {
+            transaction_id: String(finalOrderId ?? ''),
+            value: grandTotal,
+            currency: 'INR',
+            items: gaItems,
+          });
+          setTimeout(() => clearCart(), 100);
+          try { localStorage.removeItem("decume-ref"); } catch {}
+        } catch (err: any) {
+          console.error("Payment and order finalization failed", err);
+          const detail = err?.response?.data?.detail;
+          alert(
+            typeof detail === "string"
+              ? detail
+              : "Payment verification failed. Please contact support if your amount was deducted."
+          );
+          setStep(2);
+        } finally {
+          setLoading(false);
+        }
+      },
+      prefill: {
+        name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+        email: customerEmail,
+        contact: shippingAddress.phone,
+      },
+      theme: {
+        color: "#022c22",
+      },
+      modal: {
+        ondismiss: function () {
+          setLoading(false);
+        },
+      },
+    };
+
+    gaEvent('begin_checkout', {
+      currency: 'INR',
+      value: grandTotal,
+      items: gaItems,
+    });
+
+    const rzp = new (window as any).Razorpay(options);
+    rzp.open();
+  };
+
+  const handleContinueToPay = () => {
+    if (!pendingPay) return;
+    const { rzpData, orderData } = pendingPay;
+    const customerEmail = isAuthenticated ? (user?.email || '') : shippingAddress.email;
+    setPendingPay(null);
+    setLoading(true);
+    openRazorpay(rzpData, orderData, customerEmail);
+  };
+
+  const handleCancelPay = () => {
+    setPendingPay(null);
+    setLoading(false);
   };
 
   const steps = [
@@ -480,7 +523,21 @@ export default function CheckoutPage() {
             <div className="text-center py-10 animate-in zoom-in-95 duration-700">
                <CheckCircle2 size={100} className="text-green-500 mx-auto mb-8" />
                <h2 className="text-4xl font-serif text-emerald-950 mb-4">Order Confirmed!</h2>
-               <p className="text-gray-500 text-sm uppercase tracking-[0.2em] mb-12">Thank you for choosing DECUME. Your order #{orderId} is being prepared.</p>
+               <p className="text-gray-500 text-sm uppercase tracking-[0.2em] mb-8">Thank you for choosing DECUME. Your order #{orderId} is being prepared.</p>
+               {confirmedDropReason && (
+                 <div className="max-w-lg mx-auto mb-10 px-5 py-4 bg-amber-50 border border-amber-200 text-left">
+                   <div className="flex items-start gap-3">
+                     <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                     <div>
+                       <p className="text-sm font-bold text-amber-900">Free decant removed</p>
+                       <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                         The free decant offer ended while your payment was being processed,
+                         so your complimentary decant was removed. Your paid items are unaffected.
+                       </p>
+                     </div>
+                   </div>
+                 </div>
+               )}
                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <Link href={`/track-order?orderId=${encodeURIComponent(orderId || '')}`} className="w-full sm:w-auto bg-emerald-950 text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all">
                         Track Order
@@ -493,6 +550,40 @@ export default function CheckoutPage() {
           )}
         </div>
       </div>
+
+      {pendingPay && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCancelPay} />
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="h-1.5 bg-amber-500 w-full" />
+            <div className="p-7 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+                <AlertTriangle size={26} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif text-emerald-950">Free Decant Offer Ended</h3>
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                  The free decant offer is no longer active, so your complimentary decant{freeDecants.length > 1 ? 's have' : ' has'} been removed from this order. Your paid items and total amount are unchanged.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <button
+                  onClick={handleCancelPay}
+                  className="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleContinueToPay}
+                  className="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-white bg-emerald-950 hover:bg-emerald-900 transition-colors"
+                >
+                  Continue to Pay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

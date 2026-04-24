@@ -164,6 +164,16 @@ function TrackOrderContent() {
               </div>
             )}
 
+            {order.free_decants_dropped_reason && (
+              <div className="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 text-sm text-amber-800">
+                <p className="font-bold">Free decant removed</p>
+                <p className="text-xs mt-0.5">
+                  The free decant offer ended while your payment was being processed,
+                  so your complimentary decant was removed. Your paid items are unaffected.
+                </p>
+              </div>
+            )}
+
             <div className="border-t border-gray-100 pt-6">
               <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
                 Items
