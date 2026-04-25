@@ -17,6 +17,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
 import { offerApi } from "@/lib/api";
+import { ChipList } from "@/components/ui/Chip";
 
 interface ProductDetailClientProps {
   product: any;
@@ -327,6 +328,11 @@ export default function ProductDetailClient({
           <div className="lg:col-span-5 relative">
             <div className="space-y-8">
               <div>
+                {product.chips && product.chips.length > 0 && (
+                  <div className="mb-4">
+                    <ChipList chips={product.chips} max={5} size="md" />
+                  </div>
+                )}
                 <p className="text-xs font-bold tracking-[0.4em] uppercase text-emerald-600 mb-4">
                   {product.brand}
                 </p>

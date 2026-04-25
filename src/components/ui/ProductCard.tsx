@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import toast from 'react-hot-toast';
+import { ChipList, type ProductChip } from '@/components/ui/Chip';
 
 interface Variant {
   size_ml: number;
@@ -23,12 +24,13 @@ interface ProductCardProps {
   notes_top?: string[];
   notes_middle?: string[];
   notes_base?: string[];
+  chips?: ProductChip[];
   priceMode?: 'default' | 'pack';
 }
 
 const ProductCard = ({ 
   id, _id, slug, name, brand, variants, image_url, is_featured, is_new_arrival,
-  notes_top = [], notes_middle = [], notes_base = [], priceMode = 'default'
+  notes_top = [], notes_middle = [], notes_base = [], chips = [], priceMode = 'default'
 }: ProductCardProps) => {
   const productId = id || _id;
   const productSlug = slug || productId;
@@ -143,6 +145,13 @@ const ProductCard = ({
             </span>
           )}
         </div>
+
+        {/* Promotional chips */}
+        {chips && chips.length > 0 && (
+          <div className="absolute top-2.5 right-2.5 z-20 max-w-[65%]">
+            <ChipList chips={chips} max={2} size="sm" align="end" />
+          </div>
+        )}
         
         {/* Image */}
         {image_url ? (
