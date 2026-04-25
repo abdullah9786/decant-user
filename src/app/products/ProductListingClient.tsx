@@ -28,11 +28,11 @@ export default function ProductListingClient({
   const router = useRouter();
 
   React.useEffect(() => {
-    const familyParam = searchParams.get('fragrance_family');
-    const brandParam = searchParams.get('brand');
+    const familyParams = searchParams.getAll('fragrance_family');
+    const brandParams = searchParams.getAll('brand');
     const typeParam = searchParams.get('type');
-    setFilterFamilies(familyParam ? [familyParam] : []);
-    setFilterBrands(brandParam ? [brandParam] : []);
+    setFilterFamilies(familyParams);
+    setFilterBrands(brandParams);
     setFilterType(typeParam === 'decant' || typeParam === 'full-bottle' ? typeParam : 'all');
   }, [searchParams]);
 
@@ -76,8 +76,8 @@ export default function ProductListingClient({
 
   const updateUrl = (brands: string[], families: string[], type: 'all' | 'decant' | 'full-bottle') => {
     const params = new URLSearchParams();
-    if (brands.length === 1) params.set('brand', brands[0]);
-    if (families.length === 1) params.set('fragrance_family', families[0]);
+    brands.forEach(b => params.append('brand', b));
+    families.forEach(f => params.append('fragrance_family', f));
     if (type !== 'all') params.set('type', type);
     const qs = params.toString();
     router.replace(qs ? `/products?${qs}` : '/products', { scroll: false });
