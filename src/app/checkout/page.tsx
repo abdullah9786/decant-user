@@ -41,16 +41,20 @@ export default function CheckoutPage() {
   useEffect(() => {
     offerApi.getActive().then(res => {
       const offer = (res.data || []).find((o: any) => o.type === 'free_decant' && o.is_active);
-      if (offer) setFreeDecantOffer(offer);
+      if (offer) {
+        setFreeDecantOffer(offer);
+      } else if (freeDecants.length > 0) {
+        clearFreeDecants();
+      }
     }).catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const minMl = freeDecantOffer?.config?.min_qualifying_ml ?? 10;
   const maxFree = freeDecantOffer?.config?.max_free_per_order;
   const qualifyingType: string = freeDecantOffer?.config?.qualifying_type ?? 'decant';
-  const qualifyingCount = getQualifyingCount(items, minMl, qualifyingType);
+  const qualifyingCount = freeDecantOffer ? getQualifyingCount(items, minMl, qualifyingType) : 0;
   const entitledCount = maxFree != null ? Math.min(qualifyingCount, maxFree) : qualifyingCount;
-  const unclaimedCount = Math.max(0, entitledCount - freeDecants.length);
+  const unclaimedCount = freeDecantOffer ? Math.max(0, entitledCount - freeDecants.length) : 0;
 
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState<{ discount_percent: number; influencer_id: string } | null>(null);

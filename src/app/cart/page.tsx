@@ -11,7 +11,7 @@ import FreeDecantPicker from '@/components/cart/FreeDecantPicker';
 export const dynamic = 'force-dynamic';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, totalPrice, freeDecants, addFreeDecant, removeFreeDecant, trimFreeDecants } = useCartStore();
+  const { items, removeItem, updateQuantity, totalPrice, freeDecants, addFreeDecant, removeFreeDecant, trimFreeDecants, clearFreeDecants } = useCartStore();
   const [offer, setOffer] = useState<any>(null);
   const [eligibleProducts, setEligibleProducts] = useState<any[]>([]);
 
@@ -27,15 +27,17 @@ export default function CartPage() {
             setEligibleProducts(allProds.filter((p: any) => eligibleIds.includes(p._id || p.id)));
           }).catch(() => {});
         }
+      } else if (freeDecants.length > 0) {
+        clearFreeDecants();
       }
     }).catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const minMl = offer?.config?.min_qualifying_ml ?? 10;
   const freeSizeMl = offer?.config?.free_size_ml ?? 2;
   const maxFree = offer?.config?.max_free_per_order;
   const qualifyingType: string = offer?.config?.qualifying_type ?? 'decant';
-  const qualifyingCount = getQualifyingCount(items, minMl, qualifyingType);
+  const qualifyingCount = offer ? getQualifyingCount(items, minMl, qualifyingType) : 0;
   const entitledCount = maxFree != null ? Math.min(qualifyingCount, maxFree) : qualifyingCount;
 
   useEffect(() => {
