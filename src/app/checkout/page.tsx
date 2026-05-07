@@ -8,7 +8,7 @@ import { useCartStore, getQualifyingCount } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { orderApi, influencerApi, offerApi } from '@/lib/api';
 import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
-import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag, AlertTriangle, ShieldCheck, Lock } from 'lucide-react';
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
@@ -510,6 +510,30 @@ export default function CheckoutPage() {
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : 'Place Order'}
               </button>
+
+              <div className="mt-6 flex flex-col items-center gap-3">
+                <div className="flex items-center justify-center gap-4 text-[11px] text-gray-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Lock size={12} className="text-emerald-600" />
+                    <span className="font-bold uppercase tracking-widest text-[10px]">256-bit SSL</span>
+                  </span>
+                  <span className="text-gray-200">•</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShieldCheck size={12} className="text-emerald-600" />
+                    <span className="font-bold uppercase tracking-widest text-[10px]">PCI DSS Compliant</span>
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full">
+                  <ShieldCheck size={14} className="text-blue-600" />
+                  <span className="text-[11px] text-gray-600">
+                    Secured by{' '}
+                    <span className="font-bold text-blue-600">Razorpay</span>
+                  </span>
+                </div>
+                <p className="text-[10px] text-gray-400 max-w-sm leading-relaxed">
+                  Card / UPI / Netbanking details are processed directly on Razorpay&rsquo;s secure servers. Decume never sees or stores your payment credentials.
+                </p>
+              </div>
             </div>
           )}
 

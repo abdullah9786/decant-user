@@ -703,14 +703,15 @@ export default function ProductDetailClient({
                   Make this your next scent ritual.
                 </h2>
                 <p className="text-slate-600 mt-4 text-base leading-relaxed max-w-2xl">
-                  {product.name} by {product.brand} is crafted in authentic
-                  small-batch decants. Discover the full character without
-                  committing to a full bottle — and keep it in rotation when it
-                  becomes your signature.
+                  Each Decume decant of {product.name} is hand-poured from a
+                  genuine, sealed bottle of {product.brand} into a Decume vial.
+                  Discover the full character without committing to a full
+                  bottle — and keep it in rotation when it becomes your
+                  signature.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">
-                    100% Original Bottle
+                    Poured from a Sealed Original Bottle
                   </span>
                   <span className="text-[10px] uppercase tracking-widest px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100">
                     Fast Pan‑India Shipping
@@ -719,6 +720,17 @@ export default function ProductDetailClient({
                     Secure Checkout
                   </span>
                 </div>
+                <p className="mt-6 text-[11px] text-slate-500 leading-relaxed max-w-2xl border-t border-emerald-100 pt-4">
+                  <span className="font-bold text-slate-700">Brand disclaimer:</span>{' '}
+                  Decume is an independent perfume decanting service and is not
+                  affiliated with, endorsed by, sponsored by, or officially
+                  connected to {product.brand}. The trademark &ldquo;
+                  {product.brand}&rdquo; is the property of its owner and is
+                  used here only to identify the original fragrance from which
+                  this decant is poured. The vial, label, and packaging are
+                  produced by Decume and are not the brand&rsquo;s official
+                  packaging.
+                </p>
               </div>
               <div className="bg-white rounded-2xl border border-emerald-100 p-6 shadow-lg">
                 <div className="text-[10px] uppercase tracking-[0.3em] text-emerald-700 font-bold">

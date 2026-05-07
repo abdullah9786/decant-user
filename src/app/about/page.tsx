@@ -53,8 +53,8 @@ export default function AboutPage() {
                 <span className="text-emerald-600 font-bold mt-0.5">01</span>
                 <div>
                   <span className="font-bold text-emerald-950">Authenticity First</span>
-                  <span className="text-gray-500"> — Every decant is sourced from genuine, sealed bottles. No
-                  imitations, no grey market. Ever.</span>
+                  <span className="text-gray-500"> — Every decant is sourced from genuine, sealed bottles
+                  through authorised retail channels. No imitations, no unauthorised inventory. Ever.</span>
                 </div>
               </li>
               <li className="flex gap-3">
