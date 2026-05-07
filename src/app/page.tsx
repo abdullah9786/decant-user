@@ -438,7 +438,7 @@ export default async function HomePage() {
                   Decanted exclusively from original, sealed retail bottles.
                 </h3>
                 <p className="text-[color:var(--accent-muted)] mt-4 max-w-2xl">
-                  We never use refills or clones. Every decant is hand‑filled,
+                  We never use refills. Every decant is hand‑filled,
                   labeled, and sealed to preserve the exact character of the
                   fragrance you'd experience from a full bottle.
                 </p>

@@ -100,10 +100,10 @@ export default function ShippingPolicyPage() {
               <p className="text-sm text-gray-500">
                 For any shipping-related queries, reach out to us at{" "}
                 <a
-                  href="mailto:abdullahansari9768@gmail.com"
+                  href="mailto:orders@decume.in"
                   className="text-emerald-600 underline underline-offset-4"
                 >
-                  abdullahansari9768@gmail.com
+                  orders@decume.in
                 </a>
               </p>
             </div>

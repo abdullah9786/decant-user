@@ -86,10 +86,10 @@ export default function ReturnPolicyPage() {
                   <p>
                     Email us at{" "}
                     <a
-                      href="mailto:abdullahansari9768@gmail.com"
+                      href="mailto:orders@decume.in"
                       className="text-emerald-600 underline underline-offset-4 font-medium"
                     >
-                      abdullahansari9768@gmail.com
+                      orders@decume.in
                     </a>{" "}
                     within <strong>24 hours</strong> of receiving your order.
                   </p>
@@ -155,10 +155,10 @@ export default function ReturnPolicyPage() {
               <p className="text-sm text-gray-500">
                 For any queries regarding replacements, email us at{" "}
                 <a
-                  href="mailto:abdullahansari9768@gmail.com"
+                  href="mailto:orders@decume.in"
                   className="text-emerald-600 underline underline-offset-4"
                 >
-                  abdullahansari9768@gmail.com
+                  orders@decume.in
                 </a>
               </p>
             </div>
