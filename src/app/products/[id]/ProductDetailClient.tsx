@@ -729,7 +729,14 @@ export default function ProductDetailClient({
                   used here only to identify the original fragrance from which
                   this decant is poured. The vial, label, and packaging are
                   produced by Decume and are not the brand&rsquo;s official
-                  packaging.
+                  packaging.{' '}
+                  <Link
+                    href="/authenticity"
+                    className="text-emerald-700 underline underline-offset-2 hover:text-emerald-800 font-medium"
+                  >
+                    Read our Authenticity &amp; Sourcing policy
+                  </Link>
+                  .
                 </p>
               </div>
               <div className="bg-white rounded-2xl border border-emerald-100 p-6 shadow-lg">
