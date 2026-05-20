@@ -28,19 +28,7 @@ async function getFeaturedProducts() {
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return data.filter((p: any) => p.is_featured).slice(0, 8);
-  } catch {
-    return [];
-  }
-}
-
-async function getAllProducts() {
-  try {
-    const res = await fetch(`${API_URL}/products`, {
-      next: { revalidate: 600 },
-    });
-    if (!res.ok) return [];
-    return await res.json();
+    return data.filter((p: any) => p.is_featured);
   } catch {
     return [];
   }
@@ -83,18 +71,20 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredFamilies, allProducts] = await Promise.all([
+  const [featuredProducts, featuredFamilies] = await Promise.all([
     getFeaturedProducts(),
     getFeaturedFamilies(),
-    getAllProducts(),
   ]);
 
-  const decantProducts = allProducts
-    .filter((p: any) => p.variants?.some((v: any) => !v.is_pack))
-    .slice(0, 8);
-  const fullBottleProducts = allProducts
-    .filter((p: any) => p.variants?.some((v: any) => v.is_pack))
-    .slice(0, 8);
+  // Homepage product showcases only ever surface curated `is_featured` items.
+  // A featured product may have decant variants, pack (sealed bottle) variants,
+  // or both — it appears in whichever section(s) match.
+  const decantProducts = featuredProducts.filter((p: any) =>
+    p.variants?.some((v: any) => !v.is_pack),
+  );
+  const fullBottleProducts = featuredProducts.filter((p: any) =>
+    p.variants?.some((v: any) => v.is_pack),
+  );
 
   return (
     <div className="bg-transparent">
