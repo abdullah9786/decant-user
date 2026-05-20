@@ -5,6 +5,7 @@ import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import PromoModal from "@/components/layout/PromoModal";
 import ClientToaster from "@/components/ui/ClientToaster";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -103,6 +104,7 @@ export default function RootLayout({
         <ScrollToTop />
         <Navbar />
         <ClientToaster />
+        <PromoModal />
         <main className="bg-[color:var(--surface-bg)]">
           {children}
         </main>
