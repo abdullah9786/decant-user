@@ -247,12 +247,17 @@ export default function OrdersPage() {
                       ? ` + ${order.items.length - 1} more`
                       : ""}
                   </span>
-                  <div className="mb-2 md:mb-0">
+                  <div className="mb-2 md:mb-0 flex items-center gap-2">
                     <span
                       className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${statusClasses(order.status)}`}
                     >
                       {order.status}
                     </span>
+                    {order.payment_method === "cod" && (
+                      <span className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-800 border border-amber-200">
+                        COD
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
                     {isCancelEligible(order) && (
@@ -293,9 +298,14 @@ export default function OrdersPage() {
               </span>
               ?
             </p>
-            {cancelTarget.payment_status === "paid" && (
+            {cancelTarget.payment_status === "paid" && cancelTarget.payment_method !== "cod" && (
               <p className="text-sm text-gray-500 mt-1">
                 A full refund will be initiated to your original payment method.
+              </p>
+            )}
+            {cancelTarget.payment_method === "cod" && cancelTarget.payment_status !== "paid" && (
+              <p className="text-sm text-gray-500 mt-1">
+                This is a Cash on Delivery order. No payment was collected, so nothing will be refunded.
               </p>
             )}
 

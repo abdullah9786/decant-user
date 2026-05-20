@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useCartStore, getQualifyingCount } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { orderApi, influencerApi, offerApi } from '@/lib/api';
+import { orderApi, influencerApi, offerApi, settingsApi } from '@/lib/api';
 import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
-import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag, AlertTriangle, ShieldCheck, Lock } from 'lucide-react';
+import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag, AlertTriangle, ShieldCheck, Lock, Banknote } from 'lucide-react';
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
@@ -61,8 +61,41 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
 
+  const [paymentMethod, setPaymentMethod] = useState<'prepaid' | 'cod'>('prepaid');
+  const [codSettings, setCodSettings] = useState<{ enabled: boolean; max_amount: number; fee: number }>({
+    enabled: false,
+    max_amount: 0,
+    fee: 0,
+  });
+
+  useEffect(() => {
+    settingsApi.getCod()
+      .then((res) => setCodSettings({
+        enabled: !!res.data?.enabled,
+        max_amount: Number(res.data?.max_amount) || 0,
+        fee: Number(res.data?.fee) || 0,
+      }))
+      .catch(() => {});
+  }, []);
+
   const discountAmount = couponApplied ? Math.round(subtotal * couponApplied.discount_percent / 100) : 0;
-  const grandTotal = subtotal + shippingFee - discountAmount;
+  // Total *before* COD fee — used to gate eligibility and to compute the
+  // post-fee grand total below.
+  const preFeeTotal = subtotal + shippingFee - discountAmount;
+  // COD is available only if the server says so and the order is within the
+  // configured cap. We compare against the pre-fee total so the fee itself
+  // can't push a previously-eligible cart over the cap.
+  const codEligible = codSettings.enabled && preFeeTotal <= codSettings.max_amount;
+  // If the user had selected COD but the cart drifted above the cap (e.g.
+  // they bumped a quantity), silently fall back to prepaid.
+  useEffect(() => {
+    if (paymentMethod === 'cod' && !codEligible) {
+      setPaymentMethod('prepaid');
+    }
+  }, [codEligible, paymentMethod]);
+
+  const codFee = paymentMethod === 'cod' && codEligible ? codSettings.fee : 0;
+  const grandTotal = preFeeTotal + codFee;
 
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
@@ -151,6 +184,8 @@ export default function CheckoutPage() {
         total_amount: grandTotal,
         shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
         status: 'pending',
+        payment_method: paymentMethod,
+        ...(paymentMethod === 'cod' && codFee > 0 && { cod_fee: codFee }),
         ...(influencerId && { influencer_id: influencerId }),
         ...(referralCode && { referral_code: referralCode }),
         ...(couponApplied && !influencerId && { influencer_id: couponApplied.influencer_id }),
@@ -165,6 +200,47 @@ export default function CheckoutPage() {
           })),
         }),
       };
+
+      // COD branch — no Razorpay, no pending_checkouts. The backend
+      // dedupes via `idempotency_key`, and the GA `purchase` event fires
+      // the same way the prepaid handler does.
+      if (paymentMethod === 'cod') {
+        if (!codEligible) {
+          alert("Cash on Delivery isn't available for this order.");
+          setLoading(false);
+          return;
+        }
+        const idempotencyKey =
+          (typeof window !== 'undefined' && window.crypto?.randomUUID?.()) ||
+          `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        try {
+          const codResponse = await orderApi.placeCod(orderData, idempotencyKey);
+          const finalOrderId = codResponse.data?.id || (codResponse.data as any)?._id;
+          setOrderId(finalOrderId);
+          if (codResponse.data?.free_decants_dropped_reason) {
+            setConfirmedDropReason(codResponse.data.free_decants_dropped_reason);
+          }
+          setStep(3);
+          gaEvent('purchase', {
+            transaction_id: String(finalOrderId ?? ''),
+            value: grandTotal,
+            currency: 'INR',
+            items: cartItemsToGaItems(items),
+          });
+          setTimeout(() => clearCart(), 100);
+          try { localStorage.removeItem("decume-ref"); } catch {}
+        } catch (err: any) {
+          console.error("COD order placement failed", err);
+          const detail = err?.response?.data?.detail;
+          alert(
+            typeof detail === "string"
+              ? detail
+              : "Could not place your COD order. Please try again."
+          );
+          setLoading(false);
+        }
+        return;
+      }
 
       // 1. Validate stock + initiate Razorpay Payment (no DB order yet)
       const stockCheckItems = orderData.items.map((it: any) => ({
@@ -500,52 +576,133 @@ export default function CheckoutPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 text-center">
               <h2 className="text-3xl font-serif text-emerald-950 mb-4">Secure Payment</h2>
               <p className="text-xs text-gray-400 uppercase tracking-widest mb-10">Amount to pay: <span className="text-emerald-600 font-bold">₹{grandTotal}</span></p>
-              
-              <div className="space-y-4">
-                <div className="p-6 border border-emerald-600 bg-emerald-50/50 flex items-center justify-between cursor-pointer">
+
+              <div className="space-y-4 text-left">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('prepaid')}
+                  className={`w-full p-6 border flex items-center justify-between transition-all ${
+                    paymentMethod === 'prepaid'
+                      ? 'border-emerald-600 bg-emerald-50/50'
+                      : 'border-gray-100 hover:border-gray-200'
+                  }`}
+                >
                   <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 rounded-full border-4 border-emerald-600"></div>
+                    <div className={`w-4 h-4 rounded-full ${
+                      paymentMethod === 'prepaid'
+                        ? 'border-4 border-emerald-600'
+                        : 'border border-gray-300'
+                    }`} />
                     <span className="text-sm font-bold text-emerald-950 uppercase tracking-widest">Card / UPI / Netbanking</span>
                   </div>
-                  <CreditCard className="text-emerald-600" />
-                </div>
-                <div className="p-6 border border-gray-100 flex items-center space-x-4 cursor-not-allowed text-gray-300">
-                  <div className="w-4 h-4 rounded-full border border-gray-200"></div>
-                  <span className="text-sm font-bold uppercase tracking-widest">Cash on Delivery (Unavailable)</span>
-                </div>
+                  <CreditCard className={paymentMethod === 'prepaid' ? 'text-emerald-600' : 'text-gray-300'} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => codEligible && setPaymentMethod('cod')}
+                  disabled={!codEligible}
+                  className={`w-full p-6 border flex items-center justify-between transition-all text-left ${
+                    !codEligible
+                      ? 'border-gray-100 cursor-not-allowed text-gray-300'
+                      : paymentMethod === 'cod'
+                        ? 'border-emerald-600 bg-emerald-50/50'
+                        : 'border-gray-100 hover:border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-4 h-4 rounded-full ${
+                      paymentMethod === 'cod' && codEligible
+                        ? 'border-4 border-emerald-600'
+                        : 'border border-gray-300'
+                    }`} />
+                    <div>
+                      <span className={`block text-sm font-bold uppercase tracking-widest ${
+                        codEligible ? 'text-emerald-950' : ''
+                      }`}>
+                        Cash on Delivery
+                        {!codEligible && ' (Unavailable)'}
+                      </span>
+                      {codEligible && (
+                        <span className="block text-[10px] text-gray-500 mt-1 normal-case tracking-normal">
+                          Pay in cash when your order arrives. A ₹{codSettings.fee} handling fee applies.
+                        </span>
+                      )}
+                      {!codEligible && codSettings.enabled && (
+                        <span className="block text-[10px] text-gray-400 mt-1 normal-case tracking-normal">
+                          Available on orders up to ₹{codSettings.max_amount.toLocaleString('en-IN')}.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Banknote className={paymentMethod === 'cod' && codEligible ? 'text-emerald-600' : 'text-gray-300'} />
+                </button>
               </div>
 
-              <button 
+              {paymentMethod === 'cod' && codFee > 0 && (
+                <div className="bg-emerald-50/40 border border-emerald-100 px-5 py-4 text-left text-[12px] text-emerald-900/80 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span>Order subtotal</span>
+                    <span>₹{(subtotal + shippingFee - discountAmount).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>COD handling fee</span>
+                    <span>+ ₹{codFee}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 mt-1 border-t border-emerald-200/60 font-bold text-emerald-950">
+                    <span>You pay on delivery</span>
+                    <span>₹{grandTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              )}
+
+              <button
                 onClick={handleNext}
                 disabled={loading}
                 className="w-full bg-emerald-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 flex items-center justify-center space-x-2"
               >
-                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Place Order'}
+                {loading
+                  ? <Loader2 className="animate-spin" size={20} />
+                  : paymentMethod === 'cod'
+                    ? 'Place Order (Cash on Delivery)'
+                    : 'Place Order'}
               </button>
 
-              <div className="mt-6 flex flex-col items-center gap-3">
-                <div className="flex items-center justify-center gap-4 text-[11px] text-gray-500">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Lock size={12} className="text-emerald-600" />
-                    <span className="font-bold uppercase tracking-widest text-[10px]">256-bit SSL</span>
-                  </span>
-                  <span className="text-gray-200">•</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <ShieldCheck size={12} className="text-emerald-600" />
-                    <span className="font-bold uppercase tracking-widest text-[10px]">PCI DSS Compliant</span>
-                  </span>
+              {paymentMethod === 'prepaid' ? (
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-center gap-4 text-[11px] text-gray-500">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Lock size={12} className="text-emerald-600" />
+                      <span className="font-bold uppercase tracking-widest text-[10px]">256-bit SSL</span>
+                    </span>
+                    <span className="text-gray-200">•</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-emerald-600" />
+                      <span className="font-bold uppercase tracking-widest text-[10px]">PCI DSS Compliant</span>
+                    </span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full">
+                    <ShieldCheck size={14} className="text-blue-600" />
+                    <span className="text-[11px] text-gray-600">
+                      Secured by{' '}
+                      <span className="font-bold text-blue-600">Razorpay</span>
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 max-w-sm leading-relaxed">
+                    Card / UPI / Netbanking details are processed directly on Razorpay&rsquo;s secure servers. Decume never sees or stores your payment credentials.
+                  </p>
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full">
-                  <ShieldCheck size={14} className="text-blue-600" />
-                  <span className="text-[11px] text-gray-600">
-                    Secured by{' '}
-                    <span className="font-bold text-blue-600">Razorpay</span>
-                  </span>
+              ) : (
+                <div className="mt-6 flex flex-col items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full">
+                    <Banknote size={14} className="text-amber-600" />
+                    <span className="text-[11px] text-amber-800 font-bold uppercase tracking-widest">Pay on Delivery</span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 max-w-sm leading-relaxed">
+                    Please keep the exact cash amount ready. Our courier partner will collect ₹{grandTotal.toLocaleString('en-IN')} at delivery.
+                  </p>
                 </div>
-                <p className="text-[10px] text-gray-400 max-w-sm leading-relaxed">
-                  Card / UPI / Netbanking details are processed directly on Razorpay&rsquo;s secure servers. Decume never sees or stores your payment credentials.
-                </p>
-              </div>
+              )}
             </div>
           )}
 

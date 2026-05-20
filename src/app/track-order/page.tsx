@@ -139,17 +139,24 @@ function TrackOrderContent() {
                 <p className="text-[10px] uppercase tracking-widest text-gray-400">Order ID</p>
                 <p className="text-lg font-bold text-emerald-950">{order.id || order._id}</p>
               </div>
-              <span
-                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                  order.status === "cancelled"
-                    ? "bg-red-50 text-red-600"
-                    : order.status === "delivered"
-                      ? "bg-green-50 text-green-600"
-                      : "bg-emerald-50 text-emerald-600"
-                }`}
-              >
-                {order.status}
-              </span>
+              <div className="flex items-center gap-2">
+                {order.payment_method === "cod" && (
+                  <span className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-800 border border-amber-200">
+                    COD
+                  </span>
+                )}
+                <span
+                  className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                    order.status === "cancelled"
+                      ? "bg-red-50 text-red-600"
+                      : order.status === "delivered"
+                        ? "bg-green-50 text-green-600"
+                        : "bg-emerald-50 text-emerald-600"
+                  }`}
+                >
+                  {order.status}
+                </span>
+              </div>
             </div>
 
             <div className="text-sm text-gray-500 mb-6">
@@ -161,6 +168,7 @@ function TrackOrderContent() {
               <div className="mb-6 px-4 py-3 bg-red-50 border border-red-100 text-sm text-red-700">
                 This order was cancelled by you.
                 {order.payment_status === "refunded" && " A refund has been initiated."}
+                {order.payment_method === "cod" && order.payment_status !== "paid" && " No payment was collected."}
               </div>
             )}
 
@@ -247,9 +255,14 @@ function TrackOrderContent() {
             <p className="text-sm text-gray-600 mb-1">
               Are you sure you want to cancel this order? This action cannot be undone.
             </p>
-            {order?.payment_status === "paid" && (
+            {order?.payment_status === "paid" && order?.payment_method !== "cod" && (
               <p className="text-sm text-gray-500 mb-4">
                 A full refund will be initiated to your original payment method.
+              </p>
+            )}
+            {order?.payment_method === "cod" && order?.payment_status !== "paid" && (
+              <p className="text-sm text-gray-500 mb-4">
+                This is a Cash on Delivery order. No payment was collected, so nothing will be refunded.
               </p>
             )}
 
