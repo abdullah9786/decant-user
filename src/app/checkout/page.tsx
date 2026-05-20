@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
@@ -67,6 +67,11 @@ export default function CheckoutPage() {
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
 
+  // Synchronous mutex: prevents rapid double-clicks on "Place Order" from
+  // creating two Razorpay orders + two pending_checkouts before React
+  // re-renders the `disabled={loading}` state.
+  const submittingRef = useRef(false);
+
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     setCouponLoading(true);
@@ -97,6 +102,8 @@ export default function CheckoutPage() {
   };
 
   const handleSubmitOrder = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     try {
       const customerEmail = isAuthenticated ? (user?.email || '') : shippingAddress.email;
@@ -201,6 +208,11 @@ export default function CheckoutPage() {
           : "Failed to initiate payment. Please try again."
       );
       setLoading(false);
+    } finally {
+      // Release the mutex once the Razorpay popup has opened (or we've
+      // surfaced a free-decant prompt / error). Subsequent submissions from
+      // the modal callbacks below manage their own state.
+      submittingRef.current = false;
     }
   };
 
