@@ -12,6 +12,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import { ActiveDealProvider } from "@/components/deal/ActiveDealProvider";
 import DailyDealBanner from "@/components/deal/DailyDealBanner";
 import DealMarquee from "@/components/deal/DealMarquee";
+import { fetchDailyDealSSR } from "@/lib/server/deal";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -95,15 +96,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // SSR-fetch the active daily deal so the banner + marquee can render in
+  // the initial HTML payload. Eliminates the ~1-2s "banner pops in" CLS
+  // that previously pushed page content down after hydration. Cached for
+  // 60s via Next ISR; provider still refetches on focus/visibility.
+  const initialDealPayload = await fetchDailyDealSSR();
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans text-[color:var(--text-primary)] antialiased`}>
-        <ActiveDealProvider>
+        <ActiveDealProvider
+          initialDeal={initialDealPayload?.deal ?? null}
+          initialProducts={initialDealPayload?.products ?? []}
+        >
           <ProgressBar />
           <ScrollToTop />
           <DailyDealBanner />

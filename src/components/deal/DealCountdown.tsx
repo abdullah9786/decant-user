@@ -90,22 +90,28 @@ export default function DealCountdown({
     return () => mql.removeEventListener('change', handler);
   }, []);
 
-  // Pre-hydration (ms === null) and expired (ms <= 0) both render nothing.
-  if (ms == null || ms <= 0) return null;
+  // Expired → hide entirely (provider will refetch next deal).
+  if (ms != null && ms <= 0) return null;
 
-  const { h, m, s } = breakdown(ms);
+  // During SSR + first client render, `ms` is `null`. We still want to
+  // reserve the timer's box so the surrounding banner/hero doesn't shift
+  // when the digits tick in after hydration. Render the exact same DOM
+  // with `--` placeholders so SSR/CSR markup stays identical (no hydration
+  // mismatch).
+  const isSkeleton = ms == null;
+  const { h, m, s } = isSkeleton ? { h: 0, m: 0, s: 0 } : breakdown(ms!);
   // Conversion lever: anything under 60 minutes amps up the visuals.
-  const urgent = h < 1;
-  const veryUrgent = urgent && m < 10;
+  const urgent = !isSkeleton && h < 1;
+  const veryUrgent = !isSkeleton && urgent && m < 10;
 
   if (boxed) {
     // Segmented HH MM SS — punchy, scannable, conversion-friendly.
     const bg = tileBg ?? '#0b0b0b';
     const fg = tileFg ?? '#ffffff';
     const tiles: { value: string; key: string }[] = [
-      { value: pad(h), key: 'h' },
-      { value: pad(m), key: 'm' },
-      { value: pad(s), key: 's' },
+      { value: isSkeleton ? '--' : pad(h), key: 'h' },
+      { value: isSkeleton ? '--' : pad(m), key: 'm' },
+      { value: isSkeleton ? '--' : pad(s), key: 's' },
     ];
     return (
       <div className={`inline-flex flex-col items-center ${className ?? ''}`}>
@@ -186,8 +192,7 @@ export default function DealCountdown({
           aria-hidden="true"
         />
         <span className="tabular-nums font-bold">
-          {h > 0 ? `${h}h ` : ''}
-          {pad(m)}m {pad(s)}s
+          {isSkeleton ? '--h --m --s' : `${h > 0 ? `${h}h ` : ''}${pad(m)}m ${pad(s)}s`}
         </span>
       </span>
     );
@@ -202,7 +207,7 @@ export default function DealCountdown({
         aria-hidden="true"
       />
       <span className="tabular-nums font-bold uppercase tracking-widest text-[11px]">
-        Ends in {h > 0 ? `${h}h ` : ''}{pad(m)}m {pad(s)}s
+        Ends in {isSkeleton ? '--h --m --s' : `${h > 0 ? `${h}h ` : ''}${pad(m)}m ${pad(s)}s`}
       </span>
     </span>
   );

@@ -87,11 +87,31 @@ function computeMsRemaining(endsAt: string | undefined | null): number {
   return Math.max(0, t - Date.now());
 }
 
-export function ActiveDealProvider({ children }: { children: React.ReactNode }) {
-  const [deal, setDeal] = useState<DealDoc | null>(null);
-  const [products, setProducts] = useState<DealProduct[]>([]);
+interface ActiveDealProviderProps {
+  children: React.ReactNode;
+  /**
+   * Optional SSR-fetched payload. When provided, the provider boots with
+   * the deal/products already populated, so the banner and marquee can
+   * render during server-side rendering instead of popping in 1-2s after
+   * hydration (which was causing visible CLS at the top of every page).
+   */
+  initialDeal?: DealDoc | null;
+  initialProducts?: DealProduct[];
+}
+
+export function ActiveDealProvider({
+  children,
+  initialDeal = null,
+  initialProducts = [],
+}: ActiveDealProviderProps) {
+  const [deal, setDeal] = useState<DealDoc | null>(initialDeal);
+  const [products, setProducts] = useState<DealProduct[]>(initialProducts);
+  // Note: we deliberately do NOT compute msRemaining from initialDeal in
+  // the useState initializer — that would call Date.now() during SSR and
+  // again during hydration, causing a mismatch. The effect below seeds it
+  // on the client only.
   const [msRemaining, setMsRemaining] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!initialDeal);
   const fetchInFlight = useRef<boolean>(false);
 
   const fetchDeal = useCallback(async () => {
@@ -119,9 +139,18 @@ export function ActiveDealProvider({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
+  // First-paint behaviour:
+  //  - If SSR seeded us with a deal, skip the initial fetch (saves a
+  //    network round-trip) and just seed `msRemaining` on the client.
+  //  - Otherwise, fetch from the API as before.
   useEffect(() => {
+    if (initialDeal) {
+      setMsRemaining(computeMsRemaining(initialDeal.ends_at));
+      return;
+    }
     fetchDeal();
-  }, [fetchDeal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Tick the countdown once a second when there's an active deal. We don't
   // need sub-second precision; this is purely a UI countdown.
