@@ -110,16 +110,24 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
             {/* Segmented countdown — same urgency treatment as the sitewide
                 banner so the visual language is consistent across surfaces.
                 Tiles are dark with accent-colored label so they pop against
-                the hero's light background. */}
+                the hero's light background.
+                `w-fit mx-auto md:mx-0` keeps the pill sized to its content
+                but centers it within the column on mobile (where the rest
+                of the text reads left-aligned but the timer benefits from
+                being centered for emphasis) and snaps back to the left on
+                tablet+ to match the rest of the column. */}
             <div
-              className="inline-flex items-center gap-4 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur border shadow-lg"
+              className="flex w-fit mx-auto md:mx-0 items-center gap-4 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur border shadow-lg"
               style={{ borderColor: `${accent}33`, color: deepAccent }}
             >
               <DealCountdown
                 endsAt={deal.ends_at}
                 boxed
                 label="Ends in"
-                tileBg="#0b0b0b"
+                // Themed tiles — use the deepened accent so the timer stays
+                // on-brand (matches the banner above) and still reads with
+                // white digits on any admin-picked accent (pastel or dark).
+                tileBg={deepAccent}
                 tileFg="#ffffff"
               />
             </div>

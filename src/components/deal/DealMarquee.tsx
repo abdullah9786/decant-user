@@ -7,8 +7,14 @@ import { isDealChromeHidden } from './constants';
 
 /**
  * Always-visible marquee strip (mobile and desktop). Pauses on hover via
- * CSS. Hidden on cart/checkout. The animation is keyframe-based so it
- * survives SSR; once mounted the deal's marquee text takes over.
+ * CSS. Hidden on cart/checkout.
+ *
+ * Loop strategy: render two identical groups inside one flex track and
+ * animate the track from translateX(0) to translateX(-50%). At the
+ * keyframe boundary Group B has scrolled into Group A's starting slot,
+ * so the snap-back to 0% is visually identical to the previous frame and
+ * the loop reads as truly circular. Each group itself contains several
+ * repeats of the message so the strip looks full on wide viewports too.
  */
 export default function DealMarquee() {
   const { deal } = useActiveDeal();
@@ -24,9 +30,24 @@ export default function DealMarquee() {
     `${deal.config?.discount_percent || 0}% OFF today only`;
   const href = deal.display?.cta_href || '/deals/today';
 
-  // Repeat the message a few times so the loop reads naturally regardless
-  // of viewport width.
-  const segments = Array.from({ length: 6 }, (_, i) => i);
+  // Repeats *inside one group*. Each group then gets duplicated below for
+  // the loop to be seamless on wide screens (~half the track must always
+  // exceed the viewport width).
+  const repeats = Array.from({ length: 6 }, (_, i) => i);
+
+  const group = (
+    <div className="flex shrink-0">
+      {repeats.map((i) => (
+        <span
+          key={i}
+          className="flex items-center gap-3 px-6 text-[11px] sm:text-xs font-bold uppercase tracking-[0.25em]"
+        >
+          <span className="text-amber-200">★</span>
+          <span>{text}</span>
+        </span>
+      ))}
+    </div>
+  );
 
   return (
     <Link
@@ -35,24 +56,28 @@ export default function DealMarquee() {
       style={{ background: `linear-gradient(90deg, ${accent}f2, ${accent})` }}
       aria-label="Today's daily deal"
     >
-      <div
-        className="flex whitespace-nowrap py-2 [animation:deal-marquee_28s_linear_infinite] group-hover:[animation-play-state:paused] motion-reduce:animate-none"
-        style={{ animationPlayState: 'running' }}
-      >
-        {segments.map((i) => (
-          <span
-            key={i}
-            className="flex items-center gap-3 px-6 text-[11px] sm:text-xs font-bold uppercase tracking-[0.25em]"
-          >
-            <span className="text-amber-200">★</span>
-            <span>{text}</span>
-          </span>
-        ))}
+      <div className="flex whitespace-nowrap py-2 will-change-transform [animation:deal-marquee_28s_linear_infinite] group-hover:[animation-play-state:paused] motion-reduce:animate-none">
+        {/* Group A — visible at animation start */}
+        {group}
+        {/* Group B — identical duplicate, scrolled into A's slot by end of
+            the keyframe. aria-hidden because screen readers only need it
+            once. */}
+        <div aria-hidden="true" className="flex shrink-0">
+          {repeats.map((i) => (
+            <span
+              key={`b-${i}`}
+              className="flex items-center gap-3 px-6 text-[11px] sm:text-xs font-bold uppercase tracking-[0.25em]"
+            >
+              <span className="text-amber-200">★</span>
+              <span>{text}</span>
+            </span>
+          ))}
+        </div>
       </div>
       <style jsx>{`
         @keyframes deal-marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
+          from { transform: translate3d(0, 0, 0); }
+          to   { transform: translate3d(-50%, 0, 0); }
         }
       `}</style>
     </Link>

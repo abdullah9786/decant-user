@@ -112,7 +112,10 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
             </p>
           </div>
 
-          <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+          {/* Right cluster (countdown + "view all" link). On mobile this
+              cluster gets centered for emphasis; on tablet+ it returns to
+              its natural right-aligned position next to the headline. */}
+          <div className="flex flex-col items-center md:items-end gap-3 shrink-0">
             <div
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black/60 backdrop-blur border"
               style={{ borderColor: `${accent}66` }}
