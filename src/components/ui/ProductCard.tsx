@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
@@ -28,20 +29,31 @@ interface ProductCardProps {
   priceMode?: 'default' | 'pack';
 }
 
-const ProductCard = ({ 
+const ProductCard = React.memo(({ 
   id, _id, slug, name, brand, variants, image_url, is_featured, is_new_arrival,
   notes_top = [], notes_middle = [], notes_base = [], chips = [], priceMode = 'default'
 }: ProductCardProps) => {
   const productId = id || _id;
   const productSlug = slug || productId;
-  let minPrice = 0;
-  let maxPrice = 0;
-  
-  if (variants && variants.length > 0) {
-    const prices = variants.map(v => v.price);
-    minPrice = Math.min(...prices);
-    maxPrice = Math.max(...prices);
-  }
+
+  const { minPrice, maxPrice, defaultVariant, hasDecant, hasPack } = useMemo(() => {
+    let min = 0, max = 0;
+    if (variants && variants.length > 0) {
+      const prices = variants.map(v => v.price);
+      min = Math.min(...prices);
+      max = Math.max(...prices);
+    }
+    const def = variants && variants.length > 0
+      ? variants.reduce((m: any, v: any) => v.price < m.price ? v : m, variants[0])
+      : null;
+    return {
+      minPrice: min,
+      maxPrice: max,
+      defaultVariant: def,
+      hasDecant: variants?.some((v: any) => !v.is_pack),
+      hasPack: variants?.some((v: any) => v.is_pack),
+    };
+  }, [variants]);
 
   let priceNode: React.ReactNode;
   if (priceMode === 'pack') {
@@ -54,23 +66,26 @@ const ProductCard = ({
     priceNode = <>₹{minPrice} - ₹{maxPrice}</>;
   }
 
-  const hasDecant = variants?.some((v: any) => !v.is_pack);
-  const hasPack = variants?.some((v: any) => v.is_pack);
+  const allNotes = useMemo(
+    () => [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3),
+    [notes_top, notes_middle, notes_base],
+  );
 
-  // Extract up to 3 notes for a quick 'scent profile' preview right on the card
-  const allNotes = [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3);
-
-  const { items, addItem, updateQuantity, removeItem } = useCartStore();
-
-  const defaultVariant = variants && variants.length > 0 
-    ? variants.reduce((min: any, v: any) => v.price < min.price ? v : min, variants[0])
-    : null;
-
-  const cartItem = defaultVariant 
-    ? items.find(item => item.id === (productId as string) && item.size_ml === defaultVariant.size_ml && !!item.is_pack === !!defaultVariant.is_pack)
-    : null;
-    
-  const quantityInCart = cartItem?.quantity || 0;
+  const addItem = useCartStore(s => s.addItem);
+  const updateQuantity = useCartStore(s => s.updateQuantity);
+  const removeItem = useCartStore(s => s.removeItem);
+  const quantityInCart = useCartStore(
+    useCallback(
+      (s) => {
+        if (!defaultVariant) return 0;
+        const match = s.items.find(
+          (item) => item.id === (productId as string) && item.size_ml === defaultVariant.size_ml && !!item.is_pack === !!defaultVariant.is_pack,
+        );
+        return match?.quantity || 0;
+      },
+      [productId, defaultVariant],
+    ),
+  );
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault(); // Don't navigate to product page
@@ -127,7 +142,7 @@ const ProductCard = ({
   return (
     <Link 
       href={`/products/${productSlug}`} 
-      className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-all duration-300 flex flex-col h-full"
+      className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-shadow duration-300 flex flex-col h-full"
     >
       {/* Image Container */}
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10 shrink-0">
@@ -140,7 +155,7 @@ const ProductCard = ({
             </span>
           )}
           {is_featured && !is_new_arrival && (
-            <span className="bg-emerald-950/90 backdrop-blur-md text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
+            <span className="bg-emerald-950 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
               Featured
             </span>
           )}
@@ -173,7 +188,7 @@ const ProductCard = ({
           <div className="absolute inset-x-0 bottom-0 p-3 pt-12 bg-gradient-to-t from-emerald-950/60 to-transparent z-10 pointer-events-none">
             <div className="flex flex-wrap gap-1.5 justify-center">
               {allNotes.map((note, idx) => (
-                <span key={idx} className="bg-white/20 backdrop-blur-md text-white border border-white/20 px-2 py-0.5 text-[8px] uppercase tracking-widest rounded-full flex items-center">
+                <span key={idx} className="bg-black/30 text-white border border-white/15 px-2 py-0.5 text-[8px] uppercase tracking-widest rounded-full flex items-center">
                   {note}
                 </span>
               ))}
@@ -229,6 +244,8 @@ const ProductCard = ({
       </div>
     </Link>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;

@@ -60,7 +60,7 @@ export function ChipList({ chips, max = 3, size = 'sm', className = '', align = 
         <Chip key={c._id || c.code || c.label} chip={c} size={size} />
       ))}
       {overflow > 0 && (
-        <span className={`inline-flex items-center ${size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-1 text-[11px]'} rounded-full font-bold border bg-white/80 text-slate-600 border-slate-200 backdrop-blur`}>
+        <span className={`inline-flex items-center ${size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-1 text-[11px]'} rounded-full font-bold border bg-white text-slate-600 border-slate-200`}>
           +{overflow}
         </span>
       )}

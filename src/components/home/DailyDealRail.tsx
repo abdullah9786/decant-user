@@ -117,7 +117,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
               its natural right-aligned position next to the headline. */}
           <div className="flex flex-col items-center md:items-end gap-3 shrink-0">
             <div
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black/60 backdrop-blur border"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black/70 border"
               style={{ borderColor: `${accent}66` }}
             >
               <DealCountdown
@@ -192,7 +192,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                   }}
                 />
                 <div className="relative">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] text-white bg-white/15 backdrop-blur">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] text-white bg-white/20">
                     <Flame size={10} />
                     Deal of the day
                   </span>
@@ -302,7 +302,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
         })()}
 
         {/* Footer CTA — sticky reassurance for the conversion. */}
-        <div className="mt-10 md:mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-black/40 backdrop-blur border" style={{ borderColor: `${accent}33` }}>
+        <div className="mt-10 md:mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-black/50 border" style={{ borderColor: `${accent}33` }}>
           <div className="flex items-center gap-3 text-sm text-white/80">
             <Sparkles size={16} style={{ color: lightAccent }} />
             <span>

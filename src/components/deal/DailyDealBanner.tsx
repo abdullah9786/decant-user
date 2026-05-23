@@ -91,7 +91,7 @@ export default function DailyDealBanner() {
       {/* Left cluster: brand mark + subheadline */}
       <div className="flex items-center gap-3 shrink-0">
         <span
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] bg-black/20 backdrop-blur"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] bg-black/25"
           style={{ color: fgOnAccent }}
         >
           <Flame size={12} className="motion-reduce:animate-none animate-pulse" />

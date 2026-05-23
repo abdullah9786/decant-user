@@ -64,7 +64,7 @@ export default function DefaultHero() {
           </div>
 
           <div className="relative">
-            <div className="aspect-[4/5] rounded-[32px] bg-white/70 backdrop-blur-xl border border-white shadow-2xl overflow-hidden relative">
+            <div className="aspect-[4/5] rounded-[32px] bg-white border border-white/80 shadow-xl overflow-hidden relative">
               <Image
                 src="https://ik.imagekit.io/smhon4suw/ChatGPT%20Image%20May%2023,%202026,%2002_07_04%20PM.png"
                 alt="Elegant perfume bottles"

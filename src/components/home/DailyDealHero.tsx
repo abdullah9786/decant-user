@@ -117,7 +117,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
                 being centered for emphasis) and snaps back to the left on
                 tablet+ to match the rest of the column. */}
             <div
-              className="flex w-fit mx-auto md:mx-0 items-center gap-4 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur border shadow-lg"
+              className="flex w-fit mx-auto md:mx-0 items-center gap-4 px-5 py-3 rounded-2xl bg-white/90 border shadow-lg"
               style={{ borderColor: `${accent}33`, color: deepAccent }}
             >
               <DealCountdown
@@ -136,7 +136,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
           <div className="relative">
             {collage.length === 0 ? (
               heroImage ? (
-                <div className="aspect-[4/5] rounded-[32px] bg-white/70 backdrop-blur-xl border border-white shadow-2xl overflow-hidden relative">
+                <div className="aspect-[4/5] rounded-[32px] bg-white border border-white/80 shadow-xl overflow-hidden relative">
                   <Image
                     src={heroImage}
                     alt={subheadline}

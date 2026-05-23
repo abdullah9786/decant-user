@@ -196,7 +196,7 @@ export default function PromoModal() {
       aria-labelledby="promo-modal-headline"
     >
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50"
         onClick={dismiss}
       />
 
@@ -209,7 +209,7 @@ export default function PromoModal() {
           type="button"
           onClick={dismiss}
           aria-label="Close promotion"
-          className="absolute top-4 right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-amber-400/30 bg-emerald-950/80 hover:bg-amber-400 hover:text-emerald-950 text-amber-200 backdrop-blur flex items-center justify-center transition-all"
+          className="absolute top-4 right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-amber-400/30 bg-emerald-950 hover:bg-amber-400 hover:text-emerald-950 text-amber-200 flex items-center justify-center transition-colors"
         >
           <X size={16} />
         </button>
@@ -229,7 +229,7 @@ export default function PromoModal() {
 
           <div className="relative p-5 sm:p-8 md:p-10 md:py-12 flex flex-col min-h-0 md:overflow-y-auto md:overscroll-contain">
             <div
-              className="inline-flex items-center gap-2 self-start mb-3 sm:mb-5 px-2.5 py-1 sm:px-3 sm:py-1.5 backdrop-blur border text-amber-200"
+              className="inline-flex items-center gap-2 self-start mb-3 sm:mb-5 px-2.5 py-1 sm:px-3 sm:py-1.5 border text-amber-200"
               style={
                 content.accentColor
                   ? { backgroundColor: `${content.accentColor}26`, borderColor: `${content.accentColor}66` }
