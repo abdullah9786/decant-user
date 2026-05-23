@@ -9,6 +9,9 @@ import PromoModal from "@/components/layout/PromoModal";
 import ClientToaster from "@/components/ui/ClientToaster";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import ProgressBar from "@/components/ui/ProgressBar";
+import { ActiveDealProvider } from "@/components/deal/ActiveDealProvider";
+import DailyDealBanner from "@/components/deal/DailyDealBanner";
+import DealMarquee from "@/components/deal/DealMarquee";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -100,18 +103,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans text-[color:var(--text-primary)] antialiased`}>
-        <ProgressBar />
-        <ScrollToTop />
-        <Navbar />
-        <ClientToaster />
-        <PromoModal />
-        <main className="bg-[color:var(--surface-bg)]">
-          {children}
-        </main>
-        <Footer />
+        <ActiveDealProvider>
+          <ProgressBar />
+          <ScrollToTop />
+          <DailyDealBanner />
+          <DealMarquee />
+          <Navbar />
+          <ClientToaster />
+          <PromoModal />
+          <main className="bg-[color:var(--surface-bg)]">
+            {children}
+          </main>
+          <Footer />
+        </ActiveDealProvider>
         {gaMeasurementId ? (
           <GoogleAnalytics gaId={gaMeasurementId} />
         ) : null}
+
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-18052135357"
           strategy="afterInteractive"

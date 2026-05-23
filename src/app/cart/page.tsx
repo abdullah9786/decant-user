@@ -47,6 +47,15 @@ export default function CartPage() {
   }, [entitledCount, freeDecants.length, trimFreeDecants]);
 
   const subtotal = totalPrice();
+  // Cumulative savings from today's daily deal. Computed off the per-item
+  // original-vs-sale snapshot captured at add-to-cart time. Stays accurate
+  // even if the deal page is closed because the snapshot rides in localStorage.
+  const dealSavings = items.reduce((acc, item) => {
+    if (item.original_price && item.original_price > item.price) {
+      return acc + (item.original_price - item.price) * item.quantity;
+    }
+    return acc;
+  }, 0);
   const shippingFee = subtotal > 999 ? 0 : 90;
   const freeDeliveryThreshold = 999;
   const amountToFreeDelivery = Math.max(0, freeDeliveryThreshold + 1 - subtotal);
@@ -157,6 +166,16 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>₹{subtotal}</span>
                 </div>
+
+                {dealSavings > 0 && (
+                  <div className="flex justify-between text-sm uppercase tracking-widest text-rose-600 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <span aria-hidden>★</span>
+                      <span className="text-[10px] normal-case tracking-normal">You save via today's deal</span>
+                    </span>
+                    <span>−₹{dealSavings.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
 
                 {freeDecants.length > 0 && freeDecants.map(fd => (
                   <div key={fd.product_id} className="flex justify-between text-sm text-gray-600 uppercase tracking-widest">

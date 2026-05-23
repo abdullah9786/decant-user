@@ -146,10 +146,12 @@ export const bottleApi = {
 
 export const offerApi = {
     getActive: () => api.get('/offers/active'),
+    getDailyDeal: () => api.get('/offers/daily-deal/today'),
 };
 
 export const influencerApi = {
-    validateCoupon: (code: string) => api.post('/influencers/coupons/validate', { code }),
+    validateCoupon: (code: string, cartItems?: { product_id: string; quantity?: number }[]) =>
+        api.post('/influencers/coupons/validate', { code, cart_items: cartItems ?? [] }),
 };
 
 export default api;

@@ -23,6 +23,11 @@ export interface CartItem {
     bottle_id?: string;
     bottle_name?: string;
     bottle_price?: number;
+    // Daily-deal annotations captured at add-to-cart time. Used for cart
+    // savings display + a hint to the user when a coupon is incompatible.
+    original_price?: number;
+    discount_percent?: number;
+    deal_id?: string | null;
 }
 
 export interface FreeDecantItem {

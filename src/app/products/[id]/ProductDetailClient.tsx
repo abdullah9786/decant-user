@@ -18,6 +18,10 @@ import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
 import { offerApi } from "@/lib/api";
 import { ChipList } from "@/components/ui/Chip";
+import { useActiveDeal } from "@/components/deal/ActiveDealProvider";
+import PriceTag from "@/components/deal/PriceTag";
+import DealCountdown from "@/components/deal/DealCountdown";
+import { deepenAccent, formatDealEnd } from "@/components/deal/constants";
 
 interface ProductDetailClientProps {
   product: any;
@@ -98,7 +102,21 @@ export default function ProductDetailClient({
       (v: any) => v.size_ml === selectedSize && !!v.is_pack === selectedIsPack
     ) || product.variants?.[0];
   const selectedMl = selectedSize ?? currentVariant?.size_ml ?? 0;
-  const selectedPrice = currentVariant?.price ?? 0;
+  // Sale price falls through to the original price for non-deal variants
+  // because the backend annotator sets sale_price == original_price in that
+  // case. Either way, this is the per-unit price before bottle addons.
+  const variantOriginalPrice = currentVariant?.original_price ?? currentVariant?.price ?? 0;
+  const variantSalePrice = currentVariant?.sale_price ?? currentVariant?.price ?? 0;
+  const variantDiscountPercent = currentVariant?.discount_percent ?? 0;
+  const isOnDeal = variantDiscountPercent > 0 && variantSalePrice < variantOriginalPrice;
+  const selectedPrice = variantSalePrice;
+  const { deal: activeDeal } = useActiveDeal();
+  const accentColor = isOnDeal ? activeDeal?.display?.accent_color || '#dc2626' : null;
+  // Darkened, foreground-safe variant of the deal accent. Used wherever the
+  // accent has to act as text on white or as a CTA background under white
+  // text (image ribbon, eyebrow pill text, countdown chip text). Prevents
+  // the "white on pastel pink" failure mode when admin picks a light accent.
+  const deepAccent = accentColor ? deepenAccent(accentColor) : null;
   const availableMl = product.stock_ml ?? 0;
   const isPack = !!currentVariant?.is_pack;
   const canFulfill = isPack
@@ -162,7 +180,13 @@ export default function ProductDetailClient({
       name: product.name,
       brand: product.brand,
       size_ml: selectedSize!,
-      price: currentVariant.price + bottleAddon,
+      // Snapshot the daily-deal sale price (when present) so the cart total
+      // stays in sync with the deal until the user checks out. Backend
+      // revalidates on order creation either way.
+      price: variantSalePrice + bottleAddon,
+      original_price: variantOriginalPrice + bottleAddon,
+      discount_percent: variantDiscountPercent,
+      deal_id: currentVariant?.deal_id ?? null,
       quantity: 1,
       is_pack: isPack,
       ...(selectedBottle && {
@@ -208,7 +232,20 @@ export default function ProductDetailClient({
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-7 lg:sticky lg:top-24 lg:self-start flex flex-col md:flex-row-reverse gap-4">
             {/* Main Image Viewer */}
-            <div className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group">
+            <div
+              className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group"
+              style={isOnDeal && accentColor ? { boxShadow: `0 0 0 3px ${accentColor}` } : undefined}
+            >
+              {isOnDeal && deepAccent && activeDeal && (
+                // Ribbon uses the *deepened* accent so the white label stays
+                // readable even when admin picks a pastel accent.
+                <div
+                  className="absolute top-4 left-0 z-30 px-4 py-1.5 text-white text-[10px] font-bold uppercase tracking-[0.25em] shadow-lg"
+                  style={{ backgroundColor: deepAccent }}
+                >
+                  {activeDeal.display?.headline || 'Decume Daily'} · {variantDiscountPercent}% OFF
+                </div>
+              )}
               {allImages.map((img, i) => (
                 <Image
                   key={i}
@@ -355,12 +392,43 @@ export default function ProductDetailClient({
               </div>
 
               <div className="space-y-4">
-                <p className="text-3xl font-bold text-emerald-950">
-                  ₹{(currentVariant?.price || 0) + bottleAddon}
+                {isOnDeal && accentColor && deepAccent && activeDeal && (
+                  // Tinted bg keeps the accent feel; text + dot use the
+                  // deepened accent so pastel themes stay readable.
+                  <div
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.25em] font-bold"
+                    style={{ backgroundColor: `${accentColor}1a`, color: deepAccent, border: `1px solid ${accentColor}40` }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: deepAccent }} />
+                    <span>{activeDeal.display?.headline || 'Decume Daily'} · {variantDiscountPercent}% OFF</span>
+                  </div>
+                )}
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <PriceTag
+                    originalPrice={variantOriginalPrice + bottleAddon}
+                    salePrice={variantSalePrice + bottleAddon}
+                    discountPercent={variantDiscountPercent}
+                    size="lg"
+                  />
                   {bottleAddon > 0 && (
-                    <span className="text-sm font-medium text-gray-400 ml-2">(incl. ₹{bottleAddon} bottle)</span>
+                    <span className="text-xs font-medium text-gray-400">(incl. ₹{bottleAddon} bottle)</span>
                   )}
-                </p>
+                </div>
+                {isOnDeal && activeDeal && accentColor && deepAccent && (
+                  // Countdown chip sits on the white page background — pull
+                  // the text into the deepened accent so it doesn't wash out.
+                  <div
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border"
+                    style={{ borderColor: `${accentColor}55`, color: deepAccent }}
+                  >
+                    <DealCountdown endsAt={activeDeal.ends_at} compact className="text-[11px]" />
+                  </div>
+                )}
+                {isOnDeal && activeDeal && (
+                  <p className="text-[11px] text-slate-500">
+                    Part of today's Daily Deal — ends {formatDealEnd(activeDeal.ends_at)}.
+                  </p>
+                )}
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
                   Tax included. Shipping calculated at checkout.
                 </p>
@@ -753,8 +821,13 @@ export default function ProductDetailClient({
                       : `In stock · ${availableMl}ml available`
                     : "Currently out of stock"}
                 </div>
-                <div className="mt-6 text-3xl font-serif text-emerald-950">
-                  ₹{currentVariant?.price}
+                <div className="mt-6">
+                  <PriceTag
+                    originalPrice={variantOriginalPrice}
+                    salePrice={variantSalePrice}
+                    discountPercent={variantDiscountPercent}
+                    size="lg"
+                  />
                 </div>
                 <button
                   onClick={handleAddToCart}

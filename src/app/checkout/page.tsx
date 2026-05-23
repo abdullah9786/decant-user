@@ -110,7 +110,10 @@ export default function CheckoutPage() {
     setCouponLoading(true);
     setCouponError('');
     try {
-      const res = await influencerApi.validateCoupon(couponCode.trim());
+      // Forward cart line product ids so the backend can reject coupon
+      // stacking when any cart item is part of an active daily deal.
+      const cartItems = items.map(i => ({ product_id: i.id, quantity: i.quantity, size_ml: i.size_ml, is_pack: !!i.is_pack }));
+      const res = await influencerApi.validateCoupon(couponCode.trim(), cartItems);
       const data = res.data;
       if (data.valid) {
         setCouponApplied({ discount_percent: data.discount_percent, influencer_id: data.influencer_id });
