@@ -130,14 +130,20 @@ export default function PromoModal() {
   if (!isOpen) return null;
 
   // Compose the rendered fields based on whether a deal is active.
+  //
+  // `bottlePrice` / `bottleSize` are optional: when a deal's hero product has
+  // no full-bottle ("pack") variant — e.g. a decant-only deal — there's no
+  // meaningful retail anchor to strike through, so we omit them and the JSX
+  // collapses to a single full-width "Today's deal" panel instead of
+  // rendering a placeholder "Retail / RETAIL BOTTLE" column.
   let content: {
     badge: string;
     brand: string;
     name: string;
     tagline?: string;
     description?: string;
-    bottlePrice: string;
-    bottleSize: string;
+    bottlePrice?: string;
+    bottleSize?: string;
     decantFrom: string;
     decantSubtitle: string;
     notes?: { label: string; value: string }[];
@@ -160,10 +166,10 @@ export default function PromoModal() {
       description:
         deal.display?.subheadline ||
         `${discountPercent}% off across selected fragrances. Ends ${formatDealEnd(deal.ends_at)} — claim it before it's gone.`,
-      bottlePrice: pack
-        ? inr(pack.original_price ?? pack.price)
-        : "Retail",
-      bottleSize: pack ? `${pack.size_ml} ml retail` : "Retail bottle",
+      // Only surface the retail anchor when there's a real pack variant.
+      // Otherwise these stay undefined and the JSX hides the left column.
+      bottlePrice: pack ? inr(pack.original_price ?? pack.price) : undefined,
+      bottleSize: pack ? `${pack.size_ml} ml retail` : undefined,
       decantFrom: entry ? `${entry.size_ml} ml @ ${inr(entry.sale_price ?? entry.price)}` : `${discountPercent}% OFF`,
       decantSubtitle: `Today · ${discountPercent}% OFF`,
       imageUrl: deal.display?.hero_image || hero.image_url || STATIC_PROMO.imageUrl,
@@ -177,6 +183,10 @@ export default function PromoModal() {
       ...STATIC_PROMO,
     };
   }
+
+  // Whether to render the dual "retail vs. deal" split, or collapse to a
+  // single panel showing only the deal price.
+  const hasRetailAnchor = Boolean(content.bottlePrice);
 
   return (
     <div
@@ -257,22 +267,36 @@ export default function PromoModal() {
               </p>
             )}
 
-            <div className="mt-4 sm:mt-6 grid grid-cols-2 border-y border-amber-300/15">
-              <div className="py-3 sm:py-4 pr-3 sm:pr-4 border-r border-amber-300/15">
-                <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-200/50 font-bold mb-1 sm:mb-1.5">
-                  Retail Bottle
-                </p>
-                <p
-                  className="font-serif text-lg sm:text-2xl text-emerald-100/70 line-through decoration-emerald-100/30"
-                  aria-label={`Retail price ${content.bottlePrice}`}
-                >
-                  {content.bottlePrice}
-                </p>
-                <p className="text-[9px] sm:text-[10px] text-emerald-300/50 mt-0.5 uppercase tracking-widest">
-                  {content.bottleSize}
-                </p>
-              </div>
-              <div className="py-3 sm:py-4 pl-3 sm:pl-4 relative">
+            <div
+              className={`mt-4 sm:mt-6 border-y border-amber-300/15 ${
+                hasRetailAnchor ? 'grid grid-cols-2' : ''
+              }`}
+            >
+              {/* Left column: retail anchor — only shown when the hero
+                  product actually has a full-bottle ("pack") variant. For
+                  decant-only deals this column is omitted and the deal
+                  panel takes the full width below. */}
+              {hasRetailAnchor && (
+                <div className="py-3 sm:py-4 pr-3 sm:pr-4 border-r border-amber-300/15">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-200/50 font-bold mb-1 sm:mb-1.5">
+                    Retail Bottle
+                  </p>
+                  <p
+                    className="font-serif text-lg sm:text-2xl text-emerald-100/70 line-through decoration-emerald-100/30"
+                    aria-label={`Retail price ${content.bottlePrice}`}
+                  >
+                    {content.bottlePrice}
+                  </p>
+                  <p className="text-[9px] sm:text-[10px] text-emerald-300/50 mt-0.5 uppercase tracking-widest">
+                    {content.bottleSize}
+                  </p>
+                </div>
+              )}
+              <div
+                className={`py-3 sm:py-4 relative ${
+                  hasRetailAnchor ? 'pl-3 sm:pl-4' : ''
+                }`}
+              >
                 <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300 font-bold mb-1 sm:mb-1.5">
                   {content.decantSubtitle}
                 </p>
