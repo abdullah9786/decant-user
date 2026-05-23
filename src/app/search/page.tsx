@@ -1,21 +1,41 @@
 "use client";
 
-import React, { Suspense, useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { Suspense, useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Loader2, Search as SearchIcon } from 'lucide-react';
 import ProductCard from '@/components/ui/ProductCard';
 import { brandApi, fragranceFamilyApi, productApi } from '@/lib/api';
 
 const normalize = (value: string) => value.trim().toLowerCase();
+const PAGE_SIZE = 12;
 
 function SearchClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const noteParam = searchParams.get('note');
+  const qParam = searchParams.get('q') || '';
 
-  const [query, setQuery] = useState('');
-  const [submittedQuery, setSubmittedQuery] = useState('');
+  // Pre-fill from URL so deep links / Google Sitelinks Searchbox / navbar
+  // suggestions all land with the input already populated and results
+  // already running.
+  const [query, setQuery] = useState(qParam);
+  const [submittedQuery, setSubmittedQuery] = useState(qParam);
+  // Bulk-fetched products (filter-only browsing path — when there's no text
+  // query, the user can still filter by brand/family/note client-side).
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Server-search results — used whenever `submittedQuery` is non-empty.
+  // Paginated via Load More; total drives the `has_more` decision.
+  const [serverResults, setServerResults] = useState<any[]>([]);
+  const [serverTotal, setServerTotal] = useState(0);
+  const [serverHasMore, setServerHasMore] = useState(false);
+  const [serverLoading, setServerLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  // Sequence id so a slow earlier search response can't overwrite a faster
+  // later one. Common autocomplete race-condition guard.
+  const searchSeqRef = useRef(0);
 
   const [brands, setBrands] = useState<any[]>([]);
   const [fragranceFamilies, setFragranceFamilies] = useState<any[]>([]);
@@ -72,6 +92,85 @@ function SearchClient() {
     fetchMeta();
   }, []);
 
+  // React to incoming URL `q` changes (e.g. navbar autosuggest pushes a new
+  // /search?q=...). Keeps the input synced when the URL is the source of
+  // truth.
+  useEffect(() => {
+    setQuery(qParam);
+    setSubmittedQuery(qParam);
+  }, [qParam]);
+
+  // Server-side search: refetch whenever `submittedQuery` changes. When the
+  // query is empty we fall through to the bulk-fetched `allProducts` and
+  // client filters (the original filter-only browse path).
+  useEffect(() => {
+    const term = submittedQuery.trim();
+    if (term.length === 0) {
+      setServerResults([]);
+      setServerTotal(0);
+      setServerHasMore(false);
+      setServerLoading(false);
+      return;
+    }
+    const mySeq = ++searchSeqRef.current;
+    setServerLoading(true);
+    productApi
+      .search(term, { limit: PAGE_SIZE, skip: 0 })
+      .then((res) => {
+        if (mySeq !== searchSeqRef.current) return;
+        setServerResults(res.data?.items || []);
+        setServerTotal(res.data?.total || 0);
+        setServerHasMore(Boolean(res.data?.has_more));
+      })
+      .catch(() => {
+        if (mySeq !== searchSeqRef.current) return;
+        setServerResults([]);
+        setServerTotal(0);
+        setServerHasMore(false);
+      })
+      .finally(() => {
+        if (mySeq === searchSeqRef.current) setServerLoading(false);
+      });
+  }, [submittedQuery]);
+
+  const handleLoadMore = async () => {
+    if (!serverHasMore || loadingMore) return;
+    const term = submittedQuery.trim();
+    if (!term) return;
+    const mySeq = ++searchSeqRef.current;
+    setLoadingMore(true);
+    try {
+      const res = await productApi.search(term, {
+        limit: PAGE_SIZE,
+        skip: serverResults.length,
+      });
+      if (mySeq !== searchSeqRef.current) return;
+      setServerResults((prev) => [...prev, ...(res.data?.items || [])]);
+      setServerHasMore(Boolean(res.data?.has_more));
+    } finally {
+      if (mySeq === searchSeqRef.current) setLoadingMore(false);
+    }
+  };
+
+  // Keep the URL in sync with the active text query so the page is
+  // shareable / refresh-safe / back-button-friendly. Uses `replace` rather
+  // than `push` so each keystroke doesn't create a history entry.
+  useEffect(() => {
+    const term = submittedQuery.trim();
+    const params = new URLSearchParams();
+    if (term) params.set('q', term);
+    if (noteParam) params.set('note', noteParam);
+    const next = params.toString();
+    const target = next ? `${pathname}?${next}` : pathname;
+    // Only navigate if URL would actually change — avoids an infinite loop
+    // with the `qParam` watcher above.
+    const current = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    if (current !== target) {
+      router.replace(target, { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submittedQuery, noteParam, pathname]);
+
   const runSearch = (term: string) => {
     setSubmittedQuery(term.trim());
   };
@@ -114,40 +213,35 @@ function SearchClient() {
     setSubmittedQuery('');
   };
 
+  // Source-of-truth depends on whether the user has an active text query:
+  //   - With `q`: use the paginated server search results so the catalogue
+  //     isn't capped at 100 documents.
+  //   - Without `q`: stick with bulk-fetched `allProducts` so brand/family/
+  //     note checkbox-only browsing still works.
+  // Either way, the sidebar filters (brand/family/note) are applied client-
+  // side on the current set. For the server-search path that means filters
+  // act on the loaded pages; clicking "Load more" brings in more matches
+  // which are then re-filtered.
   const filteredResults = useMemo(() => {
     const term = normalize(submittedQuery);
     const brandSet = new Set(selectedBrands.map(normalize));
     const familySet = new Set(selectedFamilies.map(normalize));
     const noteSet = new Set(selectedNotes.map(normalize));
 
-    return allProducts.filter((product) => {
-      // 1. Search Query Filter (if active)
-      if (term) {
-        const matchesName = normalize(product.name || '').includes(term);
-        const matchesBrand = normalize(product.brand || '').includes(term);
-        const allNotes = [
-          ...(product.notes_top || []),
-          ...(product.notes_middle || []),
-          ...(product.notes_base || []),
-        ].map(n => normalize(n));
-        const matchesNotes = allNotes.some(n => n.includes(term));
-        
-        if (!matchesName && !matchesBrand && !matchesNotes) {
-          return false;
-        }
-      }
+    const source = term ? serverResults : allProducts;
 
-      // 2. Brand Filter (if active)
+    return source.filter((product) => {
+      // 1. Brand Filter (if active)
       if (brandSet.size > 0 && !brandSet.has(normalize(String(product.brand || '')))) {
         return false;
       }
 
-      // 3. Family Filter (if active)
+      // 2. Family Filter (if active)
       if (familySet.size > 0 && !familySet.has(normalize(String(product.fragrance_family || '')))) {
         return false;
       }
 
-      // 4. Note Tags Filter (if active)
+      // 3. Note Tags Filter (if active)
       if (noteSet.size > 0) {
         const allNotes = [
           ...(product.notes_top || []),
@@ -158,9 +252,12 @@ function SearchClient() {
         if (!hasNote) return false;
       }
 
+      // Text-match filtering is handled by the backend when `term` is set.
+      // For the no-query path we don't apply any text filter — the user is
+      // browsing by checkboxes.
       return true;
     });
-  }, [allProducts, submittedQuery, selectedBrands, selectedFamilies, selectedNotes]);
+  }, [allProducts, serverResults, submittedQuery, selectedBrands, selectedFamilies, selectedNotes]);
 
   const isBrowsing = submittedQuery.length > 0 || selectedBrands.length > 0 || selectedFamilies.length > 0 || selectedNotes.length > 0;
 
@@ -176,29 +273,55 @@ function SearchClient() {
     );
   }, [notesTop, notesMiddle, notesBase]);
 
+  // Mobile UX: once the user is actively searching/filtering, the big hero
+  // copy pushes results below the fold. Collapse to a compact, search-input-
+  // only hero on mobile while keeping the full hero on desktop. On larger
+  // screens the hero stays full-size — there's no fold pressure there.
+  const isSearchingOrFiltering = query.trim().length > 0 || submittedQuery.trim().length > 0;
+
   return (
-    <div className="py-16 bg-white min-h-screen">
+    <div className="py-10 md:py-16 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <section className="rounded-[40px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] p-10 md:p-16 shadow-xl relative overflow-hidden">
+        <section
+          className={`rounded-[28px] md:rounded-[40px] border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] shadow-xl relative overflow-hidden transition-all duration-300 ${
+            isSearchingOrFiltering ? 'p-5 md:p-16' : 'p-7 md:p-16'
+          }`}
+        >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
           <div className="relative max-w-4xl">
-            <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--accent-muted)] font-bold">
+            <div
+              className={`text-[10px] uppercase tracking-[0.35em] text-[color:var(--accent-muted)] font-bold ${
+                isSearchingOrFiltering ? 'hidden md:block' : ''
+              }`}
+            >
               Search by brand, note, or perfume
             </div>
-            <h1 className="text-3xl md:text-5xl font-serif mt-4">
+            <h1
+              className={`font-serif ${
+                isSearchingOrFiltering
+                  ? 'hidden md:block text-3xl md:text-5xl md:mt-4'
+                  : 'text-2xl md:text-5xl mt-3 md:mt-4'
+              }`}
+            >
               Find the fragrance you already love.
             </h1>
-            <p className="mt-4 text-[color:var(--accent-muted)] text-base md:text-lg max-w-2xl">
+            <p
+              className={`text-[color:var(--accent-muted)] max-w-2xl ${
+                isSearchingOrFiltering
+                  ? 'hidden md:block md:mt-4 text-base md:text-lg'
+                  : 'mt-3 md:mt-4 text-sm md:text-lg'
+              }`}
+            >
               Your scent is here. Start typing and press Enter to reveal curated decants that match exactly what you had in mind.
             </p>
-            <form onSubmit={handleSubmit} className="mt-8">
+            <form onSubmit={handleSubmit} className={isSearchingOrFiltering ? 'mt-0 md:mt-8' : 'mt-5 md:mt-8'}>
               <div className="relative">
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Try: Dior Sauvage, Oud, Creed Aventus..."
-                  className="w-full bg-white/95 text-emerald-950 placeholder:text-slate-400 rounded-full pl-12 pr-6 py-4 md:py-5 text-base md:text-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full bg-white/95 text-emerald-950 placeholder:text-slate-400 rounded-full pl-12 pr-6 py-3 md:py-5 text-base md:text-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                 />
                 <SearchIcon size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-700" />
               </div>
@@ -402,13 +525,27 @@ function SearchClient() {
               <div>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10 border-b border-gray-100 pb-8">
                   <div className="text-xs uppercase tracking-[0.2em] text-gray-500 font-medium leading-relaxed">
-                    Found <span className="text-emerald-950 font-bold">{filteredResults.length}</span> results 
-                    {submittedQuery && <span> for “{submittedQuery}”</span>}
-                    {(selectedBrands.length > 0 || selectedFamilies.length > 0) && (
-                      <span className="text-emerald-800/60 lowercase italic"> in {[...selectedBrands, ...selectedFamilies].join(', ')}</span>
-                    )}
-                    {selectedNotes.length > 0 && (
-                      <span className="text-emerald-800/60 lowercase italic"> with notes: {selectedNotes.join(', ')}</span>
+                    {submittedQuery ? (
+                      <>
+                        Found <span className="text-emerald-950 font-bold">{serverTotal}</span> results
+                        <span> for “{submittedQuery}”</span>
+                        {(selectedBrands.length > 0 || selectedFamilies.length > 0) && (
+                          <span className="text-emerald-800/60 lowercase italic"> in {[...selectedBrands, ...selectedFamilies].join(', ')}</span>
+                        )}
+                        {selectedNotes.length > 0 && (
+                          <span className="text-emerald-800/60 lowercase italic"> with notes: {selectedNotes.join(', ')}</span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        Found <span className="text-emerald-950 font-bold">{filteredResults.length}</span> results
+                        {(selectedBrands.length > 0 || selectedFamilies.length > 0) && (
+                          <span className="text-emerald-800/60 lowercase italic"> in {[...selectedBrands, ...selectedFamilies].join(', ')}</span>
+                        )}
+                        {selectedNotes.length > 0 && (
+                          <span className="text-emerald-800/60 lowercase italic"> with notes: {selectedNotes.join(', ')}</span>
+                        )}
+                      </>
                     )}
                   </div>
                   <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-emerald-700">
@@ -416,16 +553,37 @@ function SearchClient() {
                   </div>
                 </div>
 
-                {loading ? (
+                {(submittedQuery ? serverLoading && serverResults.length === 0 : loading) ? (
                   <div className="py-20 text-center">
                     <p className="text-gray-400 font-serif italic text-lg">Searching...</p>
                   </div>
                 ) : filteredResults.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    {filteredResults.map((product) => (
-                      <ProductCard key={product.id || product._id} {...product} />
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                      {filteredResults.map((product) => (
+                        <ProductCard key={product.id || product._id} {...product} />
+                      ))}
+                    </div>
+                    {submittedQuery && serverHasMore && (
+                      <div className="mt-12 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={handleLoadMore}
+                          disabled={loadingMore}
+                          className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-emerald-950 text-white text-[10px] uppercase font-bold tracking-[0.3em] hover:bg-emerald-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {loadingMore ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin" />
+                              Loading
+                            </>
+                          ) : (
+                            <>Load more</>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="py-32 text-center max-w-xl mx-auto space-y-6">
                     <p className="text-gray-400 font-serif italic text-xl">

@@ -97,6 +97,16 @@ export const authApi = {
 export const productApi = {
     getAll: (params?: any) => api.get('/products', { params }),
     getOne: (id: string) => api.get(`/products/${id}`),
+    /**
+     * Paginated server-side search. Drives the navbar autosuggest dropdown
+     * and the /search page (with Load More). Returns `{ items, total,
+     * has_more }`. Pass small `limit` (~6-8) for autosuggest and a larger
+     * one (~12) for the full results grid.
+     */
+    search: (
+        q: string,
+        { limit = 12, skip = 0 }: { limit?: number; skip?: number } = {},
+    ) => api.get('/products/search', { params: { q, limit, skip } }),
 };
 
 export const fragranceFamilyApi = {
