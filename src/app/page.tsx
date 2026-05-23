@@ -156,7 +156,7 @@ export default async function HomePage() {
               <div className="aspect-[4/5] rounded-[32px] bg-white/70 backdrop-blur-xl border border-white shadow-2xl overflow-hidden relative">
                 <Image
                   // src="https://i.postimg.cc/wjhVJzPs/Gemini-Generated-Image-se7fiese7fiese7f.png"
-                  src="https://ik.imagekit.io/smhon4suw/ChatGPT%20Image%20May%2020,%202026,%2002_45_41%20PM.png"
+                  src="https://ik.imagekit.io/smhon4suw/ChatGPT%20Image%20May%2023,%202026,%2002_07_04%20PM.png"
                   alt="Elegant perfume bottles"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
