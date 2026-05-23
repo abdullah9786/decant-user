@@ -23,7 +23,7 @@ const PROMO = {
     "A 70 ml retail bottle costs around a Lakh. With Decume, sample the icon from just 2 ml — hand-filled from a verified original bottle.",
   // Price contrast: the anchor that makes the decant feel like a no-brainer.
   // Update `decantFrom` once you finalise the 2 ml price (e.g. "₹699").
-  bottlePrice: "₹1,00,000",
+  bottlePrice: "₹70,000",
   bottleSize: "100 ml retail",
   decantFrom: "2 ml",
   decantSubtitle: "Decume Decant",
