@@ -60,7 +60,11 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+    // When the mobile slide-down search is open we suppress the bottom
+    // shadow so the navbar + panel read as one continuous white surface.
+    // Otherwise the shadow casts onto the panel and produces a visible
+    // gray "strip" right above the search input.
+    <nav className={`sticky top-0 z-50 bg-white border-b border-gray-100 ${searchOpen ? '' : 'shadow-sm'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           {/* Mobile: Hamburger + Logo grouped together */}
@@ -75,8 +79,12 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex space-x-8 items-center">
+          {/* Desktop Nav — explicit left margin away from the logo because
+              the parent uses `justify-between` with a flex-1 search slot,
+              which leaves no natural gap between adjacent siblings.
+              Inner spacing reduced from space-x-8 → space-x-6 so the five
+              nav items + the inline search still fit comfortably at md. */}
+          <div className="hidden md:flex space-x-6 lg:space-x-7 items-center ml-6 lg:ml-10">
             <div ref={shopRef} className="relative" onMouseEnter={openShop} onMouseLeave={closeShop}>
               <button className="flex items-center space-x-1 text-xs font-bold uppercase tracking-widest text-gray-700 hover:text-emerald-600 transition-colors">
                 <span>Shop</span>
@@ -133,8 +141,10 @@ const Navbar = () => {
 
           {/* Desktop inline search — replaces the old icon-only link so
               users can type without first navigating to /search. The
-              SearchBar handles the autosuggest dropdown + URL routing. */}
-          <div className="hidden md:block flex-1 max-w-md mx-6 lg:mx-8">
+              SearchBar handles the autosuggest dropdown + URL routing.
+              Slightly tighter horizontal margins at md (where space is
+              tightest) and a touch more breathing room at lg+. */}
+          <div className="hidden md:block flex-1 max-w-sm lg:max-w-md mx-4 lg:mx-8">
             <SearchBar compact />
           </div>
 
@@ -187,7 +197,12 @@ const Navbar = () => {
           bar. autoFocus opens the keyboard immediately; tapping anywhere
           outside (including the backdrop) collapses it. The dropdown's
           autosuggest results render inline below the input, so the user
-          sees them at the top of the screen above the keyboard. */}
+          sees them at the top of the screen above the keyboard.
+          NOTE: No `border-t` here — the navbar already has a `border-b`
+          gray-100 line. Stacking another 1px border on top of it (plus
+          the navbar's drop shadow) was producing a visible gray "strip"
+          right above the input. We also suppressed the navbar's
+          `shadow-sm` while this panel is open (see <nav> className). */}
       {searchOpen && (
         <>
           <div
@@ -195,7 +210,7 @@ const Navbar = () => {
             onClick={() => setSearchOpen(false)}
             aria-label="Close search"
           />
-          <div className="absolute top-full left-0 right-0 md:hidden bg-white border-t border-gray-100 px-4 py-3 z-50 shadow-xl animate-in slide-in-from-top-4 duration-200">
+          <div className="absolute top-full left-0 right-0 md:hidden bg-white px-4 py-3 z-50 shadow-xl animate-in slide-in-from-top-4 duration-200">
             <SearchBar autoFocus onNavigate={() => setSearchOpen(false)} />
           </div>
         </>
