@@ -56,7 +56,11 @@ export default function DealMarquee() {
       style={{ background: `linear-gradient(90deg, ${accent}f2, ${accent})` }}
       aria-label="Today's daily deal"
     >
-      <div className="flex whitespace-nowrap py-2 will-change-transform [animation:deal-marquee_28s_linear_infinite] group-hover:[animation-play-state:paused] motion-reduce:animate-none">
+      {/* Duration is responsive: mobile viewports are narrow, so the same
+          pixel-per-second pace feels glacial there. We run the loop much
+          faster on mobile (8s) and ease back as the viewport grows so the
+          per-pixel speed feels comparable across devices. */}
+      <div className="flex whitespace-nowrap py-2 will-change-transform [animation:deal-marquee_8s_linear_infinite] sm:[animation:deal-marquee_14s_linear_infinite] md:[animation:deal-marquee_22s_linear_infinite] group-hover:[animation-play-state:paused] motion-reduce:animate-none">
         {/* Group A — visible at animation start */}
         {group}
         {/* Group B — identical duplicate, scrolled into A's slot by end of

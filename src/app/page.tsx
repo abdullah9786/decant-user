@@ -131,7 +131,9 @@ export default async function HomePage() {
       )}
 
       {/* Shop for Him & Her */}
-      <section className="py-12 md:py-20">
+      {/* Tighter bottom on mobile — the next section adds its own top
+          padding so the previous py-12 doubled the gap there. */}
+      <section className="pt-12 pb-6 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
@@ -144,25 +146,29 @@ export default async function HomePage() {
               Not sure what to pick? Shop by who it&#39;s for and surprise someone special.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          {/* Side-by-side on every breakpoint (was stacked on mobile). The
+              cards shrink to ~half-width on small screens, so the height
+              and title sizes step up progressively rather than starting at
+              the desktop scale. */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             {/* Shop for Him */}
             <Link
               href="/categories/for-him"
-              className="group relative overflow-hidden rounded-2xl h-[400px] md:h-[500px]"
+              className="group relative overflow-hidden rounded-2xl h-[280px] sm:h-[360px] md:h-[500px]"
             >
               <Image
                 src="https://ik.imagekit.io/smhon4suw/Gemini_Generated_Image_w1c5cmw1c5cmw1c5.png"
                 alt="Shop fragrances for him"
                 fill
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 50vw, 50vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/35 group-hover:bg-black/45 transition-all duration-500" />
-              <div className="relative h-full flex flex-col items-center justify-center text-center">
-                <h3 className="text-white text-4xl md:text-6xl font-serif">
+              <div className="relative h-full flex flex-col items-center justify-center text-center px-3">
+                <h3 className="text-white text-2xl sm:text-4xl md:text-6xl font-serif">
                   Shop For Him
                 </h3>
-                <span className="mt-4 inline-flex items-center text-xs uppercase tracking-widest text-white/70 font-bold group-hover:text-white transition-colors">
+                <span className="mt-3 sm:mt-4 inline-flex items-center text-[10px] sm:text-xs uppercase tracking-widest text-white/70 font-bold group-hover:text-white transition-colors">
                   Explore
                   <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </span>
@@ -172,21 +178,21 @@ export default async function HomePage() {
             {/* Shop for Her */}
             <Link
               href="/categories/for-her"
-              className="group relative overflow-hidden rounded-2xl h-[400px] md:h-[500px]"
+              className="group relative overflow-hidden rounded-2xl h-[280px] sm:h-[360px] md:h-[500px]"
             >
               <Image
                 src="https://ik.imagekit.io/smhon4suw/Gemini_Generated_Image_2f5avv2f5avv2f5a.png"
                 alt="Shop fragrances for her"
                 fill
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 50vw, 50vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/35 group-hover:bg-black/45 transition-all duration-500" />
-              <div className="relative h-full flex flex-col items-center justify-center text-center">
-                <h3 className="text-white text-4xl md:text-6xl font-serif">
+              <div className="relative h-full flex flex-col items-center justify-center text-center px-3">
+                <h3 className="text-white text-2xl sm:text-4xl md:text-6xl font-serif">
                   Shop For Her
                 </h3>
-                <span className="mt-4 inline-flex items-center text-xs uppercase tracking-widest text-white/70 font-bold group-hover:text-white transition-colors">
+                <span className="mt-3 sm:mt-4 inline-flex items-center text-[10px] sm:text-xs uppercase tracking-widest text-white/70 font-bold group-hover:text-white transition-colors">
                   Explore
                   <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </span>
