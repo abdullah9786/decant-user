@@ -66,3 +66,43 @@ body {
 .rich-content p {
   margin-bottom: 1rem !important;
 }
+
+/* Daily-deal marquee animation.
+ * Kept in globals (not inside a `<style jsx>` block in the component) so
+ * the @keyframes name stays in the global scope. styled-jsx mangles
+ * keyframe names per-component, which made the animation silently fail
+ * to resolve on some browsers (the rule referenced `deal-marquee` but
+ * the scoped name was something like `deal-marquee-jsx-xyz`).
+ *
+ * Loop strategy: the track has two identical groups; we translate the
+ * track from 0 → -50% so Group B slides into Group A's slot exactly
+ * when the animation resets, producing a seamless circular loop.
+ *
+ * Duration is responsive: mobile viewports are narrow so the same
+ * pixel-per-second pace would feel glacial, so we run a faster loop on
+ * phones and ease back as the viewport grows.
+ */
+@keyframes deal-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+.deal-marquee-track {
+  animation: deal-marquee 8s linear infinite;
+}
+
+@media (min-width: 640px) {
+  .deal-marquee-track { animation-duration: 14s; }
+}
+
+@media (min-width: 768px) {
+  .deal-marquee-track { animation-duration: 22s; }
+}
+
+.group:hover .deal-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deal-marquee-track { animation: none; }
+}
