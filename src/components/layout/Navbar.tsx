@@ -1,83 +1,70 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-
 import Link from 'next/link';
-import { ShoppingBag, User, Search, Menu, X, ChevronDown } from 'lucide-react';
+import { ShoppingBag, User, Search, X, Menu, ChevronDown } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { revokeRefreshOnServer, categoryApi } from '@/lib/api';
-import { useRouter, usePathname } from 'next/navigation';
 import Logo from './Logo';
 import SearchBar from '@/components/search/SearchBar';
+import MobileMenuOverlay from './MobileMenuOverlay';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [extrasOpen, setExtrasOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+
   const shopRef = useRef<HTMLDivElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
   const extrasRef = useRef<HTMLDivElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
   const totalItems = useCartStore((state) => state.totalItems());
   const { user, isAuthenticated, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Close the mobile slide-down search whenever the route changes (e.g.
-  // after the user taps a suggestion that navigates to a product page).
-  useEffect(() => {
-    setSearchOpen(false);
-  }, [pathname]);
-
-  // Prevent the page underneath from scrolling while either mobile
-  // overlay is open. Without this, touch-drags on the dimmed area scroll
-  // the body — the marquee + daily-deal banner slide away from the top
-  // and the navbar appears to follow the scroll.
-  //
-  // We intentionally do NOT use `overflow: hidden` on <html>/<body> here.
-  // That approach works for desktop modals but breaks the navbar's
-  // `position: sticky`: setting overflow:hidden on the html element
-  // removes its scrollable-ancestor status, so the sticky navbar
-  // collapses back to its natural DOM position (which is below the
-  // marquee + banner). When the user has scrolled past those, the
-  // navbar suddenly jumps off-screen — the user sees a frozen page
-  // body with no header.
-  //
-  // Instead we block the actual scroll *events* at the document level
-  // while keeping sticky positioning fully functional. Any element that
-  // legitimately needs to scroll within the overlay (e.g., the search
-  // autosuggest dropdown if it grows long) opts in via the
-  // `data-overlay-scrollable` attribute.
-  useEffect(() => {
-    const overlayActive = searchOpen || isMenuOpen;
-    if (!overlayActive) return;
-
-    const preventScroll = (e: Event) => {
-      const target = e.target as HTMLElement | null;
-      if (target && target.closest?.('[data-overlay-scrollable]')) return;
-      e.preventDefault();
-    };
-
-    // `touchmove` covers iOS / Android, `wheel` covers desktop trackpad /
-    // mouse wheel. Both need `passive: false` to allow preventDefault.
-    document.addEventListener('touchmove', preventScroll, { passive: false });
-    document.addEventListener('wheel', preventScroll, { passive: false });
-    return () => {
-      document.removeEventListener('touchmove', preventScroll);
-      document.removeEventListener('wheel', preventScroll);
-    };
-  }, [searchOpen, isMenuOpen]);
-
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    categoryApi.getAll().then(res => setCategories(res.data || [])).catch(() => {});
+    categoryApi.getAll().then((res) => setCategories(res.data || [])).catch(() => {});
   }, []);
+
+  // Auto-close the mobile overlays whenever the route changes, e.g. after
+  // the user taps a suggestion / nav link that triggers a navigation.
+  useEffect(() => {
+    setSearchOpen(false);
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  // Dismiss the mobile search panel on outside-click or Escape. Mousedown
+  // (not click) so taps on a suggestion still navigate before the panel
+  // hides. The search trigger button is excluded via `data-search-trigger`
+  // so its own onClick can toggle the panel closed without us racing it.
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest?.('[data-search-trigger]')) return;
+      if (searchPanelRef.current && !searchPanelRef.current.contains(target)) {
+        setSearchOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [searchOpen]);
 
   const shopTimeout = useRef<NodeJS.Timeout | null>(null);
   const openShop = () => { if (shopTimeout.current) clearTimeout(shopTimeout.current); setShopOpen(true); };
@@ -91,7 +78,6 @@ const Navbar = () => {
   const openExtras = () => { if (extrasTimeout.current) clearTimeout(extrasTimeout.current); setExtrasOpen(true); };
   const closeExtras = () => { extrasTimeout.current = setTimeout(() => setExtrasOpen(false), 150); };
 
-
   const handleLogout = async () => {
     const rt = useAuthStore.getState().refreshToken;
     await revokeRefreshOnServer(rt);
@@ -100,30 +86,27 @@ const Navbar = () => {
   };
 
   return (
-    // When either mobile overlay is open we suppress the bottom shadow so
-    // the navbar + panel read as one continuous white surface. Otherwise
-    // the shadow casts onto the panel and produces a visible gray "strip"
-    // right above the search input / menu drawer.
-    <nav className={`sticky top-0 z-50 bg-white border-b border-gray-100 ${searchOpen || isMenuOpen ? '' : 'shadow-sm'}`}>
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
-          {/* Mobile: Hamburger + Logo grouped together */}
+          {/* Mobile: hamburger + logo */}
           <div className="flex items-center space-x-4 md:space-x-0">
-            <div className="flex items-center md:hidden">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600">
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="Open menu"
+              className="md:hidden text-gray-600 hover:text-emerald-600 transition-colors"
+            >
+              <Menu size={24} />
+            </button>
             <div className="flex-shrink-0 flex items-center">
               <Logo />
             </div>
           </div>
 
-          {/* Desktop Nav — explicit left margin away from the logo because
-              the parent uses `justify-between` with a flex-1 search slot,
-              which leaves no natural gap between adjacent siblings.
-              Inner spacing reduced from space-x-8 → space-x-6 so the five
-              nav items + the inline search still fit comfortably at md. */}
+          {/* Desktop nav links — explicit left margin away from the logo
+              because the parent uses `justify-between` with a flex-1
+              search slot, leaving no natural gap between siblings. */}
           <div className="hidden md:flex space-x-6 lg:space-x-7 items-center ml-6 lg:ml-10">
             <div ref={shopRef} className="relative" onMouseEnter={openShop} onMouseLeave={closeShop}>
               <button className="flex items-center space-x-1 text-xs font-bold uppercase tracking-widest text-gray-700 hover:text-emerald-600 transition-colors">
@@ -179,36 +162,35 @@ const Navbar = () => {
             <Link href="/track-order" className="text-xs font-bold uppercase tracking-widest text-gray-700 hover:text-emerald-600 transition-colors">Track Order</Link>
           </div>
 
-          {/* Desktop inline search — replaces the old icon-only link so
-              users can type without first navigating to /search. The
-              SearchBar handles the autosuggest dropdown + URL routing.
-              Slightly tighter horizontal margins at md (where space is
-              tightest) and a touch more breathing room at lg+. */}
+          {/* Desktop inline search */}
           <div className="hidden md:block flex-1 max-w-sm lg:max-w-md mx-4 lg:mx-8">
             <SearchBar compact />
           </div>
 
           {/* Icons */}
           <div className="flex items-center space-x-4 sm:space-x-5">
-            {/* Mobile-only search trigger — opens the slide-down panel
-                below the navbar. Desktop has the inline bar above. */}
+            {/* Mobile-only search trigger — toggles the slide-down panel
+                below the navbar. `data-search-trigger` lets the outside-
+                click handler skip this element so closing here always
+                works via the button's own onClick. */}
             <button
               type="button"
+              data-search-trigger
               onClick={() => setSearchOpen((v) => !v)}
-              className="md:hidden text-gray-600 hover:text-emerald-600 transition-colors"
               aria-label={searchOpen ? 'Close search' : 'Open search'}
               aria-expanded={searchOpen}
+              className="md:hidden text-gray-600 hover:text-emerald-600 transition-colors"
             >
               {searchOpen ? <X size={22} /> : <Search size={22} />}
             </button>
-            
+
             {isAuthenticated ? (
               <div className="flex items-center space-x-5">
                 <Link href="/profile" className="text-gray-600 hover:text-emerald-600 transition-colors flex items-center space-x-1">
                   <User size={22} />
                   <span className="hidden lg:block text-[10px] font-bold uppercase tracking-widest">{user?.full_name?.split(' ')[0]}</span>
                 </Link>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors"
                 >
@@ -233,85 +215,27 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile slide-down search panel — sits directly below the navbar
-          bar. autoFocus opens the keyboard immediately; tapping the
-          backdrop dismisses. The dropdown's autosuggest results render
-          inline below the input, so the user sees them at the top of the
-          screen above the keyboard.
-
-          NOTE: No `border-t` here — the navbar already has a `border-b`
-          gray-100 line. Stacking another 1px border on top of it (plus
-          the navbar's drop shadow) was producing a visible gray strip
-          right above the input. We also suppressed the navbar's
-          `shadow-sm` while this panel is open (see <nav> className).
-
-          The backdrop is rendered via a portal in the second branch below
-          so it doesn't share the nav's stacking context. Otherwise the
-          backdrop's `fixed top-20` would slice across the bottom of the
-          navbar whenever the marquee / daily-deal banner pushed the nav
-          below y=80px, dimming that strip of the navbar to gray. */}
+      {/* Mobile search — slide-down panel anchored to the bottom of the
+          sticky navbar. Closes on outside-click or Escape (see effect
+          above). Page underneath stays scrollable; if the user scrolls
+          or taps somewhere else, the panel just dismisses. */}
       {searchOpen && (
-        <div className="absolute top-full left-0 right-0 md:hidden bg-white px-4 py-3 z-50 shadow-xl animate-in slide-in-from-top-4 duration-200">
+        <div
+          ref={searchPanelRef}
+          className="absolute top-full inset-x-0 md:hidden bg-white shadow-lg px-4 py-3 z-40 animate-in slide-in-from-top-2 duration-150"
+        >
           <SearchBar autoFocus onNavigate={() => setSearchOpen(false)} />
         </div>
       )}
-      {searchOpen && mounted &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-30 bg-black/30 md:hidden animate-in fade-in"
-            onClick={() => setSearchOpen(false)}
-            aria-label="Close search"
-          />,
-          document.body,
-        )}
 
-      {/* Mobile Menu Overlay — see the search panel notes above for why the
-          backdrop is portaled to body. Same root cause: a `fixed top-20`
-          backdrop inside the nav's sticky stacking context sliced the
-          navbar's bottom edge to gray whenever the marquee pushed the
-          navbar below y=80px. */}
-      {isMenuOpen && mounted &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-30 bg-black/40 md:hidden animate-in fade-in"
-            onClick={() => setIsMenuOpen(false)}
-            aria-label="Close menu"
-          />,
-          document.body,
-        )}
-      {isMenuOpen && (
-        <>
-          {/* Slide-down Menu Drawer — `data-overlay-scrollable` opts the
-              drawer out of the body-scroll lock so its own content (which
-              can exceed the viewport height once categories grow) can
-              still scroll. `max-h` + `overflow-y-auto` give it that
-              internal scroll without ever extending past the bottom. */}
-          <div
-            data-overlay-scrollable
-            className="absolute top-full left-0 right-0 md:hidden bg-white p-6 space-y-5 z-50 shadow-xl animate-in slide-in-from-top-4 duration-300 max-h-[calc(100vh-5rem)] overflow-y-auto"
-          >
-            {/* Persistent inline search inside the drawer too, so the search
-                entry-point is always reachable regardless of which menu
-                the user opened first. */}
-            <SearchBar onNavigate={() => setIsMenuOpen(false)} />
-            <Link href="/products" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Shop All</Link>
-            <Link href="/products?type=decant" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Decants</Link>
-            <Link href="/products?type=full-bottle" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Full Bottles</Link>
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pt-2">Categories</p>
-            {categories.map((cat) => (
-              <Link key={cat._id || cat.slug} href={`/categories/${cat.slug}`} onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors pl-4">{cat.name}</Link>
-            ))}
-            <Link href="/categories" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors pl-4">View All Categories →</Link>
-            <Link href="/brands" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Brands</Link>
-            <Link href="/new-arrivals" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">New Arrivals</Link>
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pt-2">Gifting</p>
-            <Link href="/gift-boxes" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors pl-4">Gift Boxes</Link>
-            <Link href="/bottles" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors pl-4">Our Bottles</Link>
-            <Link href="/creators" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Creators</Link>
-            <Link href="/track-order" onClick={() => setIsMenuOpen(false)} className="block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors">Track Order</Link>
-          </div>
-        </>
-      )}
+      {/* Mobile menu still uses a full-screen overlay — its content can
+          easily exceed the viewport, and a full screen is the better UX
+          for a primary navigation list. */}
+      <MobileMenuOverlay
+        open={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        categories={categories}
+      />
     </nav>
   );
 };

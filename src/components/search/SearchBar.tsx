@@ -285,10 +285,6 @@ export default function SearchBar({
         <div
           id="search-suggestions"
           role="listbox"
-          // `data-overlay-scrollable` opts this element out of the navbar's
-          // body-scroll-lock so a long result list can still be scrolled
-          // even while the page underneath is frozen.
-          data-overlay-scrollable
           className="absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
         >
           {/* Header strip: loading state or hit count summary */}
