@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 import Link from 'next/link';
 import { ShoppingBag, User, Search, Menu, X, ChevronDown } from 'lucide-react';
@@ -33,6 +34,45 @@ const Navbar = () => {
     setSearchOpen(false);
   }, [pathname]);
 
+  // Prevent the page underneath from scrolling while either mobile
+  // overlay is open. Without this, touch-drags on the dimmed area scroll
+  // the body — the marquee + daily-deal banner slide away from the top
+  // and the navbar appears to follow the scroll.
+  //
+  // We intentionally do NOT use `overflow: hidden` on <html>/<body> here.
+  // That approach works for desktop modals but breaks the navbar's
+  // `position: sticky`: setting overflow:hidden on the html element
+  // removes its scrollable-ancestor status, so the sticky navbar
+  // collapses back to its natural DOM position (which is below the
+  // marquee + banner). When the user has scrolled past those, the
+  // navbar suddenly jumps off-screen — the user sees a frozen page
+  // body with no header.
+  //
+  // Instead we block the actual scroll *events* at the document level
+  // while keeping sticky positioning fully functional. Any element that
+  // legitimately needs to scroll within the overlay (e.g., the search
+  // autosuggest dropdown if it grows long) opts in via the
+  // `data-overlay-scrollable` attribute.
+  useEffect(() => {
+    const overlayActive = searchOpen || isMenuOpen;
+    if (!overlayActive) return;
+
+    const preventScroll = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (target && target.closest?.('[data-overlay-scrollable]')) return;
+      e.preventDefault();
+    };
+
+    // `touchmove` covers iOS / Android, `wheel` covers desktop trackpad /
+    // mouse wheel. Both need `passive: false` to allow preventDefault.
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+    document.addEventListener('wheel', preventScroll, { passive: false });
+    return () => {
+      document.removeEventListener('touchmove', preventScroll);
+      document.removeEventListener('wheel', preventScroll);
+    };
+  }, [searchOpen, isMenuOpen]);
+
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
@@ -60,11 +100,11 @@ const Navbar = () => {
   };
 
   return (
-    // When the mobile slide-down search is open we suppress the bottom
-    // shadow so the navbar + panel read as one continuous white surface.
-    // Otherwise the shadow casts onto the panel and produces a visible
-    // gray "strip" right above the search input.
-    <nav className={`sticky top-0 z-50 bg-white border-b border-gray-100 ${searchOpen ? '' : 'shadow-sm'}`}>
+    // When either mobile overlay is open we suppress the bottom shadow so
+    // the navbar + panel read as one continuous white surface. Otherwise
+    // the shadow casts onto the panel and produces a visible gray "strip"
+    // right above the search input / menu drawer.
+    <nav className={`sticky top-0 z-50 bg-white border-b border-gray-100 ${searchOpen || isMenuOpen ? '' : 'shadow-sm'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           {/* Mobile: Hamburger + Logo grouped together */}
@@ -194,40 +234,62 @@ const Navbar = () => {
       </div>
 
       {/* Mobile slide-down search panel — sits directly below the navbar
-          bar. autoFocus opens the keyboard immediately; tapping anywhere
-          outside (including the backdrop) collapses it. The dropdown's
-          autosuggest results render inline below the input, so the user
-          sees them at the top of the screen above the keyboard.
+          bar. autoFocus opens the keyboard immediately; tapping the
+          backdrop dismisses. The dropdown's autosuggest results render
+          inline below the input, so the user sees them at the top of the
+          screen above the keyboard.
+
           NOTE: No `border-t` here — the navbar already has a `border-b`
           gray-100 line. Stacking another 1px border on top of it (plus
-          the navbar's drop shadow) was producing a visible gray "strip"
+          the navbar's drop shadow) was producing a visible gray strip
           right above the input. We also suppressed the navbar's
-          `shadow-sm` while this panel is open (see <nav> className). */}
+          `shadow-sm` while this panel is open (see <nav> className).
+
+          The backdrop is rendered via a portal in the second branch below
+          so it doesn't share the nav's stacking context. Otherwise the
+          backdrop's `fixed top-20` would slice across the bottom of the
+          navbar whenever the marquee / daily-deal banner pushed the nav
+          below y=80px, dimming that strip of the navbar to gray. */}
       {searchOpen && (
-        <>
+        <div className="absolute top-full left-0 right-0 md:hidden bg-white px-4 py-3 z-50 shadow-xl animate-in slide-in-from-top-4 duration-200">
+          <SearchBar autoFocus onNavigate={() => setSearchOpen(false)} />
+        </div>
+      )}
+      {searchOpen && mounted &&
+        createPortal(
           <div
-            className="fixed inset-0 top-20 bg-black/30 z-40 md:hidden animate-in fade-in"
+            className="fixed inset-0 z-30 bg-black/30 md:hidden animate-in fade-in"
             onClick={() => setSearchOpen(false)}
             aria-label="Close search"
-          />
-          <div className="absolute top-full left-0 right-0 md:hidden bg-white px-4 py-3 z-50 shadow-xl animate-in slide-in-from-top-4 duration-200">
-            <SearchBar autoFocus onNavigate={() => setSearchOpen(false)} />
-          </div>
-        </>
-      )}
+          />,
+          document.body,
+        )}
 
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <>
-          {/* Backdrop for clicking outside */}
-          <div 
-            className="fixed inset-0 top-20 bg-black/40 z-40 md:hidden animate-in fade-in"
+      {/* Mobile Menu Overlay — see the search panel notes above for why the
+          backdrop is portaled to body. Same root cause: a `fixed top-20`
+          backdrop inside the nav's sticky stacking context sliced the
+          navbar's bottom edge to gray whenever the marquee pushed the
+          navbar below y=80px. */}
+      {isMenuOpen && mounted &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-30 bg-black/40 md:hidden animate-in fade-in"
             onClick={() => setIsMenuOpen(false)}
             aria-label="Close menu"
-          />
-          
-          {/* Slide-down Menu Drawer */}
-          <div className="absolute top-full left-0 right-0 md:hidden bg-white border-t border-gray-100 p-6 space-y-5 z-50 shadow-xl animate-in slide-in-from-top-4 duration-300">
+          />,
+          document.body,
+        )}
+      {isMenuOpen && (
+        <>
+          {/* Slide-down Menu Drawer — `data-overlay-scrollable` opts the
+              drawer out of the body-scroll lock so its own content (which
+              can exceed the viewport height once categories grow) can
+              still scroll. `max-h` + `overflow-y-auto` give it that
+              internal scroll without ever extending past the bottom. */}
+          <div
+            data-overlay-scrollable
+            className="absolute top-full left-0 right-0 md:hidden bg-white p-6 space-y-5 z-50 shadow-xl animate-in slide-in-from-top-4 duration-300 max-h-[calc(100vh-5rem)] overflow-y-auto"
+          >
             {/* Persistent inline search inside the drawer too, so the search
                 entry-point is always reachable regardless of which menu
                 the user opened first. */}

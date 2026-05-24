@@ -101,7 +101,19 @@ export default function SearchBar({
     if (autoFocus && inputRef.current) {
       // Slight delay so the slide-down animation has settled before the
       // keyboard pops up on mobile — avoids visual jitter.
-      const t = setTimeout(() => inputRef.current?.focus(), 80);
+      //
+      // `preventScroll: true` is critical here: the search input lives
+      // inside a `position: sticky` navbar via an `absolute` panel. When
+      // the user has scrolled the page down and we focus the input
+      // without this flag, browsers (Chrome on Android especially) call
+      // scrollIntoView using the *natural* DOM position of the sticky
+      // navbar — which is at page y=0 — and yank the document back to
+      // the top before our scroll-lock takes effect. With preventScroll
+      // the cursor lands without moving the viewport.
+      const t = setTimeout(
+        () => inputRef.current?.focus({ preventScroll: true }),
+        80,
+      );
       return () => clearTimeout(t);
     }
   }, [autoFocus]);
@@ -273,6 +285,10 @@ export default function SearchBar({
         <div
           id="search-suggestions"
           role="listbox"
+          // `data-overlay-scrollable` opts this element out of the navbar's
+          // body-scroll-lock so a long result list can still be scrolled
+          // even while the page underneath is frozen.
+          data-overlay-scrollable
           className="absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
         >
           {/* Header strip: loading state or hit count summary */}
