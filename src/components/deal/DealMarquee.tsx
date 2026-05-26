@@ -17,17 +17,20 @@ import { isDealChromeHidden } from './constants';
  * repeats of the message so the strip looks full on wide viewports too.
  */
 export default function DealMarquee() {
-  const { deal } = useActiveDeal();
+  const { deal, allOutOfStock } = useActiveDeal();
   const pathname = usePathname();
 
   if (!deal) return null;
   if (isDealChromeHidden(pathname)) return null;
 
   const accent = deal.display?.accent_color || '#dc2626';
-  const text =
-    deal.display?.marquee_text ||
-    deal.display?.subheadline ||
-    `${deal.config?.discount_percent || 0}% OFF today only`;
+  // Swap the marquee copy when the drop sells out. The countdown lives
+  // on the banner above, so this strip just carries the regret line.
+  const text = allOutOfStock
+    ? "Sold out · You missed today's drop · Be ready for the next one"
+    : deal.display?.marquee_text ||
+      deal.display?.subheadline ||
+      `${deal.config?.discount_percent || 0}% OFF today only`;
   const href = deal.display?.cta_href || '/deals/today';
 
   // Repeats *inside one group*. Each group then gets duplicated below for

@@ -6,10 +6,13 @@ import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import toast from 'react-hot-toast';
 import { ChipList, type ProductChip } from '@/components/ui/Chip';
+import { isProductOutOfStock, isVariantInStock } from '@/lib/product/stock';
 
 interface Variant {
   size_ml: number;
   price: number;
+  is_pack?: boolean;
+  stock?: number;
 }
 
 interface ProductCardProps {
@@ -19,6 +22,12 @@ interface ProductCardProps {
   name: string;
   brand: string;
   variants?: Variant[];
+  /**
+   * Shared decant pool at the product level (in ml). A decant variant is
+   * available iff this pool is at least as large as its `size_ml`. Pack
+   * variants ignore this and use their own integer `stock` count.
+   */
+  stock_ml?: number;
   image_url?: string;
   is_featured?: boolean;
   is_new_arrival?: boolean;
@@ -30,21 +39,29 @@ interface ProductCardProps {
 }
 
 const ProductCard = React.memo(({ 
-  id, _id, slug, name, brand, variants, image_url, is_featured, is_new_arrival,
+  id, _id, slug, name, brand, variants, stock_ml, image_url, is_featured, is_new_arrival,
   notes_top = [], notes_middle = [], notes_base = [], chips = [], priceMode = 'default'
 }: ProductCardProps) => {
   const productId = id || _id;
   const productSlug = slug || productId;
 
-  const { minPrice, maxPrice, defaultVariant, hasDecant, hasPack } = useMemo(() => {
+  const { minPrice, maxPrice, defaultVariant, hasDecant, hasPack, isOutOfStock } = useMemo(() => {
     let min = 0, max = 0;
     if (variants && variants.length > 0) {
       const prices = variants.map(v => v.price);
       min = Math.min(...prices);
       max = Math.max(...prices);
     }
-    const def = variants && variants.length > 0
-      ? variants.reduce((m: any, v: any) => v.price < m.price ? v : m, variants[0])
+    // Prefer the cheapest *in-stock* variant for the quick-add CTA; fall
+    // back to the cheapest variant overall so the card still renders a
+    // sensible default size when everything's sold out.
+    const availableMl = stock_ml ?? 0;
+    const inStockVariants = (variants ?? []).filter((v) =>
+      isVariantInStock(v, availableMl),
+    );
+    const pool = inStockVariants.length > 0 ? inStockVariants : variants ?? [];
+    const def = pool.length > 0
+      ? pool.reduce((m: any, v: any) => v.price < m.price ? v : m, pool[0])
       : null;
     return {
       minPrice: min,
@@ -52,8 +69,9 @@ const ProductCard = React.memo(({
       defaultVariant: def,
       hasDecant: variants?.some((v: any) => !v.is_pack),
       hasPack: variants?.some((v: any) => v.is_pack),
+      isOutOfStock: isProductOutOfStock({ variants, stock_ml }),
     };
-  }, [variants]);
+  }, [variants, stock_ml]);
 
   let priceNode: React.ReactNode;
   if (priceMode === 'pack') {
@@ -147,17 +165,26 @@ const ProductCard = React.memo(({
       {/* Image Container */}
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10 shrink-0">
         
-        {/* Badges */}
+        {/* Badges — Out of Stock takes precedence over promotional badges
+            because availability is the most important signal on the card. */}
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5">
-          {is_new_arrival && (
-            <span className="bg-white/95 text-emerald-950 px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max border border-emerald-50">
-              New Arrival
+          {isOutOfStock ? (
+            <span className="bg-rose-600 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
+              Out of Stock
             </span>
-          )}
-          {is_featured && !is_new_arrival && (
-            <span className="bg-emerald-950 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
-              Featured
-            </span>
+          ) : (
+            <>
+              {is_new_arrival && (
+                <span className="bg-white/95 text-emerald-950 px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max border border-emerald-50">
+                  New Arrival
+                </span>
+              )}
+              {is_featured && !is_new_arrival && (
+                <span className="bg-emerald-950 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
+                  Featured
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -168,14 +195,15 @@ const ProductCard = React.memo(({
           </div>
         )}
         
-        {/* Image */}
+        {/* Image — desaturated + dimmed when sold out so the red badge
+            stays the dominant visual element on the card. */}
         {image_url ? (
           <Image 
             src={image_url} 
             alt={name}
             fill
             sizes="(max-width: 1024px) 50vw, 25vw"
-            className="object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03]"
+            className={`object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03] ${isOutOfStock ? 'opacity-60 grayscale' : ''}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center font-serif text-slate-300 italic text-sm">
@@ -212,7 +240,11 @@ const ProductCard = React.memo(({
           {hasDecant && hasPack ? 'Decant · Sealed Bottle' : hasDecant ? 'Decant' : 'Sealed Bottle'}
         </p>
         
-        {/* Shopify Dawn style Add To Cart / Counter */}
+        {/* Shopify Dawn style Add To Cart / Counter.
+            If the user already has this product in their cart we keep
+            the +/− row even when the product flips to out-of-stock —
+            otherwise we'd silently strand items they've committed to.
+            Only the entry-point CTA gets replaced. */}
         <div className="mt-4 w-full" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
           {quantityInCart > 0 ? (
             <div className="flex flex-row items-center justify-between border border-emerald-950 rounded-md bg-transparent w-full text-emerald-950 h-[42px]">
@@ -232,6 +264,15 @@ const ProductCard = React.memo(({
                 +
               </button>
             </div>
+          ) : isOutOfStock ? (
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              className="w-full text-center py-0 h-[42px] text-[10px] font-bold uppercase tracking-widest border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed"
+            >
+              Sold Out
+            </button>
           ) : (
             <button 
               onClick={handleQuickAdd}

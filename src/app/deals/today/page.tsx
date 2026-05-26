@@ -4,6 +4,7 @@ import { Sparkles, ArrowLeft } from 'lucide-react';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import DealCountdown from '@/components/deal/DealCountdown';
 import { deepenAccent, formatDealEnd } from '@/components/deal/constants';
+import { areAllProductsOutOfStock } from '@/lib/product/stock';
 
 export const metadata: Metadata = {
   title: "Today's Daily Deal | Decume",
@@ -35,10 +36,23 @@ export default async function DealsTodayPage() {
   const accent = deal?.display?.accent_color || '#dc2626';
   // Foreground-safe deepened accent for text/pills that sit on white.
   const deepAccent = deepenAccent(accent);
-  const headline = deal?.display?.headline || 'Decume Daily';
-  const subheadline =
+  const adminHeadline = deal?.display?.headline || 'Decume Daily';
+  const adminSubheadline =
     deal?.display?.subheadline ||
     (deal ? `${deal.config?.discount_percent || 0}% OFF` : null);
+
+  // Reframe the hero when every product on this page is sold out. Same
+  // accent palette, same countdown, but the eyebrow / headline / footer
+  // copy carry the "you missed it, next drop incoming" tone.
+  const soldOut = deal ? areAllProductsOutOfStock(products) : false;
+  const eyebrowSuffix = soldOut ? 'Sold Out · You Missed It' : 'Today Only';
+  const headline = soldOut ? 'Vanished' : adminHeadline;
+  const subheadline = soldOut
+    ? `Today's ${deal?.config?.discount_percent || 0}% picks are gone.`
+    : adminSubheadline;
+  const timerCaption = soldOut
+    ? `Next deal opens ${formatDealEnd(deal!.ends_at)}`
+    : `Ends ${formatDealEnd(deal!.ends_at)}`;
 
   if (!deal || products.length === 0) {
     return (
@@ -88,12 +102,27 @@ export default async function DealsTodayPage() {
             }}
           >
             <Sparkles size={12} />
-            <span>{headline} · Today Only</span>
+            <span>{adminHeadline} · {eyebrowSuffix}</span>
           </div>
 
           <h1 className="mt-6 text-4xl md:text-6xl font-serif text-emerald-950 leading-tight">
-            {subheadline}
+            <span style={{ color: soldOut ? deepAccent : undefined }}>
+              {headline}
+            </span>
+            {subheadline && (
+              <span className="block italic text-2xl md:text-4xl text-slate-500 mt-3 font-serif">
+                {subheadline}
+              </span>
+            )}
           </h1>
+
+          {soldOut && (
+            <p className="mt-6 text-base md:text-lg text-slate-600 max-w-2xl">
+              Decants this priced go in hours. The next drop is loaded and
+              waiting — be on the page when the clock hits zero, or you'll
+              watch it vanish again.
+            </p>
+          )}
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <div
@@ -103,7 +132,7 @@ export default async function DealsTodayPage() {
               <DealCountdown endsAt={deal.ends_at} compact className="text-xs" />
             </div>
             <p className="text-xs uppercase tracking-widest font-bold text-slate-500">
-              Ends {formatDealEnd(deal.ends_at)}
+              {timerCaption}
             </p>
           </div>
         </div>

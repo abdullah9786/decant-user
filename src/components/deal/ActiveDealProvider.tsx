@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { offerApi } from '@/lib/api';
 import { normalizeIso } from './constants';
+import { areAllProductsOutOfStock } from '@/lib/product/stock';
 
 export interface DealVariant {
   size_ml: number;
@@ -65,6 +66,13 @@ interface DealContextValue {
   products: DealProduct[];
   msRemaining: number;
   isProductOnDeal: (productId: string) => boolean;
+  /**
+   * True iff a deal is active *and* every product in it is sold out.
+   * Surfaces from a single place (rather than re-deriving in every
+   * component) so the hero, banner, rail, marquee, and /deals/today
+   * page all agree on when to flip into the "regret + wait" copy.
+   */
+  allOutOfStock: boolean;
   loading: boolean;
   refetch: () => Promise<void>;
 }
@@ -74,6 +82,7 @@ const DealContext = createContext<DealContextValue>({
   products: [],
   msRemaining: 0,
   isProductOnDeal: () => false,
+  allOutOfStock: false,
   loading: true,
   refetch: async () => {},
 });
@@ -188,6 +197,7 @@ export function ActiveDealProvider({
       products,
       msRemaining,
       isProductOnDeal: (pid: string) => idSet.has(String(pid)),
+      allOutOfStock: Boolean(deal) && areAllProductsOutOfStock(products),
       loading,
       refetch: fetchDeal,
     };

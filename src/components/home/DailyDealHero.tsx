@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import DealCountdown from '@/components/deal/DealCountdown';
 import { deepenAccent, formatDealEnd } from '@/components/deal/constants';
+import { areAllProductsOutOfStock, isProductOutOfStock } from '@/lib/product/stock';
 import type { DealDoc, DealProduct, DealVariant } from '@/components/deal/ActiveDealProvider';
 
 function inr(n?: number | null): string {
@@ -43,10 +44,13 @@ function cheapestVariant(p: DealProduct): DealVariant | null {
  * the first deal product's image is used.
  */
 export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
-  const headline = deal.display?.headline || 'Decume Daily';
-  const subheadline = deal.display?.subheadline || `${deal.config?.discount_percent || 0}% OFF today`;
-  const ctaLabel = deal.display?.cta_label || "Shop Today's Deal";
-  const ctaHref = deal.display?.cta_href || '/deals/today';
+  // When every product in the deal is sold out we flip the entire hero
+  // into a "regret + wait" register: same accent palette, same countdown
+  // component, but the eyebrow, headline, sub, and CTA all reframe the
+  // experience as "you missed today's drop — the next one is coming".
+  // The collage products still render (with their sold-out badges, see
+  // the per-card logic below) so users can see exactly what they missed.
+  const soldOut = areAllProductsOutOfStock(products);
   const accent = deal.display?.accent_color || '#dc2626';
   // Darkened version of the accent — used whenever the accent has to act as
   // a foreground (text on white) or CTA background (white text on top). For
@@ -55,6 +59,42 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
   const deepAccent = deepenAccent(accent);
   const heroImage = deal.display?.hero_image || products[0]?.image_url || '';
   const discountPercent = deal.config?.discount_percent || 0;
+
+  const adminHeadline = deal.display?.headline || 'Decume Daily';
+  const adminSubheadline =
+    deal.display?.subheadline || `${deal.config?.discount_percent || 0}% OFF today`;
+  const adminCtaLabel = deal.display?.cta_label || "Shop Today's Deal";
+  const adminCtaHref = deal.display?.cta_href || '/deals/today';
+
+  // Copy bundle. Branching all the text decisions here keeps the JSX
+  // below readable and makes the "what changes when sold out" question
+  // answerable by reading one block instead of scanning the whole file.
+  const copy = soldOut
+    ? {
+        eyebrow: `Sold Out · You Missed It`,
+        headlineLead: 'Vanished.',
+        headlineTail: `Today's ${discountPercent}% picks are gone.`,
+        body:
+          'Decants at this price empty fast. The next drop is loaded and ' +
+          "waiting — be on the page when the clock hits zero, or you'll " +
+          'watch it disappear again.',
+        timerLabel: 'Next deal in',
+        primaryCtaLabel: 'See What You Missed',
+        primaryCtaHref: '/deals/today',
+        secondaryCtaLabel: 'Browse All',
+      }
+    : {
+        eyebrow: `${adminHeadline} · Today Only`,
+        headlineLead: `${discountPercent}% OFF`,
+        headlineTail: adminSubheadline,
+        body:
+          `Ends ${formatDealEnd(deal.ends_at)}. Hand-filled from verified ` +
+          "retail bottles — same authenticity promise, just today's price.",
+        timerLabel: 'Ends in',
+        primaryCtaLabel: adminCtaLabel,
+        primaryCtaHref: adminCtaHref,
+        secondaryCtaLabel: 'Browse All',
+      };
 
   const collage = products.slice(0, 3);
 
@@ -76,41 +116,40 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
               style={{ backgroundColor: `${accent}1a`, color: deepAccent, border: `1px solid ${accent}40` }}
             >
               <Sparkles size={12} />
-              <span>{headline} · Today Only</span>
+              <span>{copy.eyebrow}</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-serif text-[color:var(--hero-text)] leading-[1.05]">
-              <span style={{ color: deepAccent }}>{discountPercent}% OFF</span>
+              <span style={{ color: deepAccent }}>{copy.headlineLead}</span>
               <br />
-              <span className="italic text-3xl md:text-5xl text-[color:var(--hero-muted)]">{subheadline}</span>
+              <span className="italic text-3xl md:text-5xl text-[color:var(--hero-muted)]">{copy.headlineTail}</span>
             </h1>
 
             <p className="text-base md:text-lg text-[color:var(--hero-muted)] max-w-xl">
-              Ends {formatDealEnd(deal.ends_at)}. Hand-filled from verified retail
-              bottles — same authenticity promise, just today's price.
+              {copy.body}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href={ctaHref}
+                href={copy.primaryCtaHref}
                 className="px-10 py-4 text-xs font-bold uppercase tracking-widest text-white transition-all flex items-center justify-center gap-3"
                 style={{ backgroundColor: deepAccent }}
               >
-                <span>{ctaLabel}</span>
+                <span>{copy.primaryCtaLabel}</span>
                 <ArrowRight size={16} />
               </Link>
               <Link
                 href="/products"
                 className="border border-[color:var(--hero-cta-alt-border)] text-[color:var(--hero-cta-alt-text)] px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-[color:var(--hero-cta-alt-hover)] transition-all flex items-center justify-center"
               >
-                Browse All
+                {copy.secondaryCtaLabel}
               </Link>
             </div>
 
-            {/* Segmented countdown — same urgency treatment as the sitewide
-                banner so the visual language is consistent across surfaces.
-                Tiles are dark with accent-colored label so they pop against
-                the hero's light background.
+            {/* Segmented countdown — same component / accent treatment in
+                both states, only the label changes. When the deal sells
+                out we count to the same `ends_at` (the moment the next
+                window opens), so users see the natural rollover.
                 `w-fit mx-auto md:mx-0` keeps the pill sized to its content
                 but centers it within the column on mobile (where the rest
                 of the text reads left-aligned but the timer benefits from
@@ -123,7 +162,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
               <DealCountdown
                 endsAt={deal.ends_at}
                 boxed
-                label="Ends in"
+                label={copy.timerLabel}
                 // Themed tiles — use the deepened accent so the timer stays
                 // on-brand (matches the banner above) and still reads with
                 // white digits on any admin-picked accent (pastel or dark).
@@ -139,7 +178,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
                 <div className="aspect-[4/5] rounded-[32px] bg-white border border-white/80 shadow-xl overflow-hidden relative">
                   <Image
                     src={heroImage}
-                    alt={subheadline}
+                    alt={copy.headlineTail}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     priority
@@ -151,6 +190,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
               <div className="grid grid-cols-2 gap-4">
                 {collage.map((p, i) => {
                   const v = cheapestVariant(p);
+                  const outOfStock = isProductOutOfStock(p);
                   return (
                     <Link
                       key={(p._id || p.id || i) as string}
@@ -163,20 +203,24 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
                           alt={p.name}
                           fill
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-contain transition-transform duration-700 group-hover:scale-105"
+                          className={`object-contain transition-transform duration-700 group-hover:scale-105 ${outOfStock ? 'opacity-60 grayscale' : ''}`}
                         />
                       )}
-                      {/* Discount pill — sits in the top-right corner of the
-                          card, uses the deepened accent so the text reads on
-                          any accent theme (pastel pinks/beiges included). */}
-                      {v && (v.discount_percent ?? 0) > 0 && (
+                      {/* Top-right pill: Out of Stock takes precedence over
+                          the discount % so we never advertise a deal on a
+                          product the user can't actually buy. */}
+                      {outOfStock ? (
+                        <span className="absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-md bg-rose-600">
+                          Out of Stock
+                        </span>
+                      ) : v && (v.discount_percent ?? 0) > 0 ? (
                         <span
                           className="absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-md"
                           style={{ backgroundColor: deepAccent }}
                         >
                           -{v.discount_percent}%
                         </span>
-                      )}
+                      ) : null}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3">
                         <p className="text-[9px] uppercase tracking-widest text-white/70 font-bold">
                           {p.brand}

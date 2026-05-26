@@ -22,6 +22,7 @@ import { useActiveDeal } from "@/components/deal/ActiveDealProvider";
 import PriceTag from "@/components/deal/PriceTag";
 import DealCountdown from "@/components/deal/DealCountdown";
 import { deepenAccent, formatDealEnd } from "@/components/deal/constants";
+import { isVariantInStock } from "@/lib/product/stock";
 
 interface ProductDetailClientProps {
   product: any;
@@ -39,18 +40,25 @@ export default function ProductDetailClient({
   initialBottleId = null,
 }: ProductDetailClientProps) {
   const router = useRouter();
-  const firstVariant = product.variants?.[0];
+  // Pick a sensible default size:
+  //   1. Honour the ?size= query param if it matches a real variant.
+  //   2. Otherwise, the first *in-stock* variant — so a sold-out 5ml
+  //      doesn't auto-select and visually mislead the user.
+  //   3. If every variant is sold out, fall back to the first one so
+  //      `currentVariant` is non-null and the price/section can render;
+  //      the size button itself will be styled as disabled (see render).
+  const productStockMl = product.stock_ml ?? 0;
+  const urlVariantMatch = product.variants?.find(
+    (v: any) => initialSize != null && v.size_ml === initialSize && !!v.is_pack === initialIsPack,
+  );
+  const firstInStockVariant = product.variants?.find((v: any) =>
+    isVariantInStock(v, productStockMl),
+  );
+  const fallbackVariant = product.variants?.[0];
+  const initialVariant = urlVariantMatch ?? firstInStockVariant ?? fallbackVariant;
 
-  const resolvedInitialSize =
-    initialSize != null &&
-    product.variants?.some((v: any) => v.size_ml === initialSize && !!v.is_pack === initialIsPack)
-      ? initialSize
-      : firstVariant?.size_ml ?? null;
-  const resolvedInitialIsPack =
-    initialSize != null &&
-    product.variants?.some((v: any) => v.size_ml === initialSize && !!v.is_pack === initialIsPack)
-      ? initialIsPack
-      : !!firstVariant?.is_pack;
+  const resolvedInitialSize = initialVariant?.size_ml ?? null;
+  const resolvedInitialIsPack = !!initialVariant?.is_pack;
 
   const [selectedSize, setSelectedSize] = useState<number | null>(resolvedInitialSize);
   const [selectedIsPack, setSelectedIsPack] = useState<boolean>(resolvedInitialIsPack);
@@ -444,20 +452,44 @@ export default function ProductDetailClient({
                     {decantVariants.map((v: any) => {
                       const outOfStock = availableMl < v.size_ml;
                       const isSelected = selectedSize === v.size_ml && !selectedIsPack;
+                      // Out-of-stock variants are still *selectable* so the
+                      // user can compare prices across sizes. They look
+                      // muted (faded fill, strikethrough on the ml label,
+                      // "(Out)" suffix) so the unavailability stays
+                      // obvious; the actual buying is blocked by the
+                      // disabled Add-to-Cart button below.
+                      //
+                      // Four visual states:
+                      //   in-stock,  unselected: outlined gray (default)
+                      //   in-stock,  selected:   dark emerald fill (CTA)
+                      //   sold-out,  unselected: muted gray, struck through
+                      //   sold-out,  selected:   muted gray + emerald ring
+                      //                          (shows it's the active
+                      //                          price preview while still
+                      //                          reading as unavailable)
+                      const sizeLabel = (
+                        <span className={outOfStock ? 'line-through opacity-80' : ''}>
+                          {v.size_ml}ML
+                        </span>
+                      );
                       return (
                       <button
                         key={v.size_ml}
+                        type="button"
                         onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(false); updateUrl(v.size_ml, false, selectedBottleId); }}
-                        disabled={outOfStock}
+                        aria-pressed={isSelected}
+                        title={outOfStock ? 'Currently out of stock' : undefined}
                         className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
-                          isSelected
-                            ? "bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5"
-                            : outOfStock
-                              ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                          outOfStock
+                            ? isSelected
+                              ? "bg-gray-100 text-gray-500 border-emerald-700 ring-2 ring-emerald-700/30"
+                              : "bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300"
+                            : isSelected
+                              ? "bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5"
                               : "border-gray-200 text-gray-500 hover:border-emerald-600 hover:text-emerald-950"
                         }`}
                       >
-                        {v.size_ml}ML {outOfStock && "(Out)"}
+                        {sizeLabel} {outOfStock && <span className="ml-0.5">(Out)</span>}
                       </button>
                       );
                     })}
@@ -474,20 +506,32 @@ export default function ProductDetailClient({
                     {packVariants.map((v: any) => {
                       const outOfStock = (v.stock ?? 0) < 1;
                       const isSelected = selectedSize === v.size_ml && selectedIsPack;
+                      // See decant block above for the rationale — packs
+                      // get the same four-state treatment so a sold-out
+                      // pack can still be tapped to preview its price.
+                      const sizeLabel = (
+                        <span className={outOfStock ? 'line-through opacity-80' : ''}>
+                          {v.size_ml}ML Pack
+                        </span>
+                      );
                       return (
                       <button
                         key={`pack-${v.size_ml}`}
+                        type="button"
                         onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(true); updateUrl(v.size_ml, true, null); }}
-                        disabled={outOfStock}
+                        aria-pressed={isSelected}
+                        title={outOfStock ? 'Currently out of stock' : undefined}
                         className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
-                          isSelected
-                            ? "bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5"
-                            : outOfStock
-                              ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                          outOfStock
+                            ? isSelected
+                              ? "bg-gray-100 text-gray-500 border-emerald-700 ring-2 ring-emerald-700/30"
+                              : "bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300"
+                            : isSelected
+                              ? "bg-emerald-950 text-white border-emerald-950 shadow-md transform -translate-y-0.5"
                               : "border-gray-200 text-gray-500 hover:border-emerald-600 hover:text-emerald-950"
                         }`}
                       >
-                        {v.size_ml}ML Pack {outOfStock && "(Out)"}
+                        {sizeLabel} {outOfStock && <span className="ml-0.5">(Out)</span>}
                       </button>
                       );
                     })}

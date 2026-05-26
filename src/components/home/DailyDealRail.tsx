@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ArrowRight, Flame, Sparkles, ShoppingBag } from 'lucide-react';
 import DealCountdown from '@/components/deal/DealCountdown';
 import { deepenAccent, formatDealEnd, lightenAccent } from '@/components/deal/constants';
+import { areAllProductsOutOfStock, isProductOutOfStock } from '@/lib/product/stock';
 import type { DealDoc, DealProduct, DealVariant } from '@/components/deal/ActiveDealProvider';
 
 interface DailyDealRailProps {
@@ -54,6 +55,53 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
     deal.display?.subheadline ||
     `${deal.config?.discount_percent || 0}% OFF — today only`;
   const discountPercent = deal.config?.discount_percent || 0;
+  // Once all the products in today's deal are gone, swap the rail's
+  // selling tone for a regret + anticipation tone. Same accent, same
+  // grid, same countdown — only the words change.
+  const soldOut = areAllProductsOutOfStock(products);
+  const copy = soldOut
+    ? {
+        eyebrowSuffix: 'Sold Out',
+        headlineLead: 'Vanished',
+        headlineTail: "today's picks are gone",
+        intro: `Don't miss the next one — drops in`,
+        timerLabel: 'Next deal in',
+        viewAllLabel: 'See what you missed',
+        spotlightBadge: 'Drop ended',
+        spotlightTopline: 'Missed Out',
+        spotlightLeadValue: 'OUT',
+        spotlightLeadSuffix: '',
+        spotlightTagline: 'Off Limits',
+        spotlightBody:
+          "Today's drop sold out. The next deal opens when this clock " +
+          'hits zero — set a reminder.',
+        spotlightCtaLabel: 'See what you missed',
+        footerLead: 'Sold out.',
+        footerBody: `Next drop is loaded. Be here when the clock resets.`,
+        footerCta: 'See what you missed',
+        cardCtaSoldOut: 'Sold Out',
+        cardCtaActive: 'Grab Deal',
+      }
+    : {
+        eyebrowSuffix: 'Today Only',
+        headlineLead: `${discountPercent}% OFF`,
+        headlineTail: "on Today's Picks",
+        intro: `${subheadline}. Hand-filled from verified retail bottles, ends`,
+        timerLabel: 'Ends in',
+        viewAllLabel: 'View all deal products',
+        spotlightBadge: 'Deal of the day',
+        spotlightTopline: headline,
+        spotlightLeadValue: String(discountPercent),
+        spotlightLeadSuffix: '%',
+        spotlightTagline: 'Off Today',
+        spotlightBody: `${subheadline}. Ends ${formatDealEnd(deal.ends_at)}.`,
+        spotlightCtaLabel: "Shop today's deal",
+        footerLead: 'Limited window.',
+        footerBody: `These prices vanish ${formatDealEnd(deal.ends_at)}.`,
+        footerCta: "Shop today's deal",
+        cardCtaSoldOut: 'Sold Out',
+        cardCtaActive: 'Grab Deal',
+      };
 
   return (
     <section
@@ -98,17 +146,16 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
               }}
             >
               <Flame size={12} className="motion-reduce:animate-none animate-pulse" />
-              <span>{headline} · Today Only</span>
+              <span>{headline} · {copy.eyebrowSuffix}</span>
             </div>
 
             <h2 className="text-3xl md:text-5xl font-serif leading-[1.05]">
-              <span style={{ color: lightAccent }}>{discountPercent}% OFF</span>{' '}
-              <span className="text-white/90">on Today's Picks</span>
+              <span style={{ color: lightAccent }}>{copy.headlineLead}</span>{' '}
+              <span className="text-white/90">{copy.headlineTail}</span>
             </h2>
 
             <p className="text-sm md:text-base text-white/60 max-w-xl">
-              {subheadline}. Hand-filled from verified retail bottles, ends{' '}
-              {formatDealEnd(deal.ends_at)}.
+              {copy.intro} {formatDealEnd(deal.ends_at)}.
             </p>
           </div>
 
@@ -123,7 +170,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
               <DealCountdown
                 endsAt={deal.ends_at}
                 boxed
-                label="Ends in"
+                label={copy.timerLabel}
                 tileBg="#000000"
                 tileFg="#ffffff"
               />
@@ -133,7 +180,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
               className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest border-b border-current pb-0.5 hover:opacity-80 transition-opacity"
               style={{ color: lightAccent }}
             >
-              View all deal products <ArrowRight size={12} />
+              {copy.viewAllLabel} <ArrowRight size={12} />
             </Link>
           </div>
         </div>
@@ -194,25 +241,29 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                 <div className="relative">
                   <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] text-white bg-white/20">
                     <Flame size={10} />
-                    Deal of the day
+                    {copy.spotlightBadge}
                   </span>
                   <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-white/70 font-bold">
-                    {headline}
+                    {copy.spotlightTopline}
                   </p>
-                  <p className="mt-1 font-serif text-7xl md:text-8xl text-white leading-none font-bold">
-                    {discountPercent}
-                    <span className="text-3xl md:text-4xl align-top ml-1">%</span>
+                  <p className={`mt-1 font-serif text-white leading-none font-bold ${soldOut ? 'text-5xl md:text-6xl' : 'text-7xl md:text-8xl'}`}>
+                    {copy.spotlightLeadValue}
+                    {copy.spotlightLeadSuffix && (
+                      <span className="text-3xl md:text-4xl align-top ml-1">
+                        {copy.spotlightLeadSuffix}
+                      </span>
+                    )}
                   </p>
                   <p className="text-white text-sm md:text-base font-bold uppercase tracking-[0.25em] mt-1">
-                    Off Today
+                    {copy.spotlightTagline}
                   </p>
                 </div>
                 <div className="relative mt-4">
-                  <p className="text-[11px] text-white/75 mb-3 line-clamp-2">
-                    {subheadline}. Ends {formatDealEnd(deal.ends_at)}.
+                  <p className="text-[11px] text-white/75 mb-3 line-clamp-3">
+                    {copy.spotlightBody}
                   </p>
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-white border-b border-white/40 pb-0.5 group-hover:border-white transition-colors">
-                    Shop today's deal <ArrowRight size={12} />
+                    {copy.spotlightCtaLabel} <ArrowRight size={12} />
                   </span>
                 </div>
               </Link>
@@ -222,6 +273,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
             const original = variant?.original_price ?? variant?.price ?? 0;
             const sale = variant?.sale_price ?? variant?.price ?? 0;
             const productSlug = product.slug || product._id || product.id;
+            const outOfStock = isProductOutOfStock(product);
             return (
               <Link
                 key={(product._id || product.id) as string}
@@ -229,13 +281,21 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                 className="group relative flex flex-col bg-white text-emerald-950 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1"
                 style={{ boxShadow: `0 20px 40px -20px ${accent}66` }}
               >
-                {/* Corner discount ribbon */}
-                <div
-                  className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg"
-                  style={{ backgroundColor: deepAccent }}
-                >
-                  -{discountPercent}%
-                </div>
+                {/* Top-left badge: Out of Stock wins over the discount
+                    ribbon — we never want to advertise -X% on a product
+                    the user can't actually buy. */}
+                {outOfStock ? (
+                  <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg bg-rose-600">
+                    Out of Stock
+                  </div>
+                ) : (
+                  <div
+                    className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg"
+                    style={{ backgroundColor: deepAccent }}
+                  >
+                    -{discountPercent}%
+                  </div>
+                )}
 
                 {/* Image */}
                 <div className="relative aspect-square bg-gradient-to-br from-emerald-50 to-white overflow-hidden">
@@ -245,7 +305,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                       alt={product.name}
                       fill
                       sizes="(max-width: 1024px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      className={`object-cover transition-transform duration-700 group-hover:scale-110 ${outOfStock ? 'opacity-60 grayscale' : ''}`}
                     />
                   )}
                   {/* Accent ring on hover */}
@@ -285,14 +345,23 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                   </div>
 
                   {/* CTA — visible on hover at desktop, always at mobile so
-                      the buy intent is obvious without depending on hover. */}
-                  <div
-                    className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white rounded-md transition-all md:opacity-0 md:group-hover:opacity-100 md:-mt-1 md:group-hover:mt-4"
-                    style={{ backgroundColor: deepAccent }}
-                  >
-                    <ShoppingBag size={12} />
-                    <span>Grab Deal</span>
-                  </div>
+                      the buy intent is obvious without depending on hover.
+                      Disabled when sold out — same visual, muted palette,
+                      so the card still looks finished. */}
+                  {outOfStock ? (
+                    <div className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 rounded-md bg-gray-100 border border-gray-200">
+                      <ShoppingBag size={12} />
+                      <span>Sold Out</span>
+                    </div>
+                  ) : (
+                    <div
+                      className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white rounded-md transition-all md:opacity-0 md:group-hover:opacity-100 md:-mt-1 md:group-hover:mt-4"
+                      style={{ backgroundColor: deepAccent }}
+                    >
+                      <ShoppingBag size={12} />
+                      <span>Grab Deal</span>
+                    </div>
+                  )}
                 </div>
               </Link>
             );
@@ -301,13 +370,14 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
           );
         })()}
 
-        {/* Footer CTA — sticky reassurance for the conversion. */}
+        {/* Footer CTA — sticky reassurance for the conversion (or, when
+            sold out, a reminder that the next drop is coming). */}
         <div className="mt-10 md:mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-black/50 border" style={{ borderColor: `${accent}33` }}>
           <div className="flex items-center gap-3 text-sm text-white/80">
             <Sparkles size={16} style={{ color: lightAccent }} />
             <span>
-              <span className="font-bold text-white">Limited window.</span>{' '}
-              These prices vanish {formatDealEnd(deal.ends_at)}.
+              <span className="font-bold text-white">{copy.footerLead}</span>{' '}
+              {copy.footerBody}
             </span>
           </div>
           <Link
@@ -315,7 +385,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest text-white shadow-lg hover:-translate-y-0.5 transition-transform"
             style={{ backgroundColor: deepAccent }}
           >
-            Shop today's deal
+            {copy.footerCta}
             <ArrowRight size={12} />
           </Link>
         </div>

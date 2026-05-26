@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { X, ArrowRight } from "lucide-react";
 import { useActiveDeal, type DealProduct } from "@/components/deal/ActiveDealProvider";
+import { isProductOutOfStock } from "@/lib/product/stock";
 import DealCountdown from "@/components/deal/DealCountdown";
 import { DEAL_HIDDEN_PREFIXES, formatDealEnd } from "@/components/deal/constants";
 
@@ -71,7 +72,14 @@ export default function PromoModal() {
   // When a daily deal is active, the hero product is the first one in the
   // admin-configured list. Otherwise we fall back to the static Baccarat
   // Rouge 540 hook.
-  const hero = products?.[0];
+  //
+  // We deliberately pick the first *in-stock* product (rather than just
+  // `products[0]`) so the modal never promotes something the user can't
+  // actually buy. If every deal product is sold out, `hero` is undefined,
+  // `isDealMode` becomes false, and we fall through to the static
+  // Baccarat hook — which is the right behaviour: better to show a
+  // non-deal evergreen pitch than push a sold-out card.
+  const hero = products?.find((p) => !isProductOutOfStock(p));
   const isDealMode = Boolean(deal && hero);
 
   // Use a deal-scoped cooldown key when a deal is active. That way, dismissing
