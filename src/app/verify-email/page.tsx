@@ -21,6 +21,11 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (!token) return;
+
+    const guardKey = `decume-verify-${token}`;
+    if (typeof window !== 'undefined' && sessionStorage.getItem(guardKey)) return;
+    if (typeof window !== 'undefined') sessionStorage.setItem(guardKey, '1');
+
     const run = async () => {
       setVerifying(true);
       setMessage(null);
@@ -32,9 +37,11 @@ function VerifyEmailContent() {
           setTimeout(() => router.push('/login?verified=true'), 1200);
         } else {
           setMessage(response.data?.message || 'Invalid or expired token.');
+          sessionStorage.removeItem(guardKey);
         }
       } catch (err: any) {
         setMessage(err.response?.data?.detail || 'Verification failed.');
+        sessionStorage.removeItem(guardKey);
       } finally {
         setVerifying(false);
       }
