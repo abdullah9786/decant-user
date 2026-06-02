@@ -218,10 +218,10 @@ export default function ProductDetailClient({
   };
 
   return (
-    <div className="py-12 bg-white">
+    <div className="py-6 md:py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
-        <nav className="text-[10px] uppercase tracking-widest text-gray-400 mb-8 flex items-center">
+        <nav className="text-[10px] uppercase tracking-widest text-gray-400 mb-4 md:mb-8 flex items-center">
           <Link href="/" className="hover:text-emerald-600 transition-colors">
             Home
           </Link>
@@ -236,9 +236,9 @@ export default function ProductDetailClient({
           <span className="text-emerald-600 font-bold">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-20 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 xl:gap-20 items-start">
           {/* Left Column: Image Gallery */}
-          <div className="lg:col-span-7 lg:sticky lg:top-24 lg:self-start flex flex-col md:flex-row-reverse gap-4">
+          <div className="lg:col-span-7 lg:sticky lg:top-24 lg:self-start flex flex-col md:flex-row-reverse gap-2 md:gap-4">
             {/* Main Image Viewer */}
             <div
               className="flex-1 relative aspect-[4/5] bg-gray-50 overflow-hidden group"
@@ -346,7 +346,7 @@ export default function ProductDetailClient({
             </div>
 
             {/* Horizontal Thumbnails (Mobile Below) */}
-            <div className="md:hidden flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+            <div className="md:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {allImages.map((img, i) => (
                 <button
                   key={i}
@@ -371,21 +371,21 @@ export default function ProductDetailClient({
 
           {/* Right Column: Details (Sticky) */}
           <div className="lg:col-span-5 relative">
-            <div className="space-y-8">
+            <div className="space-y-5 md:space-y-8">
               <div>
                 {product.chips && product.chips.length > 0 && (
-                  <div className="mb-4">
+                  <div className="mb-2 md:mb-4">
                     <ChipList chips={product.chips} max={5} size="md" />
                   </div>
                 )}
-                <p className="text-xs font-bold tracking-[0.4em] uppercase text-emerald-600 mb-4">
+                <p className="text-xs font-bold tracking-[0.4em] uppercase text-emerald-600 mb-2 md:mb-4">
                   {product.brand}
                 </p>
-                <h1 className="text-4xl md:text-5xl font-serif text-emerald-950 mb-6 leading-tight">
+                <h1 className="text-3xl md:text-5xl font-serif text-emerald-950 mb-3 md:mb-6 leading-tight">
                   {product.name}
                 </h1>
 
-                <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-4 md:space-x-6">
                   <div className="flex text-yellow-500">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star key={i} size={14} fill="currentColor" />
@@ -399,7 +399,7 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {isOnDeal && accentColor && deepAccent && activeDeal && (
                   // Tinted bg keeps the accent feel; text + dot use the
                   // deepened accent so pastel themes stay readable.
@@ -442,13 +442,13 @@ export default function ProductDetailClient({
                 </p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {decantVariants.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-2.5 md:space-y-4">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-gray-900 block">
                     Select Size (ML)
                   </label>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2 md:gap-3">
                     {decantVariants.map((v: any) => {
                       const outOfStock = availableMl < v.size_ml;
                       const isSelected = selectedSize === v.size_ml && !selectedIsPack;
@@ -479,7 +479,7 @@ export default function ProductDetailClient({
                         onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(false); updateUrl(v.size_ml, false, selectedBottleId); }}
                         aria-pressed={isSelected}
                         title={outOfStock ? 'Currently out of stock' : undefined}
-                        className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
+                        className={`min-w-[72px] md:min-w-[80px] py-2.5 md:py-3 px-3 md:px-4 text-[10px] font-bold transition-all border ${
                           outOfStock
                             ? isSelected
                               ? "bg-gray-100 text-gray-500 border-emerald-700 ring-2 ring-emerald-700/30"
@@ -498,11 +498,11 @@ export default function ProductDetailClient({
                 )}
 
                 {packVariants.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-2.5 md:space-y-4">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-gray-900 block">
                     Sealed Bottles
                   </label>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2 md:gap-3">
                     {packVariants.map((v: any) => {
                       const outOfStock = (v.stock ?? 0) < 1;
                       const isSelected = selectedSize === v.size_ml && selectedIsPack;
@@ -521,7 +521,7 @@ export default function ProductDetailClient({
                         onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(true); updateUrl(v.size_ml, true, null); }}
                         aria-pressed={isSelected}
                         title={outOfStock ? 'Currently out of stock' : undefined}
-                        className={`min-w-[80px] py-3 px-4 text-[10px] font-bold transition-all border ${
+                        className={`min-w-[72px] md:min-w-[80px] py-2.5 md:py-3 px-3 md:px-4 text-[10px] font-bold transition-all border ${
                           outOfStock
                             ? isSelected
                               ? "bg-gray-100 text-gray-500 border-emerald-700 ring-2 ring-emerald-700/30"
@@ -540,7 +540,7 @@ export default function ProductDetailClient({
                 )}
 
                 {availableBottles.length > 0 && (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-2.5 md:space-y-3 pt-1 md:pt-2">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-900">
                     Choose Your Bottle
                   </p>
@@ -580,7 +580,7 @@ export default function ProductDetailClient({
                 </div>
                 )}
 
-                <div className="space-y-4 pt-4">
+                <div className="space-y-3 pt-2 md:space-y-4 md:pt-4">
                   {(() => {
                     if (!activeOffer) return null;
                     const cfg = activeOffer.config || {};
@@ -594,7 +594,7 @@ export default function ProductDetailClient({
                       selectedSize != null && selectedSize >= minMl;
                     if (!qualifies) return null;
                     return (
-                      <div className="flex items-center space-x-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-center space-x-3 px-4 py-2.5 md:py-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <Gift size={16} className="text-amber-600 flex-shrink-0" />
                         <p className="text-xs text-amber-800">
                           <span className="font-bold">FREE {freeMl}ml decant</span>
@@ -607,7 +607,7 @@ export default function ProductDetailClient({
                   <button
                     onClick={handleAddToCart}
                     disabled={!currentVariant || !canFulfill}
-                    className="w-full bg-emerald-950 text-white py-6 text-[10px] font-bold uppercase tracking-widest hover:bg-black cursor-pointer transition-all flex items-center justify-center space-x-3 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed group/cart"
+                    className="w-full bg-emerald-950 text-white py-4 md:py-6 text-[10px] font-bold uppercase tracking-widest hover:bg-black cursor-pointer transition-all flex items-center justify-center space-x-3 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed group/cart"
                   >
                     <ShoppingBag
                       size={18}
@@ -616,14 +616,14 @@ export default function ProductDetailClient({
                     <span>{canFulfill ? "Add to Cart" : "Out of Stock"}</span>
                   </button>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-3 p-4 bg-gray-50/50 rounded-lg">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    <div className="flex items-center space-x-2.5 md:space-x-3 p-3 md:p-4 bg-gray-50/50 rounded-lg">
                       <Truck size={18} className="text-emerald-600" />
                       <span className="text-[9px] font-bold uppercase tracking-widest leading-tight">
                         Fast pan-india shipping
                       </span>
                     </div>
-                    <div className="flex items-center space-x-3 p-4 bg-gray-50/50 rounded-lg">
+                    <div className="flex items-center space-x-2.5 md:space-x-3 p-3 md:p-4 bg-gray-50/50 rounded-lg">
                       <ShieldCheck size={18} className="text-emerald-600" />
                       <span className="text-[9px] font-bold uppercase tracking-widest leading-tight">
                         Secure Payment encryption
@@ -633,8 +633,8 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-gray-100">
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-6">
+              <div className="pt-6 md:pt-8 border-t border-gray-100">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-950 mb-4 md:mb-6">
                   Fragrance Description
                 </h3>
                 <div

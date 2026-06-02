@@ -1,7 +1,15 @@
 // Paths where conversion-focused chrome (banners, marquee, promo modal) is
-// suppressed because the user is already deep in the funnel. Anything that
-// distracts from the cart/checkout flow lives here.
-export const DEAL_HIDDEN_PREFIXES = ['/cart', '/checkout', '/order-success'];
+// suppressed — checkout funnel and auth flows where promos would distract.
+export const DEAL_HIDDEN_PREFIXES = [
+  '/cart',
+  '/checkout',
+  '/order-success',
+  '/login',
+  '/register',
+  '/verify-email',
+  '/forgot-password',
+  '/reset-password',
+];
 
 export function isDealChromeHidden(pathname?: string | null): boolean {
   if (!pathname) return false;
