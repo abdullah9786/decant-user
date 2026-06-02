@@ -23,6 +23,7 @@ import PriceTag from "@/components/deal/PriceTag";
 import DealCountdown from "@/components/deal/DealCountdown";
 import { deepenAccent, formatDealEnd } from "@/components/deal/constants";
 import { isVariantInStock } from "@/lib/product/stock";
+import { variantButtonLabel } from "@/lib/product/variantLabel";
 
 interface ProductDetailClientProps {
   product: any;
@@ -469,7 +470,7 @@ export default function ProductDetailClient({
                       //                          reading as unavailable)
                       const sizeLabel = (
                         <span className={outOfStock ? 'line-through opacity-80' : ''}>
-                          {v.size_ml}ML
+                          {variantButtonLabel(v)}
                         </span>
                       );
                       return (
@@ -511,7 +512,7 @@ export default function ProductDetailClient({
                       // pack can still be tapped to preview its price.
                       const sizeLabel = (
                         <span className={outOfStock ? 'line-through opacity-80' : ''}>
-                          {v.size_ml}ML Pack
+                          {variantButtonLabel(v)}
                         </span>
                       );
                       return (
