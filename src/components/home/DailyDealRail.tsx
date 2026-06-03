@@ -105,7 +105,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
 
   return (
     <section
-      className="relative overflow-hidden py-14 md:py-20"
+      className="relative overflow-hidden py-8 md:py-14"
       // Themed canvas: the base is the *deepened* accent (always dark enough
       // to read white text on, never pure black) and two raw-accent radials
       // sit on top as corner highlights. Keeps the rail visually distinct
@@ -133,10 +133,10 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 md:mb-14">
-          <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6 md:mb-8">
+          <div className="space-y-2">
             <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.35em]"
+              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.35em]"
               style={{
                 backgroundColor: `${accent}1f`,
                 // Text/icon use the *lightened* accent so they stay readable
@@ -149,12 +149,12 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
               <span>{headline} · {copy.eyebrowSuffix}</span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-serif leading-[1.05]">
+            <h2 className="text-2xl md:text-4xl font-serif leading-[1.05]">
               <span style={{ color: lightAccent }}>{copy.headlineLead}</span>{' '}
               <span className="text-white/90">{copy.headlineTail}</span>
             </h2>
 
-            <p className="text-sm md:text-base text-white/60 max-w-xl">
+            <p className="text-xs md:text-sm text-white/60 max-w-xl line-clamp-2 md:line-clamp-none">
               {copy.intro} {formatDealEnd(deal.ends_at)}.
             </p>
           </div>
@@ -162,9 +162,9 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
           {/* Right cluster (countdown + "view all" link). On mobile this
               cluster gets centered for emphasis; on tablet+ it returns to
               its natural right-aligned position next to the headline. */}
-          <div className="flex flex-col items-center md:items-end gap-3 shrink-0">
+          <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
             <div
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black/70 border"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/70 border scale-90 md:scale-100 origin-center md:origin-right"
               style={{ borderColor: `${accent}66` }}
             >
               <DealCountdown
@@ -208,10 +208,10 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
           // looked good.
           const gridClass =
             cellCount === 2
-              ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 max-w-2xl mx-auto'
+              ? 'grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-2xl mx-auto'
               : cellCount === 3
-              ? 'grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto'
-              : 'grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6';
+              ? 'grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 max-w-5xl mx-auto'
+              : 'grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-4';
           return (
             <div className={gridClass}>
               {/* Spotlight cell — a non-product card that doubles as the
@@ -219,7 +219,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                   fills the row visually. */}
               <Link
                 href="/deals/today"
-                className="group relative flex flex-col justify-between rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1 p-5 md:p-6 min-h-[280px] md:min-h-0"
+                className="group relative flex flex-col justify-between rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1 p-4 md:p-5 min-h-[180px] sm:min-h-[200px] md:min-h-0"
                 style={{
                   // Spotlight has to stand *out* from the section canvas
                   // (which now uses deepAccent itself). So we run a brighter
@@ -243,26 +243,26 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                     <Flame size={10} />
                     {copy.spotlightBadge}
                   </span>
-                  <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-white/70 font-bold">
+                  <p className="mt-2 text-[9px] uppercase tracking-[0.3em] text-white/70 font-bold">
                     {copy.spotlightTopline}
                   </p>
-                  <p className={`mt-1 font-serif text-white leading-none font-bold ${soldOut ? 'text-5xl md:text-6xl' : 'text-7xl md:text-8xl'}`}>
+                  <p className={`mt-0.5 font-serif text-white leading-none font-bold ${soldOut ? 'text-4xl md:text-5xl' : 'text-5xl md:text-6xl'}`}>
                     {copy.spotlightLeadValue}
                     {copy.spotlightLeadSuffix && (
-                      <span className="text-3xl md:text-4xl align-top ml-1">
+                      <span className="text-2xl md:text-3xl align-top ml-1">
                         {copy.spotlightLeadSuffix}
                       </span>
                     )}
                   </p>
-                  <p className="text-white text-sm md:text-base font-bold uppercase tracking-[0.25em] mt-1">
+                  <p className="text-white text-xs md:text-sm font-bold uppercase tracking-[0.25em] mt-0.5">
                     {copy.spotlightTagline}
                   </p>
                 </div>
-                <div className="relative mt-4">
-                  <p className="text-[11px] text-white/75 mb-3 line-clamp-3">
+                <div className="relative mt-2 md:mt-3">
+                  <p className="text-[10px] text-white/75 mb-2 line-clamp-2">
                     {copy.spotlightBody}
                   </p>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-white border-b border-white/40 pb-0.5 group-hover:border-white transition-colors">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white border-b border-white/40 pb-0.5 group-hover:border-white transition-colors">
                     {copy.spotlightCtaLabel} <ArrowRight size={12} />
                   </span>
                 </div>
@@ -297,8 +297,8 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                   </div>
                 )}
 
-                {/* Image */}
-                <div className="relative aspect-square bg-gradient-to-br from-emerald-50 to-white overflow-hidden">
+                {/* Image — slightly shorter on mobile to keep the rail compact */}
+                <div className="relative aspect-[5/4] sm:aspect-square bg-gradient-to-br from-emerald-50 to-white overflow-hidden">
                   {product.image_url && (
                     <Image
                       src={product.image_url}
@@ -316,18 +316,18 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col p-4">
+                <div className="flex-1 flex flex-col p-3">
                   <p className="text-[9px] uppercase tracking-[0.25em] text-slate-500 font-bold truncate">
                     {product.brand}
                   </p>
-                  <h3 className="mt-1 font-serif text-base md:text-lg leading-tight line-clamp-2 text-emerald-950">
+                  <h3 className="mt-0.5 font-serif text-sm md:text-base leading-tight line-clamp-2 text-emerald-950">
                     {product.name}
                   </h3>
 
                   {/* Price */}
-                  <div className="mt-3 flex items-baseline gap-2 flex-wrap">
+                  <div className="mt-2 flex items-baseline gap-2 flex-wrap">
                     <span
-                      className="text-lg md:text-xl font-extrabold tabular-nums"
+                      className="text-base md:text-lg font-extrabold tabular-nums"
                       style={{ color: deepAccent }}
                     >
                       {inr(sale)}
@@ -349,13 +349,13 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
                       Disabled when sold out — same visual, muted palette,
                       so the card still looks finished. */}
                   {outOfStock ? (
-                    <div className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 rounded-md bg-gray-100 border border-gray-200">
+                    <div className="mt-2 inline-flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 rounded-md bg-gray-100 border border-gray-200">
                       <ShoppingBag size={12} />
                       <span>Sold Out</span>
                     </div>
                   ) : (
                     <div
-                      className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white rounded-md transition-all md:opacity-0 md:group-hover:opacity-100 md:-mt-1 md:group-hover:mt-4"
+                      className="mt-2 inline-flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-white rounded-md transition-all md:opacity-0 md:group-hover:opacity-100 md:-mt-1 md:group-hover:mt-2"
                       style={{ backgroundColor: deepAccent }}
                     >
                       <ShoppingBag size={12} />
@@ -372,9 +372,9 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
 
         {/* Footer CTA — sticky reassurance for the conversion (or, when
             sold out, a reminder that the next drop is coming). */}
-        <div className="mt-10 md:mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-black/50 border" style={{ borderColor: `${accent}33` }}>
-          <div className="flex items-center gap-3 text-sm text-white/80">
-            <Sparkles size={16} style={{ color: lightAccent }} />
+        <div className="mt-6 md:mt-8 flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-black/50 border" style={{ borderColor: `${accent}33` }}>
+          <div className="flex items-center gap-2.5 text-xs md:text-sm text-white/80">
+            <Sparkles size={14} style={{ color: lightAccent }} className="shrink-0" />
             <span>
               <span className="font-bold text-white">{copy.footerLead}</span>{' '}
               {copy.footerBody}
@@ -382,7 +382,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
           </div>
           <Link
             href="/deals/today"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest text-white shadow-lg hover:-translate-y-0.5 transition-transform"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-lg hover:-translate-y-0.5 transition-transform shrink-0"
             style={{ backgroundColor: deepAccent }}
           >
             {copy.footerCta}

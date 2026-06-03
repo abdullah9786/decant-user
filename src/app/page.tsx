@@ -11,6 +11,9 @@ import FairPricing from "@/components/home/FairPricing";
 import DefaultHero from "@/components/home/DefaultHero";
 import DailyDealHero from "@/components/home/DailyDealHero";
 import DailyDealRail from "@/components/home/DailyDealRail";
+import TopCategories from "@/components/home/TopCategories";
+import SectionHeader from "@/components/home/SectionHeader";
+import HomeSectionShell from "@/components/home/HomeSectionShell";
 
 export const metadata: Metadata = {
   title: "Decume | Premium Perfume Decants India — Authentic Trial Sizes",
@@ -30,6 +33,18 @@ async function getFeaturedProducts() {
     if (!res.ok) return [];
     const data = await res.json();
     return data.filter((p: any) => p.is_featured);
+  } catch {
+    return [];
+  }
+}
+
+async function getFeaturedCategories() {
+  try {
+    const res = await fetch(`${API_URL}/categories?featured=true`, {
+      next: { revalidate: 600 },
+    });
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
     return [];
   }
@@ -86,9 +101,10 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredFamilies, dealResp] = await Promise.all([
+  const [featuredProducts, featuredFamilies, featuredCategories, dealResp] = await Promise.all([
     getFeaturedProducts(),
     getFeaturedFamilies(),
+    getFeaturedCategories(),
     getDailyDeal(),
   ]);
 
@@ -122,17 +138,9 @@ export default async function HomePage() {
         <DefaultHero />
       )}
 
-      {/* Today's Daily Deal rail (only when a deal is active). Uses a
-          bespoke, promo-themed section (dark canvas + accent ribbons +
-          countdown) instead of the standard product rail so it visually
-          reads as a *promotion*, not just another shelf. */}
-      {dailyDeal && dealProducts.length > 0 && (
-        <DailyDealRail deal={dailyDeal} products={dealProducts} />
-      )}
+      <TopCategories categories={featuredCategories} />
 
       {/* Shop for Him & Her */}
-      {/* Tighter bottom on mobile — the next section adds its own top
-          padding so the previous py-12 doubled the gap there. */}
       <section className="pt-12 pb-6 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
@@ -203,82 +211,62 @@ export default async function HomePage() {
       </section>
 
       {/* Decants */}
-      <section className="py-12 md:py-20 bg-white/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
-                Try Before You Commit
-              </div>
-              <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">
-                Decants
-              </h2>
-            </div>
-            <Link
-              href="/products?type=decant"
-              className="hidden md:inline-block text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700"
-            >
-              View all
-            </Link>
-          </div>
+      <HomeSectionShell className="md:py-16">
+        <SectionHeader
+          eyebrow="Try Before You Commit"
+          title="Decants"
+          href="/products?type=decant"
+        />
 
-          {decantProducts.length > 0 ? (
-            <FeaturedProducts products={decantProducts} />
-          ) : (
-            <div className="text-center text-slate-400 italic py-12">
-              No decants available yet.
-            </div>
-          )}
-
-          <div className="mt-8">
-            <Link
-              href="/products?type=decant"
-              className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200 bg-white/50 hover:bg-emerald-50 transition-colors"
-            >
-              Shop all decants
-            </Link>
+        {decantProducts.length > 0 ? (
+          <FeaturedProducts products={decantProducts} compact />
+        ) : (
+          <div className="text-center text-slate-400 italic py-12">
+            No decants available yet.
           </div>
+        )}
+
+        <div className="mt-6 md:mt-8">
+          <Link
+            href="/products?type=decant"
+            className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200/80 bg-white/80 hover:bg-white transition-colors rounded-lg"
+          >
+            Shop all decants
+          </Link>
         </div>
-      </section>
+      </HomeSectionShell>
 
       {/* Full Bottles */}
-      <section className="py-12 md:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.35em] text-emerald-700 font-bold">
-                The Full Experience
-              </div>
-              <h2 className="text-3xl md:text-4xl font-serif text-emerald-950">
-                Sealed Bottles
-              </h2>
-            </div>
-            <Link
-              href="/products?type=full-bottle"
-              className="hidden md:inline-block text-xs font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700"
-            >
-              View all
-            </Link>
-          </div>
+      <HomeSectionShell className="md:py-16">
+        <SectionHeader
+          eyebrow="The Full Experience"
+          title="Sealed Bottles"
+          href="/products?type=full-bottle"
+        />
 
-          {fullBottleProducts.length > 0 ? (
-            <FeaturedProducts products={fullBottleProducts} priceMode="pack" />
-          ) : (
-            <div className="text-center text-slate-400 italic py-12">
-              No sealed bottles available yet.
-            </div>
-          )}
-
-          <div className="mt-8">
-            <Link
-              href="/products?type=full-bottle"
-              className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200 bg-white/50 hover:bg-emerald-50 transition-colors"
-            >
-              Shop all sealed bottles
-            </Link>
+        {fullBottleProducts.length > 0 ? (
+          <FeaturedProducts products={fullBottleProducts} priceMode="pack" compact />
+        ) : (
+          <div className="text-center text-slate-400 italic py-12">
+            No sealed bottles available yet.
           </div>
+        )}
+
+        <div className="mt-6 md:mt-8">
+          <Link
+            href="/products?type=full-bottle"
+            className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200/80 bg-white/80 hover:bg-white transition-colors rounded-lg"
+          >
+            Shop all sealed bottles
+          </Link>
         </div>
-      </section>
+      </HomeSectionShell>
+
+      {/* Today's Daily Deal rail — sits just above Signature Curations so
+          users reach core catalog sections first when a deal is live. */}
+      {dailyDeal && dealProducts.length > 0 && (
+        <DailyDealRail deal={dailyDeal} products={dealProducts} />
+      )}
 
       {/* Collections Bento */}
       <section className="py-12 md:py-20">

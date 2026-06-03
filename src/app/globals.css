@@ -24,6 +24,19 @@
   --hero-cta-alt-text: #064e3b;
   --hero-cta-alt-border: rgba(6, 78, 59, 0.3);
   --hero-cta-alt-hover: rgba(6, 78, 59, 0.06);
+  --section-shell-bg: linear-gradient(
+    180deg,
+    rgba(236, 253, 245, 0.72) 0%,
+    rgba(247, 254, 249, 0.45) 45%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+  --section-shell-border: rgba(167, 243, 208, 0.42);
+  --section-header-bg: linear-gradient(
+    180deg,
+    rgba(209, 250, 229, 0.65) 0%,
+    rgba(236, 253, 245, 0.45) 100%
+  );
+  --section-header-border: rgba(167, 243, 208, 0.55);
 }
 
 body {
@@ -39,6 +52,37 @@ body {
 
 ::selection {
   background: rgba(15, 118, 110, 0.2);
+}
+
+/* Unified homepage section — subtle shell; title bar is colored inside */
+.home-section-shell {
+  background: var(--section-shell-bg);
+  border: 1px solid var(--section-shell-border);
+  border-radius: 1rem;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(6, 78, 59, 0.05);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .home-section-shell {
+    padding: 1.75rem 1.75rem;
+    border-radius: 1.25rem;
+  }
+}
+
+.section-header-block {
+  background: var(--section-header-bg);
+  border-bottom: 1px solid var(--section-header-border);
+  margin: -1.25rem -1rem 1.25rem;
+  padding: 1.25rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .section-header-block {
+    margin: -1.75rem -1.75rem 1.75rem;
+    padding: 1.5rem 1.75rem;
+  }
 }
 
 
