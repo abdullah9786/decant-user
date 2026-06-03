@@ -33,27 +33,6 @@ export default async function DealsTodayPage() {
   const deal = data?.deal ?? null;
   const products = data?.products ?? [];
 
-  const accent = deal?.display?.accent_color || '#dc2626';
-  // Foreground-safe deepened accent for text/pills that sit on white.
-  const deepAccent = deepenAccent(accent);
-  const adminHeadline = deal?.display?.headline || 'Decume Daily';
-  const adminSubheadline =
-    deal?.display?.subheadline ||
-    (deal ? `${deal.config?.discount_percent || 0}% OFF` : null);
-
-  // Reframe the hero when every product on this page is sold out. Same
-  // accent palette, same countdown, but the eyebrow / headline / footer
-  // copy carry the "you missed it, next drop incoming" tone.
-  const soldOut = deal ? areAllProductsOutOfStock(products) : false;
-  const eyebrowSuffix = soldOut ? 'Sold Out · You Missed It' : 'Today Only';
-  const headline = soldOut ? 'Vanished' : adminHeadline;
-  const subheadline = soldOut
-    ? `Today's ${deal?.config?.discount_percent || 0}% picks are gone.`
-    : adminSubheadline;
-  const timerCaption = soldOut
-    ? `Next deal opens ${formatDealEnd(deal!.ends_at)}`
-    : `Ends ${formatDealEnd(deal!.ends_at)}`;
-
   if (!deal || products.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
@@ -74,6 +53,27 @@ export default async function DealsTodayPage() {
       </div>
     );
   }
+
+  const accent = deal.display?.accent_color || '#dc2626';
+  // Foreground-safe deepened accent for text/pills that sit on white.
+  const deepAccent = deepenAccent(accent);
+  const adminHeadline = deal.display?.headline || 'Decume Daily';
+  const adminSubheadline =
+    deal.display?.subheadline ||
+    `${deal.config?.discount_percent || 0}% OFF`;
+
+  // Reframe the hero when every product on this page is sold out. Same
+  // accent palette, same countdown, but the eyebrow / headline / footer
+  // copy carry the "you missed it, next drop incoming" tone.
+  const soldOut = areAllProductsOutOfStock(products);
+  const eyebrowSuffix = soldOut ? 'Sold Out · You Missed It' : 'Today Only';
+  const headline = soldOut ? 'Vanished' : adminHeadline;
+  const subheadline = soldOut
+    ? `Today's ${deal.config?.discount_percent || 0}% picks are gone.`
+    : adminSubheadline;
+  const timerCaption = soldOut
+    ? `Next deal opens ${formatDealEnd(deal.ends_at)}`
+    : `Ends ${formatDealEnd(deal.ends_at)}`;
 
   return (
     <div className="bg-transparent">
