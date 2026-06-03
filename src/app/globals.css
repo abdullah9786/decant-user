@@ -150,3 +150,25 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .deal-marquee-track { animation: none; }
 }
+
+/* Hide scrollbars while keeping touch/drag scroll (carousels) */
+.scrollbar-hide,
+.carousel-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar,
+.carousel-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+  background: transparent;
+}
+
+.carousel-clip {
+  overflow: hidden;
+}
