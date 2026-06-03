@@ -33,7 +33,7 @@ function NavLink({ href, onClick, children, className }: NavLinkProps) {
     <Link
       href={href}
       onClick={onClick}
-      className={`block font-serif text-2xl text-emerald-950 hover:text-emerald-700 transition-colors ${className ?? ''}`}
+      className={`block py-0.5 font-serif text-base text-emerald-950 hover:text-emerald-700 transition-colors ${className ?? ''}`}
     >
       {children}
     </Link>
@@ -80,45 +80,63 @@ export default function MobileMenuOverlay({
         <span className="w-9" aria-hidden="true" />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-        <SearchBar onNavigate={onClose} />
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="mb-4">
+          <SearchBar onNavigate={onClose} />
+        </div>
 
-        <NavLink href="/products" onClick={onClose}>Shop All</NavLink>
-        <NavLink href="/products?type=decant" onClick={onClose}>Decants</NavLink>
-        <NavLink href="/products?type=full-bottle" onClick={onClose}>Full Bottles</NavLink>
+        <nav className="space-y-4">
+          <div className="space-y-0.5">
+            <NavLink href="/products" onClick={onClose}>Shop All</NavLink>
+            <NavLink href="/products?type=decant" onClick={onClose}>Decants</NavLink>
+            <NavLink href="/products?type=full-bottle" onClick={onClose}>Full Bottles</NavLink>
+          </div>
 
-        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pt-2">
-          Categories
-        </p>
-        {categories.map((cat) => (
-          <NavLink
-            key={cat._id || cat.slug}
-            href={`/categories/${cat.slug}`}
-            onClick={onClose}
-            className="pl-4"
-          >
-            {cat.name}
-          </NavLink>
-        ))}
-        <Link
-          href="/categories"
-          onClick={onClose}
-          className="block text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors pl-4"
-        >
-          View All Categories →
-        </Link>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5">
+              Categories
+            </p>
+            <div className="space-y-0.5">
+              {categories.map((cat) => (
+                <NavLink
+                  key={cat._id || cat.slug}
+                  href={`/categories/${cat.slug}`}
+                  onClick={onClose}
+                  className="pl-3"
+                >
+                  {cat.name}
+                </NavLink>
+              ))}
+              <Link
+                href="/categories"
+                onClick={onClose}
+                className="block py-0.5 pl-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+              >
+                View All Categories →
+              </Link>
+            </div>
+          </div>
 
-        <NavLink href="/brands" onClick={onClose}>Brands</NavLink>
-        <NavLink href="/new-arrivals" onClick={onClose}>New Arrivals</NavLink>
+          <div className="space-y-0.5">
+            <NavLink href="/brands" onClick={onClose}>Brands</NavLink>
+            <NavLink href="/new-arrivals" onClick={onClose}>New Arrivals</NavLink>
+          </div>
 
-        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold pt-2">
-          Gifting
-        </p>
-        <NavLink href="/gift-boxes" onClick={onClose} className="pl-4">Gift Boxes</NavLink>
-        <NavLink href="/bottles" onClick={onClose} className="pl-4">Our Bottles</NavLink>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5">
+              Gifting
+            </p>
+            <div className="space-y-0.5">
+              <NavLink href="/gift-boxes" onClick={onClose} className="pl-3">Gift Boxes</NavLink>
+              <NavLink href="/bottles" onClick={onClose} className="pl-3">Our Bottles</NavLink>
+            </div>
+          </div>
 
-        <NavLink href="/creators" onClick={onClose}>Creators</NavLink>
-        <NavLink href="/track-order" onClick={onClose}>Track Order</NavLink>
+          <div className="space-y-0.5">
+            <NavLink href="/creators" onClick={onClose}>Creators</NavLink>
+            <NavLink href="/track-order" onClick={onClose}>Track Order</NavLink>
+          </div>
+        </nav>
       </div>
     </MobileOverlay>
   );
