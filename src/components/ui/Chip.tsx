@@ -28,13 +28,19 @@ export function chipColorCls(color: string | undefined): string {
 
 interface ChipProps {
   chip: ProductChip;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
 }
+
+const CHIP_SIZE_CLS: Record<'xs' | 'sm' | 'md', string> = {
+  xs: 'px-1.5 py-0.5 text-[8px]',
+  sm: 'px-2 py-0.5 text-[9px]',
+  md: 'px-2.5 py-1 text-[11px]',
+};
 
 export default function Chip({ chip, size = 'sm' }: ChipProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 ${size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-1 text-[11px]'} rounded-full font-bold uppercase tracking-widest border shadow-sm ${chipColorCls(chip.color)}`}
+      className={`inline-flex items-center gap-1 ${CHIP_SIZE_CLS[size]} rounded-full font-bold uppercase tracking-widest border shadow-sm ${chipColorCls(chip.color)}`}
     >
       {chip.icon && <span className="not-italic">{chip.icon}</span>}
       <span>{chip.label}</span>
@@ -45,7 +51,7 @@ export default function Chip({ chip, size = 'sm' }: ChipProps) {
 interface ChipListProps {
   chips: ProductChip[];
   max?: number;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   className?: string;
   align?: 'start' | 'end';
 }
@@ -60,7 +66,7 @@ export function ChipList({ chips, max = 3, size = 'sm', className = '', align = 
         <Chip key={c._id || c.code || c.label} chip={c} size={size} />
       ))}
       {overflow > 0 && (
-        <span className={`inline-flex items-center ${size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-1 text-[11px]'} rounded-full font-bold border bg-white text-slate-600 border-slate-200`}>
+        <span className={`inline-flex items-center ${CHIP_SIZE_CLS[size]} rounded-full font-bold border bg-white text-slate-600 border-slate-200`}>
           +{overflow}
         </span>
       )}

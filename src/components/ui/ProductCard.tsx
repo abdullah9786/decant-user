@@ -191,7 +191,7 @@ const ProductCard = React.memo(({
         {/* Promotional chips */}
         {chips && chips.length > 0 && (
           <div className="absolute top-2.5 right-2.5 z-20 max-w-[65%]">
-            <ChipList chips={chips} max={2} size="sm" align="end" />
+            <ChipList chips={chips} max={2} size="xs" align="end" />
           </div>
         )}
         
