@@ -81,12 +81,15 @@ const ProductCard = React.memo(({
     [variants],
   );
 
-  /** Decant pills when any decants exist; else pack pills when pack-only (even a single option). */
+  /** Default: decant pills when any decants exist, else pack. Pack mode: pack pills only. */
   const pickerVariants = useMemo((): Variant[] | null => {
+    if (priceMode === 'pack') {
+      return packVariants.length >= 1 ? packVariants : null;
+    }
     if (decantVariants.length >= 1) return decantVariants;
     if (packVariants.length >= 1) return packVariants;
     return null;
-  }, [decantVariants, packVariants]);
+  }, [priceMode, decantVariants, packVariants]);
 
   const initialPickerVariant = useMemo(() => {
     if (!pickerVariants) return null;
@@ -297,7 +300,13 @@ const ProductCard = React.memo(({
             {priceNode}
           </p>
           <p className="text-[9px] uppercase tracking-widest text-slate-400 font-medium mt-0.5">
-            {hasDecant && hasPack ? 'Decant · Sealed Bottle' : hasDecant ? 'Decant' : 'Sealed Bottle'}
+            {priceMode === 'pack'
+              ? 'Sealed Bottle'
+              : hasDecant && hasPack
+                ? 'Decant · Sealed Bottle'
+                : hasDecant
+                  ? 'Decant'
+                  : 'Sealed Bottle'}
           </p>
         </div>
 
