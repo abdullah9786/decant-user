@@ -20,7 +20,7 @@ export default function TopCategories({ categories }: TopCategoriesProps) {
   if (categories.length === 0) return null;
 
   return (
-    <HomeSectionShell>
+    <HomeSectionShell className="!pb-4 md:!pb-12">
       <SectionHeader
         eyebrow="Browse by Mood"
         title="Top Categories"
