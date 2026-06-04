@@ -310,10 +310,10 @@ const ProductCard = React.memo(({
           </p>
         </div>
 
-        <div className="flex-1 min-h-[2.75rem]">
+        <div className="max-md:flex-none flex-1 min-h-0 md:min-h-[2.75rem]">
           {showSizePicker && pickerVariants && (
-            <div className="mt-2.5 -mx-1 md:mx-0 carousel-clip" onClick={stopNav}>
-              <div className="carousel-scroll flex gap-1.5 flex-nowrap pb-3 -mb-3 md:pb-2 md:-mb-2">
+            <div className="mt-2 -mx-1 md:mt-2.5 md:mx-0 carousel-clip" onClick={stopNav}>
+              <div className="carousel-scroll flex gap-1.5 flex-nowrap pb-2 -mb-2 md:pb-2 md:-mb-2">
                 {pickerVariants.map((v) => {
                   const outOfStock = !isVariantInStock(v, availableMl);
                   const isSelected = activePickerVariant
@@ -326,7 +326,7 @@ const ProductCard = React.memo(({
                       aria-pressed={isSelected}
                       title={outOfStock ? 'Currently out of stock' : undefined}
                       onClick={(e) => handleSelectVariant(e, v)}
-                      className={`shrink-0 min-w-[42px] px-2 py-1 text-[8px] font-bold uppercase tracking-wide border rounded-md transition-all ${
+                      className={`shrink-0 min-w-[44px] px-2 py-1 text-[10px] font-bold uppercase tracking-wide border rounded-md transition-all ${
                         outOfStock
                           ? isSelected
                             ? 'bg-gray-100 text-gray-500 border-emerald-700 ring-1 ring-emerald-700/30'
@@ -348,7 +348,10 @@ const ProductCard = React.memo(({
           )}
         </div>
 
-        <div className="w-full mt-3 shrink-0" onClick={stopNav}>
+        <div
+          className={`w-full shrink-0 ${showSizePicker ? 'mt-2.5 md:mt-3.5' : 'mt-auto pt-4'}`}
+          onClick={stopNav}
+        >
           {quantityInCart > 0 ? (
             <div className="flex flex-row items-center justify-between border border-emerald-950 rounded-md bg-transparent w-full text-emerald-950 h-[42px]">
               <button
