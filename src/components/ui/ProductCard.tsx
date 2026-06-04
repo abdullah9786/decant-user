@@ -301,10 +301,10 @@ const ProductCard = React.memo(({
           </p>
         </div>
 
-        <div className="flex-1 min-h-[2.75rem] md:min-h-[4.5rem]">
+        <div className="flex-1 min-h-[2.75rem]">
           {showSizePicker && pickerVariants && (
-            <div className="mt-2.5 -mx-1 md:mx-0" onClick={stopNav}>
-              <div className="flex gap-1.5 flex-nowrap overflow-x-auto scrollbar-hide pb-1 md:flex-wrap md:overflow-visible md:pb-0">
+            <div className="mt-2.5 -mx-1 md:mx-0 carousel-clip" onClick={stopNav}>
+              <div className="carousel-scroll flex gap-1.5 flex-nowrap pb-3 -mb-3 md:pb-2 md:-mb-2">
                 {pickerVariants.map((v) => {
                   const outOfStock = !isVariantInStock(v, availableMl);
                   const isSelected = activePickerVariant
