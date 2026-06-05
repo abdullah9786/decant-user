@@ -22,6 +22,7 @@ import { useActiveDeal } from "@/components/deal/ActiveDealProvider";
 import PriceTag from "@/components/deal/PriceTag";
 import DealCountdown from "@/components/deal/DealCountdown";
 import { deepenAccent, formatDealEnd } from "@/components/deal/constants";
+import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { isVariantInStock } from "@/lib/product/stock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
 
@@ -137,6 +138,21 @@ export default function ProductDetailClient({
 
   const decantVariants = (product.variants || []).filter((v: any) => !v.is_pack);
   const packVariants = (product.variants || []).filter((v: any) => v.is_pack);
+
+  const seoCopy = buildProductSeoCopy({
+    name: product.name,
+    brand: product.brand,
+    variants: product.variants,
+    matchedVariant:
+      initialSize != null && currentVariant
+        ? {
+            size_ml: currentVariant.size_ml,
+            price: currentVariant.price,
+            is_pack: !!currentVariant.is_pack,
+            stock: currentVariant.stock,
+          }
+        : null,
+  });
   const othersLow = selectedPrice ? selectedPrice + 200 : 0;
   const othersHigh = selectedPrice ? selectedPrice + 250 : 0;
 
@@ -259,7 +275,7 @@ export default function ProductDetailClient({
                 <Image
                   key={i}
                   src={img}
-                  alt={product.name}
+                  alt={seoCopy.imageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 58vw"
                   priority={i === 0}
@@ -382,9 +398,12 @@ export default function ProductDetailClient({
                 <p className="text-xs font-bold tracking-[0.4em] uppercase text-emerald-600 mb-2 md:mb-4">
                   {product.brand}
                 </p>
-                <h1 className="text-3xl md:text-5xl font-serif text-emerald-950 mb-3 md:mb-6 leading-tight">
+                <h1 className="text-3xl md:text-5xl font-serif text-emerald-950 mb-2 md:mb-3 leading-tight">
                   {product.name}
                 </h1>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-medium mb-3 md:mb-6">
+                  {seoCopy.formatLabel}
+                </p>
 
                 <div className="flex items-center space-x-4 md:space-x-6">
                   <div className="flex text-yellow-500">

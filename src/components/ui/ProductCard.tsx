@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import toast from 'react-hot-toast';
 import { ChipList, type ProductChip } from '@/components/ui/Chip';
+import { buildProductSeoCopy } from '@/lib/product/productSeo';
 import { isProductOutOfStock, isVariantInStock } from '@/lib/product/stock';
 import { variantButtonLabel } from '@/lib/product/variantLabel';
 
@@ -128,6 +129,24 @@ const ProductCard = React.memo(({
     if (priceMode === 'pack') return singlePackVariant ?? defaultVariant;
     return defaultVariant;
   }, [showSizePicker, activePickerVariant, priceMode, singlePackVariant, defaultVariant]);
+
+  const imageAlt = useMemo(
+    () =>
+      buildProductSeoCopy({
+        name,
+        brand,
+        variants,
+        matchedVariant: activeVariant
+          ? {
+              size_ml: activeVariant.size_ml,
+              price: activeVariant.price,
+              is_pack: !!activeVariant.is_pack,
+              stock: activeVariant.stock,
+            }
+          : null,
+      }).imageAlt,
+    [name, brand, variants, activeVariant],
+  );
 
   const activeVariantOutOfStock = activeVariant
     ? !isVariantInStock(activeVariant, availableMl)
@@ -261,7 +280,7 @@ const ProductCard = React.memo(({
         {image_url ? (
           <Image
             src={image_url}
-            alt={name}
+            alt={imageAlt}
             fill
             sizes="(max-width: 1024px) 50vw, 25vw"
             className={`object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03] ${isOutOfStock ? 'opacity-60 grayscale' : ''}`}

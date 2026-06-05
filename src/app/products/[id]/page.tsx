@@ -1,6 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import ProductDetailClient from "./ProductDetailClient";
+import {
+  buildProductBreadcrumbJsonLd,
+  buildProductCanonicalUrl,
+  buildProductJsonLd,
+  buildProductSeoCopy,
+  type MatchedVariant,
+} from "@/lib/product/productSeo";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -29,6 +36,24 @@ async function getBottles() {
   }
 }
 
+function resolveMatchedVariant(
+  product: any,
+  sizeParam: number | null,
+  isPack: boolean,
+): MatchedVariant | null {
+  if (sizeParam == null) return null;
+  const variant = product.variants?.find(
+    (v: any) => v.size_ml === sizeParam && !!v.is_pack === isPack,
+  );
+  if (!variant) return null;
+  return {
+    size_ml: variant.size_ml,
+    price: variant.price,
+    is_pack: !!variant.is_pack,
+    stock: variant.stock,
+  };
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -44,49 +69,33 @@ export async function generateMetadata({
   const slug = product.slug || product._id || product.id;
   const sizeParam = sp.size ? parseInt(sp.size, 10) : null;
   const isPack = sp.pack === "true";
+  const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
 
-  const matchedVariant =
-    sizeParam != null
-      ? product.variants?.find(
-          (v: any) => v.size_ml === sizeParam && !!v.is_pack === isPack
-        )
-      : null;
-
-  let title: string;
-  let description: string;
-  let canonicalUrl = `https://decume.in/products/${slug}`;
-
-  if (matchedVariant) {
-    const typeLabel = isPack ? "Sealed Bottle" : "Decant";
-    title = `${product.name} ${matchedVariant.size_ml}ml ${typeLabel} by ${product.brand}`;
-    description = `Buy ${product.name} ${matchedVariant.size_ml}ml ${typeLabel.toLowerCase()} by ${product.brand} at ₹${matchedVariant.price}. Authentic, hand-filled, pan-India delivery.`;
-    const qp = new URLSearchParams();
-    qp.set("size", String(matchedVariant.size_ml));
-    if (isPack) qp.set("pack", "true");
-    if (sp.bottle) qp.set("bottle", sp.bottle);
-    canonicalUrl += `?${qp.toString()}`;
-  } else {
-    title = `${product.name} by ${product.brand} — Perfume Decant`;
-    description = `Buy ${product.name} by ${product.brand} perfume decant. ${product.variants?.[0] ? `Starting at ₹${product.variants[0].price}.` : ""} Authentic, hand-filled, pan-India delivery.`;
-  }
+  const seo = buildProductSeoCopy({
+    name: product.name,
+    brand: product.brand,
+    variants: product.variants,
+    matchedVariant,
+  });
+  const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
 
   return {
-    title,
-    description,
+    title: seo.title,
+    description: seo.description,
     alternates: { canonical: canonicalUrl },
     openGraph: {
-      title,
-      description,
+      title: seo.title,
+      description: seo.description,
       url: canonicalUrl,
       type: "website",
       ...(product.image_url && {
-        images: [{ url: product.image_url, alt: product.name }],
+        images: [{ url: product.image_url, alt: seo.imageAlt }],
       }),
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: seo.title,
+      description: seo.description,
       ...(product.image_url && { images: [product.image_url] }),
     },
   };
@@ -120,59 +129,44 @@ export default async function ProductDetailPage({
   }
 
   const slug = product.slug || product._id || product.id;
-
   const sizeParam = sp.size ? parseInt(sp.size, 10) : null;
   const isPack = sp.pack === "true";
-  const matchedVariant =
-    sizeParam != null
-      ? product.variants?.find(
-          (v: any) => v.size_ml === sizeParam && !!v.is_pack === isPack
-        )
-      : null;
+  const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
 
-  const productJsonLd: Record<string, any> = {
-    "@context": "https://schema.org",
-    "@type": "Product",
+  const seo = buildProductSeoCopy({
     name: product.name,
-    description: product.description?.replace(/<[^>]*>/g, "").slice(0, 300),
-    brand: { "@type": "Brand", name: product.brand },
-    ...(product.image_url && { image: product.image_url }),
-  };
+    brand: product.brand,
+    variants: product.variants,
+    matchedVariant,
+  });
+  const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
 
-  if (matchedVariant) {
-    productJsonLd.offers = {
-      "@type": "Offer",
-      priceCurrency: "INR",
-      price: matchedVariant.price,
-      url: `https://decume.in/products/${slug}?size=${matchedVariant.size_ml}${isPack ? "&pack=true" : ""}`,
-      availability:
-        isPack
-          ? (matchedVariant.stock ?? 0) >= 1
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock"
-          : (product.stock_ml ?? 0) >= matchedVariant.size_ml
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock",
-    };
-  } else if (product.variants?.length > 0) {
-    productJsonLd.offers = {
-      "@type": "AggregateOffer",
-      priceCurrency: "INR",
-      lowPrice: Math.min(...product.variants.map((v: any) => v.price)),
-      highPrice: Math.max(...product.variants.map((v: any) => v.price)),
-      availability:
-        (product.stock_ml ?? 0) > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      offerCount: product.variants.length,
-    };
-  }
+  const productJsonLd = buildProductJsonLd({
+    name: product.name,
+    brand: product.brand,
+    description: product.description,
+    imageUrl: product.image_url,
+    slug,
+    stockMl: product.stock_ml,
+    variants: product.variants,
+    matchedVariant,
+    jsonLdName: seo.jsonLdName,
+  });
+
+  const breadcrumbJsonLd = buildProductBreadcrumbJsonLd({
+    productName: product.name,
+    canonicalUrl,
+  });
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <ProductDetailClient
         product={product}
