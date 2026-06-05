@@ -326,7 +326,7 @@ const ProductCard = React.memo(({
                       aria-pressed={isSelected}
                       title={outOfStock ? 'Currently out of stock' : undefined}
                       onClick={(e) => handleSelectVariant(e, v)}
-                      className={`shrink-0 min-w-[44px] px-2 py-1 text-[10px] font-bold uppercase tracking-wide border rounded-md transition-all ${
+                      className={`shrink-0 min-w-[43px] px-1.5 py-2 text-[10px] font-bold uppercase tracking-wide border rounded-md transition-all ${
                         outOfStock
                           ? isSelected
                             ? 'bg-gray-100 text-gray-500 border-emerald-700 ring-1 ring-emerald-700/30'
