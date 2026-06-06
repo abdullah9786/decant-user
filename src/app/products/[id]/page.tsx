@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import ProductDetailClient from "./ProductDetailClient";
+import SetDetailClient from "./SetDetailClient";
 import {
   buildProductBreadcrumbJsonLd,
   buildProductCanonicalUrl,
@@ -42,6 +43,18 @@ function resolveMatchedVariant(
   isPack: boolean,
 ): MatchedVariant | null {
   if (sizeParam == null) return null;
+  if (product.product_type === "set") {
+    const variant = product.variants?.find(
+      (v: any) => v.size_ml === sizeParam && !v.is_pack,
+    );
+    if (!variant) return null;
+    return {
+      size_ml: variant.size_ml,
+      price: variant.price,
+      is_pack: false,
+      stock: variant.stock,
+    };
+  }
   const variant = product.variants?.find(
     (v: any) => v.size_ml === sizeParam && !!v.is_pack === isPack,
   );
@@ -51,6 +64,17 @@ function resolveMatchedVariant(
     price: variant.price,
     is_pack: !!variant.is_pack,
     stock: variant.stock,
+  };
+}
+
+function seoInput(product: any, matchedVariant: MatchedVariant | null) {
+  return {
+    name: product.name,
+    brand: product.brand,
+    variants: product.variants,
+    matchedVariant,
+    productType: product.product_type,
+    setItemCount: product.set_items?.length ?? 0,
   };
 }
 
@@ -71,12 +95,7 @@ export async function generateMetadata({
   const isPack = sp.pack === "true";
   const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
 
-  const seo = buildProductSeoCopy({
-    name: product.name,
-    brand: product.brand,
-    variants: product.variants,
-    matchedVariant,
-  });
+  const seo = buildProductSeoCopy(seoInput(product, matchedVariant));
   const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
 
   return {
@@ -132,13 +151,9 @@ export default async function ProductDetailPage({
   const sizeParam = sp.size ? parseInt(sp.size, 10) : null;
   const isPack = sp.pack === "true";
   const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
+  const isSet = product.product_type === "set";
 
-  const seo = buildProductSeoCopy({
-    name: product.name,
-    brand: product.brand,
-    variants: product.variants,
-    matchedVariant,
-  });
+  const seo = buildProductSeoCopy(seoInput(product, matchedVariant));
   const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
 
   const productJsonLd = buildProductJsonLd({
@@ -168,13 +183,22 @@ export default async function ProductDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ProductDetailClient
-        product={product}
-        bottles={bottles}
-        initialSize={sizeParam}
-        initialIsPack={isPack}
-        initialBottleId={sp.bottle || null}
-      />
+      {isSet ? (
+        <SetDetailClient
+          product={product}
+          bottles={bottles}
+          initialSize={sizeParam}
+          initialBottleId={sp.bottle || null}
+        />
+      ) : (
+        <ProductDetailClient
+          product={product}
+          bottles={bottles}
+          initialSize={sizeParam}
+          initialIsPack={isPack}
+          initialBottleId={sp.bottle || null}
+        />
+      )}
     </>
   );
 }

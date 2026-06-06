@@ -8,7 +8,15 @@ import toast from 'react-hot-toast';
 import { ChipList, type ProductChip } from '@/components/ui/Chip';
 import { buildProductSeoCopy } from '@/lib/product/productSeo';
 import { isProductOutOfStock, isVariantInStock } from '@/lib/product/stock';
+import { getSetDecantVariants, isSetInStock, isSetProduct } from '@/lib/product/setStock';
 import { variantButtonLabel } from '@/lib/product/variantLabel';
+
+interface SetItemRef {
+  product_id: string;
+  name?: string;
+  brand?: string;
+  stock_ml?: number;
+}
 
 interface Variant {
   size_ml: number;
@@ -39,6 +47,8 @@ interface ProductCardProps {
   notes_base?: string[];
   chips?: ProductChip[];
   priceMode?: 'default' | 'pack';
+  product_type?: string;
+  set_items?: SetItemRef[];
 }
 
 const TOAST_STYLE = {
@@ -61,10 +71,16 @@ function variantsMatch(a: Variant, b: Variant): boolean {
 const ProductCard = React.memo(({
   id, _id, slug, name, brand, variants, stock_ml, image_url, is_featured, is_new_arrival,
   notes_top = [], notes_middle = [], notes_base = [], chips = [], priceMode = 'default',
+  product_type, set_items = [],
 }: ProductCardProps) => {
   const productId = id || _id;
   const productSlug = slug || productId;
   const availableMl = stock_ml ?? 0;
+  const isSet = isSetProduct({ product_type });
+  const setProductRef = useMemo(
+    () => ({ product_type, set_items, variants: variants ?? [] }),
+    [product_type, set_items, variants],
+  );
 
   const decantVariants = useMemo(
     () =>
@@ -82,28 +98,47 @@ const ProductCard = React.memo(({
     [variants],
   );
 
-  /** Default: decant pills when any decants exist, else pack. Pack mode: pack pills only. */
+  /** Default: decant pills when any decants exist, else pack. Sets use set-level decant sizes. */
   const pickerVariants = useMemo((): Variant[] | null => {
+    if (isSet) {
+      const setSizes = getSetDecantVariants(setProductRef);
+      return setSizes.length >= 1 ? setSizes as Variant[] : null;
+    }
     if (priceMode === 'pack') {
       return packVariants.length >= 1 ? packVariants : null;
     }
     if (decantVariants.length >= 1) return decantVariants;
     if (packVariants.length >= 1) return packVariants;
     return null;
-  }, [priceMode, decantVariants, packVariants]);
+  }, [priceMode, decantVariants, packVariants, isSet, setProductRef]);
 
   const initialPickerVariant = useMemo(() => {
     if (!pickerVariants) return null;
+    if (isSet) {
+      const inStock = pickerVariants.find((v) =>
+        isSetInStock(setProductRef, v.size_ml),
+      );
+      return inStock ?? pickerVariants[0];
+    }
     const inStock = pickerVariants.find((v) => isVariantInStock(v, availableMl));
     return inStock ?? pickerVariants[0];
-  }, [pickerVariants, availableMl]);
+  }, [pickerVariants, availableMl, isSet, setProductRef]);
 
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const activePickerVariant = selectedVariant ?? initialPickerVariant;
 
-  const showSizePicker = pickerVariants !== null;
+  const showSizePicker = pickerVariants !== null && pickerVariants.length > 0;
 
   const { defaultVariant, isOutOfStock } = useMemo(() => {
+    if (isSet) {
+      const setSizes = getSetDecantVariants(setProductRef);
+      const inStock = setSizes.find((v) => isSetInStock(setProductRef, v.size_ml));
+      const def = (inStock ?? setSizes[0] ?? null) as Variant | null;
+      return {
+        defaultVariant: def,
+        isOutOfStock: !def || !isSetInStock(setProductRef, def.size_ml),
+      };
+    }
     const inStockVariants = (variants ?? []).filter((v) =>
       isVariantInStock(v, availableMl),
     );
@@ -115,7 +150,7 @@ const ProductCard = React.memo(({
       defaultVariant: def,
       isOutOfStock: isProductOutOfStock({ variants, stock_ml }),
     };
-  }, [variants, stock_ml, availableMl]);
+  }, [variants, stock_ml, availableMl, isSet, setProductRef]);
 
   const singlePackVariant = useMemo(() => {
     if (packVariants.length === 1) return packVariants[0];
@@ -134,6 +169,8 @@ const ProductCard = React.memo(({
         name,
         brand,
         variants,
+        productType: product_type,
+        setItemCount: set_items.length,
         matchedVariant: activeVariant
           ? {
               size_ml: activeVariant.size_ml,
@@ -143,12 +180,32 @@ const ProductCard = React.memo(({
             }
           : null,
       }).imageAlt,
-    [name, brand, variants, activeVariant],
+    [name, brand, variants, activeVariant, product_type, set_items.length],
   );
 
-  const activeVariantOutOfStock = activeVariant
-    ? !isVariantInStock(activeVariant, availableMl)
-    : true;
+  const activeVariantOutOfStock = isSet
+    ? !activeVariant || !isSetInStock(setProductRef, activeVariant.size_ml)
+    : activeVariant
+      ? !isVariantInStock(activeVariant, availableMl)
+      : true;
+
+  const showOutOfStock = isSet ? activeVariantOutOfStock : isOutOfStock;
+
+  const setItemSnapshot = useMemo(
+    () =>
+      set_items.map((item) => ({
+        product_id: item.product_id,
+        name: item.name || '',
+        brand: item.brand || '',
+        size_ml: activeVariant?.size_ml ?? 0,
+      })),
+    [set_items, activeVariant?.size_ml],
+  );
+
+  const productHref =
+    isSet && activeVariant
+      ? `/products/${productSlug}?size=${activeVariant.size_ml}`
+      : `/products/${productSlug}`;
 
   const priceNode = useMemo(() => {
     if (activeVariant) return <>₹{activeVariant.price}</>;
@@ -168,15 +225,22 @@ const ProductCard = React.memo(({
     useCallback(
       (s) => {
         if (!activeVariant) return 0;
-        const match = s.items.find(
-          (item) =>
-            item.id === (productId as string) &&
+        const match = s.items.find((item) => {
+          if (item.id !== (productId as string)) return false;
+          if (isSet) {
+            return (
+              item.product_type === 'set' &&
+              item.size_ml === activeVariant.size_ml
+            );
+          }
+          return (
             item.size_ml === activeVariant.size_ml &&
-            !!item.is_pack === !!activeVariant.is_pack,
-        );
+            !!item.is_pack === !!activeVariant.is_pack
+          );
+        });
         return match?.quantity || 0;
       },
-      [productId, activeVariant],
+      [productId, activeVariant, isSet],
     ),
   );
 
@@ -202,6 +266,10 @@ const ProductCard = React.memo(({
       quantity: 1,
       image_url,
       is_pack: !!activeVariant.is_pack,
+      ...(isSet && {
+        product_type: 'set' as const,
+        set_items: setItemSnapshot,
+      }),
     });
 
     toast.success(`${name} (${variantButtonLabel(activeVariant)}) added to bag!`, {
@@ -215,11 +283,36 @@ const ProductCard = React.memo(({
     if (!activeVariant) return;
 
     if (quantityInCart > 1) {
-      updateQuantity(
+      if (isSet) {
+        updateQuantity(
+          productId as string,
+          activeVariant.size_ml,
+          quantityInCart - 1,
+          false,
+          undefined,
+          undefined,
+          undefined,
+          'set',
+          setItemSnapshot,
+        );
+      } else {
+        updateQuantity(
+          productId as string,
+          activeVariant.size_ml,
+          quantityInCart - 1,
+          activeVariant.is_pack,
+        );
+      }
+    } else if (isSet) {
+      removeItem(
         productId as string,
         activeVariant.size_ml,
-        quantityInCart - 1,
-        activeVariant.is_pack,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'set',
+        setItemSnapshot,
       );
     } else {
       removeItem(productId as string, activeVariant.size_ml, activeVariant.is_pack);
@@ -229,6 +322,20 @@ const ProductCard = React.memo(({
   const handleIncrement = (e: React.MouseEvent) => {
     stopNav(e);
     if (!activeVariant) return;
+    if (isSet) {
+      updateQuantity(
+        productId as string,
+        activeVariant.size_ml,
+        quantityInCart + 1,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'set',
+        setItemSnapshot,
+      );
+      return;
+    }
     updateQuantity(
       productId as string,
       activeVariant.size_ml,
@@ -244,12 +351,12 @@ const ProductCard = React.memo(({
 
   return (
     <Link
-      href={`/products/${productSlug}`}
+      href={productHref}
       className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-shadow duration-300 flex flex-col h-full"
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10 shrink-0">
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5">
-          {isOutOfStock ? (
+          {showOutOfStock ? (
             <span className="bg-rose-600 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
               Out of Stock
             </span>
@@ -281,7 +388,7 @@ const ProductCard = React.memo(({
             alt={imageAlt}
             fill
             sizes="(max-width: 1024px) 50vw, 25vw"
-            className={`object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03] ${isOutOfStock ? 'opacity-60 grayscale' : ''}`}
+            className={`object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03] ${showOutOfStock ? 'opacity-60 grayscale' : ''}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center font-serif text-slate-300 italic text-sm">
@@ -308,7 +415,7 @@ const ProductCard = React.memo(({
       <div className="p-3 md:p-5 flex flex-col flex-1 min-h-0">
         <div className="shrink-0">
           <p className="text-[11px] uppercase tracking-wider text-emerald-950 font-bold mb-1 leading-tight line-clamp-1">
-            {brand}
+            {isSet ? 'Curated Set' : brand}
           </p>
           <h3 className="font-serif text-[15px] md:text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700 mb-1.5">
             {name}
@@ -323,7 +430,9 @@ const ProductCard = React.memo(({
             <div className="mt-2 -mx-1 md:mt-2.5 md:mx-0 carousel-clip" onClick={stopNav}>
               <div className="carousel-scroll flex gap-1.5 flex-nowrap pb-2 -mb-2 md:pb-2 md:-mb-2">
                 {pickerVariants.map((v) => {
-                  const outOfStock = !isVariantInStock(v, availableMl);
+                  const outOfStock = isSet
+                    ? !isSetInStock(setProductRef, v.size_ml)
+                    : !isVariantInStock(v, availableMl);
                   const isSelected = activePickerVariant
                     ? variantsMatch(activePickerVariant, v)
                     : false;
@@ -378,7 +487,7 @@ const ProductCard = React.memo(({
                 +
               </button>
             </div>
-          ) : isOutOfStock || activeVariantOutOfStock ? (
+          ) : showOutOfStock ? (
             <button
               type="button"
               disabled

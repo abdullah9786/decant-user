@@ -38,6 +38,19 @@ async function getFeaturedProducts() {
   }
 }
 
+async function getFeaturedSets() {
+  try {
+    const res = await fetch(`${API_URL}/products?product_type=set&is_featured=true`, {
+      next: { revalidate: 600 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.filter((p: any) => p.product_type === 'set' && p.is_featured !== false);
+  } catch {
+    return [];
+  }
+}
+
 async function getFeaturedCategories() {
   try {
     const res = await fetch(`${API_URL}/categories?featured=true`, {
@@ -101,8 +114,9 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredFamilies, featuredCategories, dealResp] = await Promise.all([
+  const [featuredProducts, featuredSets, featuredFamilies, featuredCategories, dealResp] = await Promise.all([
     getFeaturedProducts(),
+    getFeaturedSets(),
     getFeaturedFamilies(),
     getFeaturedCategories(),
     getDailyDeal(),
@@ -111,14 +125,12 @@ export default async function HomePage() {
   const dailyDeal = dealResp?.deal ?? null;
   const dealProducts = dealResp?.products ?? [];
 
-  // Homepage product showcases only ever surface curated `is_featured` items.
-  // A featured product may have decant variants, pack (sealed bottle) variants,
-  // or both — it appears in whichever section(s) match.
+  // Sets have their own section — exclude them from decant / full-bottle rails.
   const decantProducts = featuredProducts.filter((p: any) =>
-    p.variants?.some((v: any) => !v.is_pack),
+    p.product_type !== 'set' && p.variants?.some((v: any) => !v.is_pack),
   );
   const fullBottleProducts = featuredProducts.filter((p: any) =>
-    p.variants?.some((v: any) => v.is_pack),
+    p.product_type !== 'set' && p.variants?.some((v: any) => v.is_pack),
   );
 
   return (
@@ -209,6 +221,18 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Sets */}
+      {featuredSets.length > 0 && (
+      <HomeSectionShell className="md:py-16">
+        <SectionHeader
+          eyebrow="Curated Collections"
+          title="Sets"
+          href="/products?type=set"
+        />
+        <FeaturedProducts products={featuredSets} compact />
+      </HomeSectionShell>
+      )}
 
       {/* Decants */}
       <HomeSectionShell className="md:py-16">

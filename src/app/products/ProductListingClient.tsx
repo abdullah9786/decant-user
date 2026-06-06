@@ -19,7 +19,7 @@ export default function ProductListingClient({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBrands, setFilterBrands] = useState<string[]>([]);
   const [filterFamilies, setFilterFamilies] = useState<string[]>([]);
-  const [filterType, setFilterType] = useState<'all' | 'decant' | 'full-bottle'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'decant' | 'full-bottle' | 'set'>('all');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterBrandOpen, setIsFilterBrandOpen] = useState(false);
   const [isFilterFamilyOpen, setIsFilterFamilyOpen] = useState(false);
@@ -33,7 +33,11 @@ export default function ProductListingClient({
     const typeParam = searchParams.get('type');
     setFilterFamilies(familyParams);
     setFilterBrands(brandParams);
-    setFilterType(typeParam === 'decant' || typeParam === 'full-bottle' ? typeParam : 'all');
+    setFilterType(
+      typeParam === 'decant' || typeParam === 'full-bottle' || typeParam === 'set'
+        ? typeParam
+        : 'all',
+    );
   }, [searchParams]);
 
   const brands = useMemo(() => {
@@ -58,9 +62,11 @@ export default function ProductListingClient({
     }
 
     if (filterType === 'decant') {
-      result = result.filter(p => p.variants?.some((v: any) => !v.is_pack));
+      result = result.filter(p => p.product_type !== 'set' && p.variants?.some((v: any) => !v.is_pack));
     } else if (filterType === 'full-bottle') {
-      result = result.filter(p => p.variants?.some((v: any) => v.is_pack));
+      result = result.filter(p => p.product_type !== 'set' && p.variants?.some((v: any) => v.is_pack));
+    } else if (filterType === 'set') {
+      result = result.filter(p => p.product_type === 'set');
     }
 
     if (sortBy === 'price-asc') {
@@ -74,7 +80,7 @@ export default function ProductListingClient({
     return result;
   }, [initialProducts, filterBrands, filterFamilies, filterType, sortBy, searchTerm]);
 
-  const updateUrl = (brands: string[], families: string[], type: 'all' | 'decant' | 'full-bottle') => {
+  const updateUrl = (brands: string[], families: string[], type: 'all' | 'decant' | 'full-bottle' | 'set') => {
     const params = new URLSearchParams();
     brands.forEach(b => params.append('brand', b));
     families.forEach(f => params.append('fragrance_family', f));
@@ -99,7 +105,7 @@ export default function ProductListingClient({
     });
   };
 
-  const handleTypeChange = (type: 'all' | 'decant' | 'full-bottle') => {
+  const handleTypeChange = (type: 'all' | 'decant' | 'full-bottle' | 'set') => {
     setFilterType(type);
     updateUrl(filterBrands, filterFamilies, type);
   };
@@ -213,7 +219,7 @@ export default function ProductListingClient({
             </div>
             
             <div className="flex items-center space-x-1 border border-gray-200 rounded-lg overflow-hidden">
-              {([['all', 'All'], ['decant', 'Decants'], ['full-bottle', 'Full Bottles']] as const).map(([value, label]) => (
+              {([['all', 'All'], ['set', 'Sets'], ['decant', 'Decants'], ['full-bottle', 'Full Bottles']] as const).map(([value, label]) => (
                 <button
                   key={value}
                   onClick={() => handleTypeChange(value)}
@@ -283,7 +289,7 @@ export default function ProductListingClient({
                 <div>
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-950 mb-4 border-b border-gray-100 pb-2">Type</h3>
                   <div className="space-y-3">
-                    {([['all', 'All Products'], ['decant', 'Decants'], ['full-bottle', 'Full Bottles']] as const).map(([value, label]) => (
+                    {([['all', 'All Products'], ['set', 'Sets'], ['decant', 'Decants'], ['full-bottle', 'Full Bottles']] as const).map(([value, label]) => (
                       <label key={value} className="flex items-center gap-3 font-serif text-lg cursor-pointer">
                         <input type="radio" name="mobile_type" checked={filterType === value} onChange={() => handleTypeChange(value)} className="h-4 w-4 accent-[#4B4136]" />
                         <span className={filterType === value ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{label}</span>

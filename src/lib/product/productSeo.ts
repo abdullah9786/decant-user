@@ -66,6 +66,8 @@ export function buildProductSeoCopy(input: {
   brand: string;
   variants?: ProductVariant[];
   matchedVariant?: MatchedVariant | null;
+  productType?: string;
+  setItemCount?: number;
 }): {
   title: string;
   description: string;
@@ -73,7 +75,32 @@ export function buildProductSeoCopy(input: {
   imageAlt: string;
   jsonLdName: string;
 } {
-  const { name, brand, variants, matchedVariant } = input;
+  const { name, brand, variants, matchedVariant, productType, setItemCount } = input;
+
+  if (productType === "set") {
+    const count = setItemCount ?? 0;
+    if (matchedVariant) {
+      const title = `${name} ${matchedVariant.size_ml}ml Decant Set`;
+      const description = `Buy the ${name} ${matchedVariant.size_ml}ml curated decant set at ₹${matchedVariant.price}. ${count} fragrances included. Authentic, hand-filled, pan-India delivery.`;
+      return {
+        title,
+        description,
+        formatLabel: `${matchedVariant.size_ml}ml Set · ${count} fragrances`,
+        imageAlt: `${name} ${matchedVariant.size_ml}ml decant set`,
+        jsonLdName: title,
+      };
+    }
+    const title = `${name} Decant Set`;
+    const description = `Buy the ${name} curated decant set. ${count} fragrances included. ${startingPrice(variants)}Authentic, hand-filled, pan-India delivery.`;
+    return {
+      title,
+      description,
+      formatLabel: `${count}-Fragrance Set`,
+      imageAlt: `${name} decant set`,
+      jsonLdName: title,
+    };
+  }
+
   const format = getProductFormat(variants);
 
   if (matchedVariant) {

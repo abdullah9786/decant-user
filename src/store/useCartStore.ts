@@ -8,6 +8,13 @@ export interface GiftBoxSelectedProduct {
     price: number;
 }
 
+export interface SetItemSnapshot {
+    product_id: string;
+    name: string;
+    brand: string;
+    size_ml: number;
+}
+
 export interface CartItem {
     id: string;
     name: string;
@@ -17,14 +24,14 @@ export interface CartItem {
     quantity: number;
     image_url?: string;
     is_pack?: boolean;
+    product_type?: 'single' | 'set';
+    set_items?: SetItemSnapshot[];
     gift_box_id?: string;
     gift_box_name?: string;
     selected_products?: GiftBoxSelectedProduct[];
     bottle_id?: string;
     bottle_name?: string;
     bottle_price?: number;
-    // Daily-deal annotations captured at add-to-cart time. Used for cart
-    // savings display + a hint to the user when a coupon is incompatible.
     original_price?: number;
     discount_percent?: number;
     deal_id?: string | null;
@@ -39,10 +46,23 @@ export interface FreeDecantItem {
     offer_id: string;
 }
 
-function cartKey(item: { id: string; size_ml: number; is_pack?: boolean; gift_box_id?: string; selected_products?: GiftBoxSelectedProduct[]; bottle_id?: string }) {
+function cartKey(item: {
+    id: string;
+    size_ml: number;
+    is_pack?: boolean;
+    product_type?: string;
+    set_items?: SetItemSnapshot[];
+    gift_box_id?: string;
+    selected_products?: GiftBoxSelectedProduct[];
+    bottle_id?: string;
+}) {
     if (item.gift_box_id && item.selected_products) {
         const ids = [...item.selected_products].map(s => s.product_id).sort().join(',');
         return `giftbox|${item.gift_box_id}|${ids}`;
+    }
+    if (item.product_type === 'set') {
+        const ids = [...(item.set_items || [])].map(s => s.product_id).sort().join(',');
+        return `set|${item.id}|${item.size_ml}|${ids}|${item.bottle_id || ''}`;
     }
     return `${item.id}|${item.size_ml}|${item.is_pack ? '1' : '0'}|${item.bottle_id || ''}`;
 }
@@ -50,6 +70,7 @@ function cartKey(item: { id: string; size_ml: number; is_pack?: boolean; gift_bo
 export function getQualifyingCount(items: CartItem[], minMl: number, qualifyingType: string = 'decant'): number {
     return items.reduce((count, item) => {
         if (item.gift_box_id) return count;
+        if (item.product_type === 'set') return count;
         const itemIsPack = !!item.is_pack;
         if (qualifyingType === 'decant' && itemIsPack) return count;
         if (qualifyingType === 'sealed' && !itemIsPack) return count;
@@ -62,8 +83,27 @@ interface CartState {
     items: CartItem[];
     freeDecants: FreeDecantItem[];
     addItem: (item: CartItem) => void;
-    removeItem: (id: string, size_ml: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[], bottle_id?: string) => void;
-    updateQuantity: (id: string, size_ml: number, quantity: number, is_pack?: boolean, gift_box_id?: string, selected_products?: GiftBoxSelectedProduct[], bottle_id?: string) => void;
+    removeItem: (
+        id: string,
+        size_ml: number,
+        is_pack?: boolean,
+        gift_box_id?: string,
+        selected_products?: GiftBoxSelectedProduct[],
+        bottle_id?: string,
+        product_type?: 'single' | 'set',
+        set_items?: SetItemSnapshot[],
+    ) => void;
+    updateQuantity: (
+        id: string,
+        size_ml: number,
+        quantity: number,
+        is_pack?: boolean,
+        gift_box_id?: string,
+        selected_products?: GiftBoxSelectedProduct[],
+        bottle_id?: string,
+        product_type?: 'single' | 'set',
+        set_items?: SetItemSnapshot[],
+    ) => void;
     clearCart: () => void;
     totalItems: () => number;
     totalPrice: () => number;
@@ -93,13 +133,13 @@ export const useCartStore = create<CartState>()(
                     set({ items: [...currentItems, newItem] });
                 }
             },
-            removeItem: (id, size_ml, is_pack, gift_box_id, selected_products, bottle_id) => {
-                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products, bottle_id });
+            removeItem: (id, size_ml, is_pack, gift_box_id, selected_products, bottle_id, product_type, set_items) => {
+                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products, bottle_id, product_type, set_items });
                 const newItems = get().items.filter((item) => cartKey(item) !== key);
                 set({ items: newItems });
             },
-            updateQuantity: (id, size_ml, quantity, is_pack, gift_box_id, selected_products, bottle_id) => {
-                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products, bottle_id });
+            updateQuantity: (id, size_ml, quantity, is_pack, gift_box_id, selected_products, bottle_id, product_type, set_items) => {
+                const key = cartKey({ id, size_ml, is_pack, gift_box_id, selected_products, bottle_id, product_type, set_items });
                 const updatedItems = get().items.map((item) =>
                     cartKey(item) === key ? { ...item, quantity } : item
                 );
@@ -122,13 +162,12 @@ export const useCartStore = create<CartState>()(
             clearFreeDecants: () => set({ freeDecants: [] }),
             trimFreeDecants: (entitled) => {
                 const current = get().freeDecants;
-                if (current.length > entitled) {
-                    set({ freeDecants: current.slice(0, entitled) });
-                }
+                if (current.length <= entitled) return;
+                set({ freeDecants: current.slice(0, entitled) });
             },
         }),
         {
-            name: 'cart-storage',
+            name: 'decume-cart',
         }
     )
 );

@@ -176,6 +176,10 @@ export default function CheckoutPage() {
           price: item.price,
           quantity: item.quantity,
           is_pack: !!item.is_pack,
+          product_type: item.product_type || 'single',
+          ...(item.product_type === 'set' && item.set_items && {
+            set_items: item.set_items,
+          }),
           ...(item.gift_box_id && {
             gift_box_id: item.gift_box_id,
             selected_products: item.selected_products,
@@ -251,6 +255,8 @@ export default function CheckoutPage() {
         size_ml: it.size_ml,
         quantity: it.quantity,
         is_pack: !!it.is_pack,
+        product_type: it.product_type || 'single',
+        ...(it.product_type === 'set' && it.set_items && { set_items: it.set_items }),
         ...(it.gift_box_id && {
           gift_box_id: it.gift_box_id,
           selected_products: it.selected_products,
