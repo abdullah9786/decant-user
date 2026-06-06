@@ -103,7 +103,7 @@ const ProductCard = React.memo(({
 
   const showSizePicker = pickerVariants !== null;
 
-  const { defaultVariant, hasDecant, hasPack, isOutOfStock } = useMemo(() => {
+  const { defaultVariant, isOutOfStock } = useMemo(() => {
     const inStockVariants = (variants ?? []).filter((v) =>
       isVariantInStock(v, availableMl),
     );
@@ -113,8 +113,6 @@ const ProductCard = React.memo(({
       : null;
     return {
       defaultVariant: def,
-      hasDecant: variants?.some((v) => !v.is_pack),
-      hasPack: variants?.some((v) => v.is_pack),
       isOutOfStock: isProductOutOfStock({ variants, stock_ml }),
     };
   }, [variants, stock_ml, availableMl]);
@@ -317,15 +315,6 @@ const ProductCard = React.memo(({
           </h3>
           <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
             {priceNode}
-          </p>
-          <p className="text-[9px] uppercase tracking-widest text-slate-400 font-medium mt-0.5">
-            {priceMode === 'pack'
-              ? 'Sealed Bottle'
-              : hasDecant && hasPack
-                ? 'Decant · Sealed Bottle'
-                : hasDecant
-                  ? 'Decant'
-                  : 'Sealed Bottle'}
           </p>
         </div>
 
