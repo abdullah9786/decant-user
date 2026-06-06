@@ -152,6 +152,18 @@ export default async function HomePage() {
 
       <TopCategories categories={featuredCategories} />
 
+      {/* Sets */}
+      {featuredSets.length > 0 && (
+      <HomeSectionShell className="md:py-16">
+        <SectionHeader
+          eyebrow="Curated Collections"
+          title="Sets"
+          href="/products?type=set"
+        />
+        <FeaturedProducts products={featuredSets} compact />
+      </HomeSectionShell>
+      )}
+
       {/* Shop for Him & Her */}
       <section className="pt-12 pb-6 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -221,18 +233,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Sets */}
-      {featuredSets.length > 0 && (
-      <HomeSectionShell className="md:py-16">
-        <SectionHeader
-          eyebrow="Curated Collections"
-          title="Sets"
-          href="/products?type=set"
-        />
-        <FeaturedProducts products={featuredSets} compact />
-      </HomeSectionShell>
-      )}
 
       {/* Decants */}
       <HomeSectionShell className="md:py-16">
