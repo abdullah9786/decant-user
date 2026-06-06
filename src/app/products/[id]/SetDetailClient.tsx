@@ -3,14 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { ChevronRight, ShoppingBag, ShieldCheck, Star, Truck } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import { ChipList } from "@/components/ui/Chip";
 import PriceTag from "@/components/deal/PriceTag";
 import { buildProductSeoCopy } from "@/lib/product/productSeo";
-import { getSetDecantVariants, isSetInStock } from "@/lib/product/setStock";
+import { getSetDecantVariants, isSetInStock, normalizeSizeMl, sizesMatch } from "@/lib/product/setStock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
 
 interface SetDetailClientProps {
@@ -26,34 +25,40 @@ export default function SetDetailClient({
   initialSize = null,
   initialBottleId = null,
 }: SetDetailClientProps) {
-  const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
   const productId = product.id || product._id;
   const slug = product.slug || productId;
   const setItems = product.set_items ?? [];
-  const decantVariants = getSetDecantVariants(product);
-
-  const firstInStock = decantVariants.find((v) => isSetInStock(product, v.size_ml));
-  const urlVariantMatch =
-    initialSize != null
-      ? decantVariants.find((v) => v.size_ml === initialSize)
-      : null;
-  const initialVariant = urlVariantMatch ?? firstInStock ?? decantVariants[0];
-
-  const [selectedSize, setSelectedSize] = useState<number | null>(
-    initialVariant?.size_ml ?? null,
+  const decantVariants = useMemo(
+    () => getSetDecantVariants(product),
+    [product],
   );
+
+  const normalizedInitialSize =
+    initialSize != null ? normalizeSizeMl(initialSize) : null;
+
+  const pickDefaultVariant = useCallback(() => {
+    const firstInStock = decantVariants.find((v) =>
+      isSetInStock(product, v.size_ml),
+    );
+    if (normalizedInitialSize != null) {
+      const fromUrl = decantVariants.find((v) =>
+        sizesMatch(v.size_ml, normalizedInitialSize),
+      );
+      if (fromUrl) return fromUrl;
+    }
+    return firstInStock ?? decantVariants[0] ?? null;
+  }, [decantVariants, normalizedInitialSize, product]);
+
+  const [selectedSize, setSelectedSize] = useState<number | null>(() => {
+    const def = pickDefaultVariant();
+    return def?.size_ml ?? null;
+  });
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [sanitizedDescription, setSanitizedDescription] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(
     initialBottleId,
   );
-
-  useEffect(() => {
-    if (initialSize != null && decantVariants.some((v) => v.size_ml === initialSize)) {
-      setSelectedSize(initialSize);
-    }
-  }, [initialSize, decantVariants]);
 
   useEffect(() => {
     if (!product?.description) return;
@@ -67,8 +72,10 @@ export default function SetDetailClient({
   }, [product?.description]);
 
   const currentVariant = useMemo(
-    () => decantVariants.find((v) => v.size_ml === selectedSize) ?? initialVariant,
-    [decantVariants, selectedSize, initialVariant],
+    () =>
+      decantVariants.find((v) => sizesMatch(v.size_ml, selectedSize)) ??
+      pickDefaultVariant(),
+    [decantVariants, selectedSize, pickDefaultVariant],
   );
 
   const selectedMl = currentVariant?.size_ml ?? 0;
@@ -125,15 +132,22 @@ export default function SetDetailClient({
 
   const updateUrl = useCallback(
     (size: number | null, bottleId: string | null) => {
-      const params = new URLSearchParams();
-      if (size != null) params.set("size", String(size));
-      if (bottleId) params.set("bottle", bottleId);
+      const params = new URLSearchParams(window.location.search);
+      if (size != null && size > 0) {
+        params.set("size", String(size));
+      } else {
+        params.delete("size");
+      }
+      if (bottleId) {
+        params.set("bottle", bottleId);
+      } else {
+        params.delete("bottle");
+      }
       const qs = params.toString();
-      router.replace(qs ? `/products/${slug}?${qs}` : `/products/${slug}`, {
-        scroll: false,
-      });
+      const path = qs ? `/products/${slug}?${qs}` : `/products/${slug}`;
+      window.history.replaceState(null, "", path);
     },
-    [router, slug],
+    [slug],
   );
 
   useEffect(() => {
@@ -166,8 +180,9 @@ export default function SetDetailClient({
   }, [selectedMl, availableBottles.length]);
 
   const selectSize = (size: number) => {
-    setSelectedSize(size);
-    updateUrl(size, selectedBottleId);
+    const normalized = normalizeSizeMl(size);
+    setSelectedSize(normalized);
+    updateUrl(normalized, selectedBottleId);
   };
 
   const handleAddToCart = () => {
@@ -298,7 +313,7 @@ export default function SetDetailClient({
                 <div className="flex flex-wrap gap-2">
                   {decantVariants.map((v) => {
                     const outOfStock = !isSetInStock(product, v.size_ml);
-                    const isSelected = selectedSize === v.size_ml;
+                    const isSelected = sizesMatch(selectedSize, v.size_ml);
                     return (
                       <button
                         key={v.size_ml}

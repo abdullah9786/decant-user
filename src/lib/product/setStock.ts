@@ -20,8 +20,20 @@ export function isSetProduct(product: { product_type?: string }): boolean {
   return product.product_type === "set";
 }
 
+/** Coerce API variant sizes (number or string) to a stable number for comparisons. */
+export function normalizeSizeMl(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function sizesMatch(a: unknown, b: unknown): boolean {
+  return normalizeSizeMl(a) === normalizeSizeMl(b);
+}
+
 export function getSetDecantVariants(product: SetProductRef) {
-  return (product.variants ?? []).filter((v) => !v.is_pack && v.size_ml > 0);
+  return (product.variants ?? [])
+    .filter((v) => !v.is_pack && normalizeSizeMl(v.size_ml) > 0)
+    .map((v) => ({ ...v, size_ml: normalizeSizeMl(v.size_ml) }));
 }
 
 /** A set size is available when every linked fragrance has enough ml. */

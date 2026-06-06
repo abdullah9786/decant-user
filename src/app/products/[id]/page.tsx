@@ -45,7 +45,8 @@ function resolveMatchedVariant(
   if (sizeParam == null) return null;
   if (product.product_type === "set") {
     const variant = product.variants?.find(
-      (v: any) => v.size_ml === sizeParam && !v.is_pack,
+      (v: any) =>
+        Number(v.size_ml) === sizeParam && !v.is_pack,
     );
     if (!variant) return null;
     return {
