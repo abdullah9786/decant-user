@@ -386,9 +386,9 @@ export default function SetDetailClient({
                   Each fragrance in this {selectedMl}ml set:
                 </p>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {setItems.map((item: any) => (
+                  {setItems.map((item: any, index: number) => (
                     <Link
-                      key={item.product_id}
+                      key={`${item.product_id}-${index}`}
                       href={`/products/${item.slug || item.product_id}`}
                       className="flex flex-col items-center text-center gap-2 p-2.5 sm:flex-row sm:items-center sm:text-left sm:gap-3 sm:p-3 rounded-xl border border-gray-100 hover:border-emerald-200 transition-colors"
                     >
