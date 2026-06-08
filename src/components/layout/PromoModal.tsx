@@ -8,7 +8,7 @@ import { X, ArrowRight } from "lucide-react";
 import { useActiveDeal, type DealProduct } from "@/components/deal/ActiveDealProvider";
 import { isProductOutOfStock } from "@/lib/product/stock";
 import DealCountdown from "@/components/deal/DealCountdown";
-import { DEAL_HIDDEN_PREFIXES, formatDealEnd } from "@/components/deal/constants";
+import { DEAL_HIDDEN_PREFIXES, deepenAccent, formatDealEnd, lightenAccent } from "@/components/deal/constants";
 
 const STORAGE_KEY = "decume-promo-dismissed-at";
 const DEAL_STORAGE_PREFIX = "decume-deal-promo-dismissed-at:";
@@ -81,6 +81,77 @@ export default function PromoModal() {
   // non-deal evergreen pitch than push a sold-out card.
   const hero = products?.find((p) => !isProductOutOfStock(p));
   const isDealMode = Boolean(deal && hero);
+
+  const dealTheme = useMemo(() => {
+    if (!isDealMode || !deal) return null;
+    const accent = deal.display?.accent_color || "#dc2626";
+    const deep = deepenAccent(accent);
+    const light = lightenAccent(accent);
+    // White-based type hierarchy reads reliably on any accent canvas — tinted
+    // accent text (lightAccent on deepAccent) fails for red-on-red palettes.
+    const text = {
+      primary: "#ffffff",
+      secondary: "rgba(255,255,255,0.92)",
+      body: "rgba(255,255,255,0.88)",
+      muted: "rgba(255,255,255,0.74)",
+      faint: "rgba(255,255,255,0.62)",
+      border: "rgba(255,255,255,0.22)",
+      borderStrong: "rgba(255,255,255,0.38)",
+    };
+    return {
+      accent,
+      deep,
+      light,
+      text,
+      shell: {
+        backgroundColor: deep,
+        backgroundImage: `
+          radial-gradient(circle at 0% 0%, ${accent}55 0%, transparent 50%),
+          radial-gradient(circle at 100% 100%, ${accent}44 0%, transparent 55%),
+          linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.38) 100%)
+        `,
+      },
+      frameBorder: text.borderStrong,
+      close: {
+        borderColor: text.borderStrong,
+        backgroundColor: "rgba(0,0,0,0.35)",
+        color: text.primary,
+      },
+      imageBg: `linear-gradient(to bottom right, #ffffff, ${accent}10, ${accent}18)`,
+      contentScrim:
+        "linear-gradient(105deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.22) 40%, rgba(0,0,0,0.38) 100%)",
+      badge: {
+        backgroundColor: "rgba(0,0,0,0.32)",
+        borderColor: text.borderStrong,
+        dotColor: light,
+        textColor: text.primary,
+      },
+      brand: text.secondary,
+      tagline: text.body,
+      divider: text.borderStrong,
+      body: text.body,
+      muted: text.muted,
+      faint: text.faint,
+      highlight: text.primary,
+      priceBorder: text.border,
+      countdown: {
+        backgroundColor: "rgba(0,0,0,0.35)",
+        borderColor: text.borderStrong,
+        color: text.primary,
+      },
+      cta: {
+        backgroundColor: "#ffffff",
+        color: deep,
+      },
+      ctaSecondary: {
+        backgroundColor: "transparent",
+        borderColor: text.borderStrong,
+        color: text.secondary,
+      },
+      dismiss: text.muted,
+      headlineShadow: "0 1px 3px rgba(0,0,0,0.45)",
+    };
+  }, [isDealMode, deal]);
 
   // Use a deal-scoped cooldown key when a deal is active. That way, dismissing
   // yesterday's promo doesn't auto-dismiss today's new deal.
@@ -208,22 +279,46 @@ export default function PromoModal() {
         onClick={dismiss}
       />
 
-      <div className="relative z-10 w-full max-w-4xl max-h-[70vh] sm:max-h-[88vh] flex flex-col overflow-hidden bg-emerald-950 text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in-95 duration-500">
-        <div className="pointer-events-none absolute inset-3 border border-amber-400/20 z-10" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.16),_transparent_55%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.18),_transparent_55%)]" />
+      <div
+        className={`relative z-10 w-full max-w-4xl max-h-[70vh] sm:max-h-[88vh] flex flex-col overflow-hidden text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in-95 duration-500${
+          dealTheme ? "" : " bg-emerald-950"
+        }`}
+        style={dealTheme?.shell}
+      >
+        <div
+          className={`pointer-events-none absolute inset-3 border z-10${
+            dealTheme ? "" : " border-amber-400/20"
+          }`}
+          style={dealTheme ? { borderColor: dealTheme.frameBorder } : undefined}
+        />
+        {!dealTheme && (
+          <>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.16),_transparent_55%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.18),_transparent_55%)]" />
+          </>
+        )}
 
         <button
           type="button"
           onClick={dismiss}
           aria-label="Close promotion"
-          className="absolute top-4 right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-amber-400/30 bg-emerald-950 hover:bg-amber-400 hover:text-emerald-950 text-amber-200 flex items-center justify-center transition-colors"
+          className={`absolute top-4 right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-opacity hover:opacity-90${
+            dealTheme
+              ? ""
+              : " border-amber-400/30 bg-emerald-950 hover:bg-amber-400 hover:text-emerald-950 text-amber-200 transition-colors"
+          }`}
+          style={dealTheme ? dealTheme.close : undefined}
         >
           <X size={16} />
         </button>
 
         <div className="relative grid grid-cols-1 md:grid-cols-2 md:items-stretch flex-1 min-h-0">
-          <div className="relative h-40 sm:h-56 md:h-auto md:min-h-full overflow-hidden bg-gradient-to-br from-amber-50 via-white to-amber-100/70">
+          <div
+            className={`relative h-40 sm:h-56 md:h-auto md:min-h-full overflow-hidden${
+              dealTheme ? "" : " bg-gradient-to-br from-amber-50 via-white to-amber-100/70"
+            }`}
+            style={dealTheme ? { background: dealTheme.imageBg } : undefined}
+          >
             <Image
               src={content.imageUrl}
               alt={`${content.brand} ${content.name}`}
@@ -236,83 +331,162 @@ export default function PromoModal() {
           </div>
 
           <div className="relative p-5 sm:p-8 md:p-10 md:py-12 flex flex-col min-h-0 md:overflow-y-auto md:overscroll-contain">
+            {dealTheme && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{ background: dealTheme.contentScrim }}
+              />
+            )}
+            <div className="relative z-[1] flex flex-col min-h-0 flex-1">
             <div
-              className="inline-flex items-center gap-2 self-start mb-3 sm:mb-5 px-2.5 py-1 sm:px-3 sm:py-1.5 border text-amber-200"
+              className={`inline-flex items-center gap-2 self-start mb-3 sm:mb-5 px-2.5 py-1 sm:px-3 sm:py-1.5 border${
+                dealTheme ? "" : " text-amber-200"
+              }`}
               style={
-                content.accentColor
-                  ? { backgroundColor: `${content.accentColor}26`, borderColor: `${content.accentColor}66` }
-                  : { backgroundColor: 'rgba(251,191,36,0.15)', borderColor: 'rgba(252,211,77,0.4)' }
+                dealTheme
+                  ? {
+                      backgroundColor: dealTheme.badge.backgroundColor,
+                      borderColor: dealTheme.badge.borderColor,
+                      color: dealTheme.badge.textColor,
+                    }
+                  : { backgroundColor: "rgba(251,191,36,0.15)", borderColor: "rgba(252,211,77,0.4)" }
               }
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse" />
+              <span
+                className={`w-1.5 h-1.5 rounded-full animate-pulse${
+                  dealTheme ? "" : " bg-amber-300"
+                }`}
+                style={dealTheme ? { backgroundColor: dealTheme.badge.dotColor } : undefined}
+              />
               <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] font-bold">
                 {content.badge}
               </span>
             </div>
 
-            <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.4em] text-amber-300 font-bold mb-1.5 sm:mb-3">
+            <p
+              className={`text-[9px] sm:text-[10px] uppercase tracking-[0.4em] font-bold mb-1.5 sm:mb-3${
+                dealTheme ? "" : " text-amber-300"
+              }`}
+              style={dealTheme ? { color: dealTheme.brand } : undefined}
+            >
               {content.brand}
             </p>
 
             <h2
               id="promo-modal-headline"
               className="font-serif text-2xl sm:text-4xl md:text-5xl leading-[1.05] text-white"
+              style={dealTheme ? { textShadow: dealTheme.headlineShadow } : undefined}
             >
               {content.name}
             </h2>
 
             {content.tagline && (
-              <p className="hidden sm:block mt-4 font-serif italic text-base sm:text-lg text-amber-100/80">
+              <p
+                className={`hidden sm:block mt-4 font-serif italic text-base sm:text-lg${
+                  dealTheme ? "" : " text-amber-100/80"
+                }`}
+                style={dealTheme ? { color: dealTheme.tagline } : undefined}
+              >
                 &ldquo;{content.tagline}&rdquo;
               </p>
             )}
 
-            <div className="hidden sm:block mt-5 h-px w-16 bg-amber-300/40" />
+            <div
+              className={`hidden sm:block mt-5 h-px w-16${dealTheme ? "" : " bg-amber-300/40"}`}
+              style={dealTheme ? { backgroundColor: dealTheme.divider } : undefined}
+            />
 
             {content.description && (
-              <p className="hidden sm:block mt-5 text-sm leading-relaxed text-emerald-100/80">
+              <p
+                className={`hidden sm:block mt-5 text-sm leading-relaxed${
+                  dealTheme ? "" : " text-emerald-100/80"
+                }`}
+                style={dealTheme ? { color: dealTheme.body } : undefined}
+              >
                 {content.description}
               </p>
             )}
 
             <div
-              className={`mt-4 sm:mt-6 border-y border-amber-300/15 ${
-                hasRetailAnchor ? 'grid grid-cols-2' : ''
-              }`}
+              className={`mt-4 sm:mt-6 border-y${
+                hasRetailAnchor ? " grid grid-cols-2" : ""
+              }${dealTheme ? "" : " border-amber-300/15"}`}
+              style={dealTheme ? { borderColor: dealTheme.priceBorder } : undefined}
             >
               {/* Left column: retail anchor — only shown when the hero
                   product actually has a full-bottle ("pack") variant. For
                   decant-only deals this column is omitted and the deal
                   panel takes the full width below. */}
               {hasRetailAnchor && (
-                <div className="py-3 sm:py-4 pr-3 sm:pr-4 border-r border-amber-300/15">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-200/50 font-bold mb-1 sm:mb-1.5">
+                <div
+                  className={`py-3 sm:py-4 pr-3 sm:pr-4 border-r${
+                    dealTheme ? "" : " border-amber-300/15"
+                  }`}
+                  style={dealTheme ? { borderColor: dealTheme.priceBorder } : undefined}
+                >
+                  <p
+                    className={`text-[9px] uppercase tracking-[0.3em] font-bold mb-1 sm:mb-1.5${
+                      dealTheme ? "" : " text-emerald-200/50"
+                    }`}
+                    style={dealTheme ? { color: dealTheme.muted } : undefined}
+                  >
                     Retail Bottle
                   </p>
                   <p
-                    className="font-serif text-lg sm:text-2xl text-emerald-100/70 line-through decoration-emerald-100/30"
+                    className={`font-serif text-lg sm:text-2xl line-through${
+                      dealTheme ? "" : " text-emerald-100/70 decoration-emerald-100/30"
+                    }`}
+                    style={
+                      dealTheme
+                        ? {
+                            color: dealTheme.faint,
+                            textDecorationColor: dealTheme.text.borderStrong,
+                          }
+                        : undefined
+                    }
                     aria-label={`Retail price ${content.bottlePrice}`}
                   >
                     {content.bottlePrice}
                   </p>
-                  <p className="text-[9px] sm:text-[10px] text-emerald-300/50 mt-0.5 uppercase tracking-widest">
+                  <p
+                    className={`text-[9px] sm:text-[10px] mt-0.5 uppercase tracking-widest${
+                      dealTheme ? "" : " text-emerald-300/50"
+                    }`}
+                    style={dealTheme ? { color: dealTheme.muted } : undefined}
+                  >
                     {content.bottleSize}
                   </p>
                 </div>
               )}
               <div
                 className={`py-3 sm:py-4 relative ${
-                  hasRetailAnchor ? 'pl-3 sm:pl-4' : ''
+                  hasRetailAnchor ? "pl-3 sm:pl-4" : ""
                 }`}
               >
-                <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300 font-bold mb-1 sm:mb-1.5">
+                <p
+                  className={`text-[9px] uppercase tracking-[0.3em] font-bold mb-1 sm:mb-1.5${
+                    dealTheme ? "" : " text-amber-300"
+                  }`}
+                  style={dealTheme ? { color: dealTheme.muted } : undefined}
+                >
                   {content.decantSubtitle}
                 </p>
-                <p className="font-serif text-lg sm:text-2xl text-amber-300">
+                <p
+                  className={`font-serif text-lg sm:text-2xl${
+                    dealTheme ? "" : " text-amber-300"
+                  }`}
+                  style={dealTheme ? { color: dealTheme.highlight } : undefined}
+                >
                   From{" "}
                   <span className="text-xl sm:text-3xl">{content.decantFrom}</span>
                 </p>
-                <p className="text-[9px] sm:text-[10px] text-amber-200/60 mt-0.5 uppercase tracking-widest">
+                <p
+                  className={`text-[9px] sm:text-[10px] mt-0.5 uppercase tracking-widest${
+                    dealTheme ? "" : " text-amber-200/60"
+                  }`}
+                  style={dealTheme ? { color: dealTheme.muted } : undefined}
+                >
                   {isDealMode && content.endsAt
                     ? `Ends ${formatDealEnd(content.endsAt)}`
                     : "Hand-filled · Authentic"}
@@ -321,8 +495,19 @@ export default function PromoModal() {
             </div>
 
             {isDealMode && content.endsAt && (
-              <div className="mt-4 inline-flex items-center self-start px-3 py-1.5 rounded-full bg-amber-400/10 border border-amber-300/30 text-amber-200">
-                <DealCountdown endsAt={content.endsAt} compact className="text-[11px]" />
+              <div
+                className={`mt-4 inline-flex items-center self-start px-3 py-1.5 rounded-full border${
+                  dealTheme ? "" : " bg-amber-400/10 border-amber-300/30 text-amber-200"
+                }`}
+                style={dealTheme ? dealTheme.countdown : undefined}
+              >
+                <DealCountdown
+                  endsAt={content.endsAt}
+                  compact
+                  className="text-[11px]"
+                  tileBg={dealTheme?.deep}
+                  tileFg="#ffffff"
+                />
               </div>
             )}
 
@@ -331,12 +516,25 @@ export default function PromoModal() {
                 {content.notes.map((n) => (
                   <div
                     key={n.label}
-                    className="flex items-baseline gap-4 border-b border-amber-300/10 pb-2 last:border-b-0"
+                    className={`flex items-baseline gap-4 border-b pb-2 last:border-b-0${
+                      dealTheme ? "" : " border-amber-300/10"
+                    }`}
+                    style={dealTheme ? { borderColor: dealTheme.priceBorder } : undefined}
                   >
-                    <dt className="text-[10px] uppercase tracking-[0.3em] text-amber-300/80 font-bold w-14 flex-shrink-0">
+                    <dt
+                      className={`text-[10px] uppercase tracking-[0.3em] font-bold w-14 flex-shrink-0${
+                        dealTheme ? "" : " text-amber-300/80"
+                      }`}
+                      style={dealTheme ? { color: dealTheme.muted } : undefined}
+                    >
                       {n.label}
                     </dt>
-                    <dd className="text-sm text-emerald-50/90 font-serif italic">
+                    <dd
+                      className={`text-sm font-serif italic${
+                        dealTheme ? "" : " text-emerald-50/90"
+                      }`}
+                      style={dealTheme ? { color: dealTheme.body } : undefined}
+                    >
                       {n.value}
                     </dd>
                   </div>
@@ -348,7 +546,14 @@ export default function PromoModal() {
               <Link
                 href={content.ctaHref}
                 onClick={dismiss}
-                className="group flex-1 inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-4 bg-amber-400 text-emerald-950 text-[11px] sm:text-xs font-bold uppercase tracking-[0.25em] hover:bg-amber-300 transition-all"
+                className={`group flex-1 inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-4 text-[11px] sm:text-xs font-bold uppercase tracking-[0.25em] transition-all shadow-lg${
+                  dealTheme ? " hover:brightness-95" : " bg-amber-400 text-emerald-950 hover:bg-amber-300"
+                }`}
+                style={
+                  dealTheme
+                    ? { ...dealTheme.cta, boxShadow: "0 8px 24px rgba(0,0,0,0.35)" }
+                    : undefined
+                }
               >
                 <span>{content.ctaLabel}</span>
                 <ArrowRight
@@ -359,10 +564,14 @@ export default function PromoModal() {
               <button
                 type="button"
                 onClick={dismiss}
-                className="px-5 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-emerald-200/60 hover:text-amber-200 transition-colors"
+                className={`px-5 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] transition-colors${
+                  dealTheme ? " hover:text-white" : " text-emerald-200/60 hover:text-amber-200"
+                }`}
+                style={dealTheme ? { color: dealTheme.dismiss } : undefined}
               >
                 Not Now
               </button>
+            </div>
             </div>
           </div>
         </div>
