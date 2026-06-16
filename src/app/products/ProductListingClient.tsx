@@ -365,7 +365,7 @@ export default function ProductListingClient({
         )}
 
         {filteredAndSortedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8 lg:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 -mx-4 px-2 md:-mx-7 md:px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {filteredAndSortedProducts.map((product) => (
               <ProductCard key={product._id || product.id} {...product} />
             ))}
