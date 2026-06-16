@@ -37,6 +37,19 @@ async function getBottles() {
   }
 }
 
+async function getRelatedProducts(idOrSlug: string) {
+  try {
+    const res = await fetch(
+      `${API_URL}/products/${encodeURIComponent(idOrSlug)}/related?limit=4`,
+      { next: { revalidate: 600 } },
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 function resolveMatchedVariant(
   product: any,
   sizeParam: number | null,
@@ -153,6 +166,7 @@ export default async function ProductDetailPage({
   const isPack = sp.pack === "true";
   const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
   const isSet = product.product_type === "set";
+  const relatedProducts = await getRelatedProducts(String(slug));
 
   const seo = buildProductSeoCopy(seoInput(product, matchedVariant));
   const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
@@ -190,6 +204,7 @@ export default async function ProductDetailPage({
           bottles={bottles}
           initialSize={sizeParam}
           initialBottleId={sp.bottle || null}
+          relatedProducts={relatedProducts}
         />
       ) : (
         <ProductDetailClient
@@ -198,6 +213,7 @@ export default async function ProductDetailPage({
           initialSize={sizeParam}
           initialIsPack={isPack}
           initialBottleId={sp.bottle || null}
+          relatedProducts={relatedProducts}
         />
       )}
     </>

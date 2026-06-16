@@ -11,12 +11,14 @@ import PriceTag from "@/components/deal/PriceTag";
 import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { getSetDecantVariants, isSetInStock, normalizeSizeMl, sizesMatch } from "@/lib/product/setStock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
+import SuggestedProducts from "@/components/product/SuggestedProducts";
 
 interface SetDetailClientProps {
   product: any;
   bottles?: any[];
   initialSize?: number | null;
   initialBottleId?: string | null;
+  relatedProducts?: any[];
 }
 
 export default function SetDetailClient({
@@ -24,6 +26,7 @@ export default function SetDetailClient({
   bottles = [],
   initialSize = null,
   initialBottleId = null,
+  relatedProducts = [],
 }: SetDetailClientProps) {
   const addItem = useCartStore((state) => state.addItem);
   const productId = product.id || product._id;
@@ -457,6 +460,12 @@ export default function SetDetailClient({
           </div>
         </div>
       </div>
+
+      <SuggestedProducts
+        products={relatedProducts}
+        fragranceFamily={product.fragrance_family}
+        brand={product.brand}
+      />
     </div>
   );
 }

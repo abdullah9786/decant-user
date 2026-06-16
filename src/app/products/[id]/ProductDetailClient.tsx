@@ -25,6 +25,7 @@ import { deepenAccent, formatDealEnd } from "@/components/deal/constants";
 import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { isVariantInStock } from "@/lib/product/stock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
+import SuggestedProducts from "@/components/product/SuggestedProducts";
 
 interface ProductDetailClientProps {
   product: any;
@@ -32,6 +33,7 @@ interface ProductDetailClientProps {
   initialSize?: number | null;
   initialIsPack?: boolean;
   initialBottleId?: string | null;
+  relatedProducts?: any[];
 }
 
 export default function ProductDetailClient({
@@ -40,6 +42,7 @@ export default function ProductDetailClient({
   initialSize = null,
   initialIsPack = false,
   initialBottleId = null,
+  relatedProducts = [],
 }: ProductDetailClientProps) {
   const router = useRouter();
   // Pick a sensible default size:
@@ -819,6 +822,12 @@ export default function ProductDetailClient({
           </div>
         </div>
       </section>
+
+      <SuggestedProducts
+        products={relatedProducts}
+        fragranceFamily={product.fragrance_family}
+        brand={product.brand}
+      />
 
       {/* Conviction CTA */}
       <section className="py-8 md:py-16">
