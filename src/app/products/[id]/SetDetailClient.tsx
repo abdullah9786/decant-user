@@ -461,11 +461,7 @@ export default function SetDetailClient({
         </div>
       </div>
 
-      <SuggestedProducts
-        products={relatedProducts}
-        fragranceFamily={product.fragrance_family}
-        brand={product.brand}
-      />
+      <SuggestedProducts products={relatedProducts} />
     </div>
   );
 }

@@ -823,11 +823,7 @@ export default function ProductDetailClient({
         </div>
       </section>
 
-      <SuggestedProducts
-        products={relatedProducts}
-        fragranceFamily={product.fragrance_family}
-        brand={product.brand}
-      />
+      <SuggestedProducts products={relatedProducts} />
 
       {/* Conviction CTA */}
       <section className="py-8 md:py-16">

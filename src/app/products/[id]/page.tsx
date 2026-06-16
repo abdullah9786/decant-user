@@ -40,7 +40,7 @@ async function getBottles() {
 async function getRelatedProducts(idOrSlug: string) {
   try {
     const res = await fetch(
-      `${API_URL}/products/${encodeURIComponent(idOrSlug)}/related?limit=4`,
+      `${API_URL}/products/${encodeURIComponent(idOrSlug)}/related?limit=10`,
       { next: { revalidate: 600 } },
     );
     if (!res.ok) return [];
