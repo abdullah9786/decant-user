@@ -9,22 +9,55 @@ interface SuggestedProductsProps {
   products: any[];
 }
 
-function getCarouselMetrics(el: HTMLDivElement) {
-  const firstCard = el.querySelector<HTMLElement>("[data-carousel-item]");
-  if (!firstCard) {
-    return { cardStep: 0, visibleCount: 1, pageCount: 1, activePage: 0 };
-  }
+function getGap(el: HTMLDivElement): number {
+  return parseFloat(getComputedStyle(el).columnGap || getComputedStyle(el).gap || "0") || 12;
+}
 
-  const gap = parseFloat(getComputedStyle(el).columnGap || getComputedStyle(el).gap || "0") || 12;
+/** Scroll positions for each dot — last position is always maxScrollLeft. */
+function getScrollSnapPositions(el: HTMLDivElement): number[] {
+  const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+  if (maxScroll <= 1) return [0];
+
+  const firstCard = el.querySelector<HTMLElement>("[data-carousel-item]");
+  if (!firstCard) return [0];
+
+  const gap = getGap(el);
   const cardStep = firstCard.offsetWidth + gap;
   const visibleCount = Math.max(1, Math.floor((el.clientWidth + gap) / cardStep));
-  const pageCount = Math.max(1, Math.ceil(el.scrollWidth / (cardStep * visibleCount)));
-  const activePage = Math.min(
-    pageCount - 1,
-    Math.round(el.scrollLeft / (cardStep * visibleCount)),
-  );
+  const stride = cardStep * visibleCount;
 
-  return { cardStep, visibleCount, pageCount, activePage };
+  const positions: number[] = [0];
+  let pos = 0;
+  while (pos + stride < maxScroll - 2) {
+    pos += stride;
+    positions.push(pos);
+  }
+  if (positions[positions.length - 1] < maxScroll - 1) {
+    positions.push(maxScroll);
+  }
+  return positions;
+}
+
+function getActiveSnapIndex(positions: number[], scrollLeft: number): number {
+  let index = 0;
+  let minDistance = Infinity;
+  for (let i = 0; i < positions.length; i++) {
+    const distance = Math.abs(positions[i] - scrollLeft);
+    if (distance < minDistance) {
+      minDistance = distance;
+      index = i;
+    }
+  }
+  return index;
+}
+
+function getCarouselMetrics(el: HTMLDivElement) {
+  const positions = getScrollSnapPositions(el);
+  return {
+    pageCount: positions.length,
+    activePage: getActiveSnapIndex(positions, el.scrollLeft),
+    positions,
+  };
 }
 
 export default function SuggestedProducts({
@@ -63,23 +96,17 @@ export default function SuggestedProducts({
   const scrollByPage = useCallback((direction: -1 | 1) => {
     const el = scrollRef.current;
     if (!el) return;
-    const { cardStep, visibleCount } = getCarouselMetrics(el);
-    if (!cardStep) return;
-    el.scrollBy({
-      left: direction * cardStep * visibleCount,
-      behavior: "smooth",
-    });
+    const { positions, activePage: current } = getCarouselMetrics(el);
+    const next = Math.max(0, Math.min(positions.length - 1, current + direction));
+    el.scrollTo({ left: positions[next], behavior: "smooth" });
   }, []);
 
   const goToPage = useCallback((pageIndex: number) => {
     const el = scrollRef.current;
     if (!el) return;
-    const { cardStep, visibleCount } = getCarouselMetrics(el);
-    if (!cardStep) return;
-    el.scrollTo({
-      left: pageIndex * cardStep * visibleCount,
-      behavior: "smooth",
-    });
+    const { positions } = getCarouselMetrics(el);
+    const target = positions[Math.max(0, Math.min(pageIndex, positions.length - 1))];
+    el.scrollTo({ left: target, behavior: "smooth" });
   }, []);
 
   if (!products?.length) return null;
