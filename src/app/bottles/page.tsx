@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { PerfumeBottle } from "@/components/icons/PerfumeBottle";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 export const metadata: Metadata = {
   title: "Our Bottles | Decume",
@@ -13,9 +14,7 @@ const API_URL =
 
 async function getAllBottles() {
   try {
-    const res = await fetch(`${API_URL}/bottles`, {
-      next: { revalidate: 900 },
-    });
+    const res = await fetch(`${API_URL}/bottles`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {

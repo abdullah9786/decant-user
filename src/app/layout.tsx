@@ -104,7 +104,8 @@ export default async function RootLayout({
   // SSR-fetch the active daily deal so the banner + marquee can render in
   // the initial HTML payload. Eliminates the ~1-2s "banner pops in" CLS
   // that previously pushed page content down after hydration. Cached for
-  // 60s via Next ISR; provider still refetches on focus/visibility.
+  // 24h with on-demand invalidation when admin saves an offer; provider
+  // still refetches on focus/visibility.
   const initialDealPayload = await fetchDailyDealSSR();
   return (
     <html lang="en">

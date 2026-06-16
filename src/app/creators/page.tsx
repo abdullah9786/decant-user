@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CreatorsGrid from "./CreatorsGrid";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -13,9 +14,7 @@ export const metadata: Metadata = {
 
 async function getInfluencers() {
   try {
-    const res = await fetch(`${API_URL}/influencers/public/list`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/influencers/public/list`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {

@@ -3,15 +3,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { FolderOpen } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 async function getCategories() {
   try {
-    const res = await fetch(`${API_URL}/categories`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/categories`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -23,7 +22,7 @@ async function getCategoryProducts(categoryId: string) {
   try {
     const res = await fetch(
       `${API_URL}/products?category_id=${encodeURIComponent(categoryId)}`,
-      { next: { revalidate: 600 } },
+      cacheFetchOptions(),
     );
     if (!res.ok) return [];
     return await res.json();

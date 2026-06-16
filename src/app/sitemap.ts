@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 const BASE_URL = "https://decume.in";
 const API_URL =
@@ -6,9 +7,7 @@ const API_URL =
 
 async function getInfluencerUsernames(): Promise<string[]> {
   try {
-    const res = await fetch(`${API_URL}/influencers/public/list`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await fetch(`${API_URL}/influencers/public/list`, cacheFetchOptions());
     if (!res.ok) return [];
     const profiles = await res.json();
     return profiles.map((p: any) => p.username);
@@ -21,9 +20,7 @@ async function getAllProducts(): Promise<
   { slug: string; id: string; updated_at?: string }[]
 > {
   try {
-    const res = await fetch(`${API_URL}/products`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await fetch(`${API_URL}/products`, cacheFetchOptions());
     if (!res.ok) return [];
     const products = await res.json();
     return products.map((p: any) => ({

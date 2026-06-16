@@ -10,19 +10,14 @@ import {
   type MatchedVariant,
 } from "@/lib/product/productSeo";
 import { productReviewsTag } from "@/lib/cacheTags";
+import { CACHE_REVALIDATE_SECONDS, cacheFetchOptions } from "@/lib/cacheConfig";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-/** Long fallback in prod; shorter in dev when revalidation webhook may be unset. */
-const REVIEW_REVALIDATE_SECONDS =
-  process.env.NODE_ENV === "development" ? 60 : 86_400;
-
 async function getProduct(id: string) {
   try {
-    const res = await fetch(`${API_URL}/products/${id}`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/products/${id}`, cacheFetchOptions());
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -32,9 +27,7 @@ async function getProduct(id: string) {
 
 async function getBottles() {
   try {
-    const res = await fetch(`${API_URL}/bottles`, {
-      next: { revalidate: 900 },
-    });
+    const res = await fetch(`${API_URL}/bottles`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -46,7 +39,7 @@ async function getRelatedProducts(idOrSlug: string) {
   try {
     const res = await fetch(
       `${API_URL}/products/${encodeURIComponent(idOrSlug)}/related?limit=10`,
-      { next: { revalidate: 600 } },
+      cacheFetchOptions(),
     );
     if (!res.ok) return [];
     return await res.json();
@@ -59,7 +52,7 @@ async function getProductReviews(productId: string) {
   try {
     const res = await fetch(`${API_URL}/reviews/product/${productId}?limit=20`, {
       next: {
-        revalidate: REVIEW_REVALIDATE_SECONDS,
+        revalidate: CACHE_REVALIDATE_SECONDS,
         tags: [productReviewsTag(productId)],
       },
     });
@@ -74,7 +67,7 @@ async function getReviewSummary(productId: string) {
   try {
     const res = await fetch(`${API_URL}/reviews/product/${productId}/summary`, {
       next: {
-        revalidate: REVIEW_REVALIDATE_SECONDS,
+        revalidate: CACHE_REVALIDATE_SECONDS,
         tags: [productReviewsTag(productId)],
       },
     });

@@ -5,6 +5,8 @@ import FeaturedProducts from '@/components/home/FeaturedProducts';
 import DealCountdown from '@/components/deal/DealCountdown';
 import { deepenAccent, formatDealEnd } from '@/components/deal/constants';
 import { areAllProductsOutOfStock } from '@/lib/product/stock';
+import { cacheFetchOptions } from '@/lib/cacheConfig';
+import { DAILY_DEAL_CACHE_TAG } from '@/lib/cacheTags';
 
 export const metadata: Metadata = {
   title: "Today's Daily Deal | Decume",
@@ -18,9 +20,10 @@ const API_URL =
 
 async function getDailyDeal() {
   try {
-    const res = await fetch(`${API_URL}/offers/daily-deal/today`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `${API_URL}/offers/daily-deal/today`,
+      cacheFetchOptions([DAILY_DEAL_CACHE_TAG]),
+    );
     if (!res.ok) return null;
     return await res.json();
   } catch {

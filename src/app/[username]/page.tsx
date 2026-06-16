@@ -4,15 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ui/ProductCard";
 import StorefrontReferral from "./StorefrontReferral";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 async function getStorefront(username: string) {
   try {
-    const res = await fetch(`${API_URL}/influencers/storefront/${username}`, {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(`${API_URL}/influencers/storefront/${username}`, cacheFetchOptions());
     if (!res.ok) return null;
     return await res.json();
   } catch {

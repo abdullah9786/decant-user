@@ -1,15 +1,14 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import BuilderClient from "./BuilderClient";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 async function getGiftBox(id: string) {
   try {
-    const res = await fetch(`${API_URL}/gift-boxes/${id}`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/gift-boxes/${id}`, cacheFetchOptions());
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -19,9 +18,7 @@ async function getGiftBox(id: string) {
 
 async function getProducts() {
   try {
-    const res = await fetch(`${API_URL}/products`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/products`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {

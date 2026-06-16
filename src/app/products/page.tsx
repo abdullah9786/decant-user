@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import ProductListingClient from "./ProductListingClient";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 export const metadata: Metadata = {
   title: "Shop All Fragrances | Decume",
@@ -13,9 +14,7 @@ const API_URL =
 
 async function getAllProducts() {
   try {
-    const res = await fetch(`${API_URL}/products`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/products`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -25,9 +24,7 @@ async function getAllProducts() {
 
 async function getAllFragranceFamilies() {
   try {
-    const res = await fetch(`${API_URL}/fragrance-families`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/fragrance-families`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {

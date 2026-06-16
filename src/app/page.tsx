@@ -14,6 +14,8 @@ import DailyDealRail from "@/components/home/DailyDealRail";
 import TopCategories from "@/components/home/TopCategories";
 import SectionHeader from "@/components/home/SectionHeader";
 import HomeSectionShell from "@/components/home/HomeSectionShell";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
+import { DAILY_DEAL_CACHE_TAG } from "@/lib/cacheTags";
 
 export const metadata: Metadata = {
   title: "Decume | Premium Perfume Decants India — Authentic Trial Sizes",
@@ -27,9 +29,7 @@ const API_URL =
 
 async function getFeaturedProducts() {
   try {
-    const res = await fetch(`${API_URL}/products?is_featured=true`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/products?is_featured=true`, cacheFetchOptions());
     if (!res.ok) return [];
     const data = await res.json();
     return data.filter((p: any) => p.is_featured);
@@ -40,9 +40,7 @@ async function getFeaturedProducts() {
 
 async function getFeaturedSets() {
   try {
-    const res = await fetch(`${API_URL}/products?product_type=set&is_featured=true`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/products?product_type=set&is_featured=true`, cacheFetchOptions());
     if (!res.ok) return [];
     const data = await res.json();
     return data.filter((p: any) => p.product_type === 'set' && p.is_featured !== false);
@@ -53,9 +51,7 @@ async function getFeaturedSets() {
 
 async function getFeaturedCategories() {
   try {
-    const res = await fetch(`${API_URL}/categories?featured=true`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/categories?featured=true`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -65,9 +61,7 @@ async function getFeaturedCategories() {
 
 async function getFeaturedFamilies() {
   try {
-    const res = await fetch(`${API_URL}/fragrance-families`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/fragrance-families`, cacheFetchOptions());
     if (!res.ok) return [];
     const data = await res.json();
     return data.filter((c: any) => c.is_featured).slice(0, 4);
@@ -76,13 +70,12 @@ async function getFeaturedFamilies() {
   }
 }
 
-// Pulled at a shorter cadence than other homepage fetches so the daily-deal
-// hero/rail flips within ~60s of admin saving or midnight rollover.
 async function getDailyDeal() {
   try {
-    const res = await fetch(`${API_URL}/offers/daily-deal/today`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `${API_URL}/offers/daily-deal/today`,
+      cacheFetchOptions([DAILY_DEAL_CACHE_TAG]),
+    );
     if (!res.ok) return null;
     return await res.json();
   } catch {

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { Gift, ArrowRight } from "lucide-react";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 export const metadata: Metadata = {
   title: "Gift Boxes | Decume",
@@ -15,9 +16,7 @@ const API_URL =
 
 async function getAllGiftBoxes() {
   try {
-    const res = await fetch(`${API_URL}/gift-boxes`, {
-      next: { revalidate: 600 },
-    });
+    const res = await fetch(`${API_URL}/gift-boxes`, cacheFetchOptions());
     if (!res.ok) return [];
     return await res.json();
   } catch {
