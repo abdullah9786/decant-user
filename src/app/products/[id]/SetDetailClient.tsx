@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight, ShoppingBag, ShieldCheck, Star, Truck } from "lucide-react";
+import { ChevronRight, ShoppingBag, ShieldCheck, Truck } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import { ChipList } from "@/components/ui/Chip";
@@ -12,6 +12,11 @@ import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { getSetDecantVariants, isSetInStock, normalizeSizeMl, sizesMatch } from "@/lib/product/setStock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
 import SuggestedProducts from "@/components/product/SuggestedProducts";
+import ProductReviews, {
+  ProductRatingHeader,
+  type ReviewItem,
+  type ReviewSummaryData,
+} from "@/components/product/ProductReviews";
 
 interface SetDetailClientProps {
   product: any;
@@ -19,6 +24,8 @@ interface SetDetailClientProps {
   initialSize?: number | null;
   initialBottleId?: string | null;
   relatedProducts?: any[];
+  reviews?: ReviewItem[];
+  reviewSummary?: ReviewSummaryData;
 }
 
 export default function SetDetailClient({
@@ -27,7 +34,16 @@ export default function SetDetailClient({
   initialSize = null,
   initialBottleId = null,
   relatedProducts = [],
+  reviews: initialReviews = [],
+  reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
 }: SetDetailClientProps) {
+  const [reviews, setReviews] = useState(initialReviews);
+  const [reviewSummary, setReviewSummary] = useState(initialReviewSummary);
+
+  useEffect(() => {
+    setReviews(initialReviews);
+    setReviewSummary(initialReviewSummary);
+  }, [initialReviews, initialReviewSummary]);
   const addItem = useCartStore((state) => state.addItem);
   const productId = product.id || product._id;
   const slug = product.slug || productId;
@@ -288,13 +304,9 @@ export default function SetDetailClient({
               </p>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="flex text-yellow-500">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-              <div className="h-4 w-px bg-gray-200" />
+            <div className="flex items-center space-x-4 flex-wrap gap-y-2">
+              <ProductRatingHeader summary={reviewSummary} size={14} />
+              <div className="h-4 w-px bg-gray-200 hidden sm:block" />
               <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center">
                 <ShieldCheck size={12} className="mr-1.5" />
                 Authenticated Fragrance
@@ -460,6 +472,16 @@ export default function SetDetailClient({
           </div>
         </div>
       </div>
+
+      <ProductReviews
+        productId={String(product._id || product.id)}
+        initialReviews={reviews}
+        initialSummary={reviewSummary}
+        onReviewsChange={(nextReviews, nextSummary) => {
+          setReviews(nextReviews);
+          setReviewSummary(nextSummary);
+        }}
+      />
 
       <SuggestedProducts products={relatedProducts} />
     </div>

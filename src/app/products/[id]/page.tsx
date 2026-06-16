@@ -9,9 +9,14 @@ import {
   buildProductSeoCopy,
   type MatchedVariant,
 } from "@/lib/product/productSeo";
+import { productReviewsTag } from "@/lib/cacheTags";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+/** Long fallback in prod; shorter in dev when revalidation webhook may be unset. */
+const REVIEW_REVALIDATE_SECONDS =
+  process.env.NODE_ENV === "development" ? 60 : 86_400;
 
 async function getProduct(id: string) {
   try {
@@ -47,6 +52,36 @@ async function getRelatedProducts(idOrSlug: string) {
     return await res.json();
   } catch {
     return [];
+  }
+}
+
+async function getProductReviews(productId: string) {
+  try {
+    const res = await fetch(`${API_URL}/reviews/product/${productId}?limit=20`, {
+      next: {
+        revalidate: REVIEW_REVALIDATE_SECONDS,
+        tags: [productReviewsTag(productId)],
+      },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+async function getReviewSummary(productId: string) {
+  try {
+    const res = await fetch(`${API_URL}/reviews/product/${productId}/summary`, {
+      next: {
+        revalidate: REVIEW_REVALIDATE_SECONDS,
+        tags: [productReviewsTag(productId)],
+      },
+    });
+    if (!res.ok) return { average_rating: 0, review_count: 0, rating_breakdown: {} };
+    return await res.json();
+  } catch {
+    return { average_rating: 0, review_count: 0, rating_breakdown: {} };
   }
 }
 
@@ -166,7 +201,12 @@ export default async function ProductDetailPage({
   const isPack = sp.pack === "true";
   const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
   const isSet = product.product_type === "set";
-  const relatedProducts = await getRelatedProducts(String(slug));
+  const productId = String(product._id || product.id);
+  const [relatedProducts, reviews, reviewSummary] = await Promise.all([
+    getRelatedProducts(String(slug)),
+    getProductReviews(productId),
+    getReviewSummary(productId),
+  ]);
 
   const seo = buildProductSeoCopy(seoInput(product, matchedVariant));
   const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
@@ -205,6 +245,8 @@ export default async function ProductDetailPage({
           initialSize={sizeParam}
           initialBottleId={sp.bottle || null}
           relatedProducts={relatedProducts}
+          reviews={reviews}
+          reviewSummary={reviewSummary}
         />
       ) : (
         <ProductDetailClient
@@ -214,6 +256,8 @@ export default async function ProductDetailPage({
           initialIsPack={isPack}
           initialBottleId={sp.bottle || null}
           relatedProducts={relatedProducts}
+          reviews={reviews}
+          reviewSummary={reviewSummary}
         />
       )}
     </>

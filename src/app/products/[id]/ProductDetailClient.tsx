@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import {
   ShoppingBag,
   ChevronRight,
-  Star,
   ShieldCheck,
   Truck,
   ChevronLeft,
@@ -26,6 +25,11 @@ import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { isVariantInStock } from "@/lib/product/stock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
 import SuggestedProducts from "@/components/product/SuggestedProducts";
+import ProductReviews, {
+  ProductRatingHeader,
+  type ReviewItem,
+  type ReviewSummaryData,
+} from "@/components/product/ProductReviews";
 
 interface ProductDetailClientProps {
   product: any;
@@ -34,6 +38,8 @@ interface ProductDetailClientProps {
   initialIsPack?: boolean;
   initialBottleId?: string | null;
   relatedProducts?: any[];
+  reviews?: ReviewItem[];
+  reviewSummary?: ReviewSummaryData;
 }
 
 export default function ProductDetailClient({
@@ -43,8 +49,17 @@ export default function ProductDetailClient({
   initialIsPack = false,
   initialBottleId = null,
   relatedProducts = [],
+  reviews: initialReviews = [],
+  reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
 }: ProductDetailClientProps) {
   const router = useRouter();
+  const [reviews, setReviews] = useState(initialReviews);
+  const [reviewSummary, setReviewSummary] = useState(initialReviewSummary);
+
+  useEffect(() => {
+    setReviews(initialReviews);
+    setReviewSummary(initialReviewSummary);
+  }, [initialReviews, initialReviewSummary]);
   // Pick a sensible default size:
   //   1. Honour the ?size= query param if it matches a real variant.
   //   2. Otherwise, the first *in-stock* variant — so a sold-out 5ml
@@ -408,13 +423,9 @@ export default function ProductDetailClient({
                   {seoCopy.formatLabel}
                 </p>
 
-                <div className="flex items-center space-x-4 md:space-x-6">
-                  <div className="flex text-yellow-500">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} size={14} fill="currentColor" />
-                    ))}
-                  </div>
-                  <div className="h-4 w-px bg-gray-200" />
+                <div className="flex items-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
+                  <ProductRatingHeader summary={reviewSummary} size={14} />
+                  <div className="h-4 w-px bg-gray-200 hidden sm:block" />
                   <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center">
                     <ShieldCheck size={12} className="mr-1.5" />
                     Authenticated Fragrance
@@ -822,6 +833,16 @@ export default function ProductDetailClient({
           </div>
         </div>
       </section>
+
+      <ProductReviews
+        productId={String(product._id || product.id)}
+        initialReviews={reviews}
+        initialSummary={reviewSummary}
+        onReviewsChange={(nextReviews, nextSummary) => {
+          setReviews(nextReviews);
+          setReviewSummary(nextSummary);
+        }}
+      />
 
       <SuggestedProducts products={relatedProducts} />
 

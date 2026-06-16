@@ -164,4 +164,13 @@ export const influencerApi = {
         api.post('/influencers/coupons/validate', { code, cart_items: cartItems ?? [] }),
 };
 
+export const reviewApi = {
+    getByProduct: (productId: string, params?: { skip?: number; limit?: number }) =>
+        api.get(`/reviews/product/${productId}`, { params }),
+    getSummary: (productId: string) => api.get(`/reviews/product/${productId}/summary`),
+    getEligibility: (productId: string) => api.get(`/reviews/product/${productId}/eligibility`),
+    create: (data: { product_id: string; rating: number; comment: string }) =>
+        api.post('/reviews', data),
+};
+
 export default api;
