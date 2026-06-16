@@ -192,6 +192,23 @@ export default function ProductReviews({
             <h2 className="text-3xl md:text-4xl font-serif text-emerald-950 mt-1">
               Reviews
             </h2>
+            <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50/50 px-4 py-3 flex gap-3 items-start">
+              <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-emerald-950 leading-relaxed">
+                  We keep reviews genuine. Only customers who purchased and
+                  received this product can submit a review — one review per
+                  product, with a Verified purchase badge on qualifying
+                  submissions.
+                </p>
+                <Link
+                  href="/reviews-policy"
+                  className="inline-block mt-2 text-[10px] font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-600/40 pb-0.5 hover:text-emerald-900 hover:border-emerald-800 transition-colors"
+                >
+                  How our reviews work
+                </Link>
+              </div>
+            </div>
           </div>
 
           <div className="px-4 md:px-6 py-5 md:py-6 grid gap-8 lg:grid-cols-[280px_1fr]">

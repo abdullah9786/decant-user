@@ -221,6 +221,20 @@ export default async function ProductDetailPage({
     variants: product.variants,
     matchedVariant,
     jsonLdName: seo.jsonLdName,
+    reviews: reviews.map((r: { user_name: string; rating: number; comment: string; created_at: string; is_verified_purchase?: boolean }) => ({
+      user_name: r.user_name,
+      rating: r.rating,
+      comment: r.comment,
+      created_at: r.created_at,
+      is_verified_purchase: r.is_verified_purchase,
+    })),
+    reviewSummary:
+      reviewSummary.review_count > 0
+        ? {
+            average_rating: reviewSummary.average_rating,
+            review_count: reviewSummary.review_count,
+          }
+        : undefined,
   });
 
   const breadcrumbJsonLd = buildProductBreadcrumbJsonLd({

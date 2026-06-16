@@ -190,6 +190,19 @@ function variantAvailability(
     : "https://schema.org/OutOfStock";
 }
 
+export interface ProductReviewJsonLdInput {
+  user_name: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  is_verified_purchase?: boolean;
+}
+
+export interface ProductReviewSummaryJsonLdInput {
+  average_rating: number;
+  review_count: number;
+}
+
 export function buildProductJsonLd(input: {
   name: string;
   brand: string;
@@ -200,6 +213,8 @@ export function buildProductJsonLd(input: {
   variants?: ProductVariant[];
   matchedVariant?: MatchedVariant | null;
   jsonLdName: string;
+  reviews?: ProductReviewJsonLdInput[];
+  reviewSummary?: ProductReviewSummaryJsonLdInput;
 }): Record<string, unknown> {
   const {
     name,
@@ -211,6 +226,8 @@ export function buildProductJsonLd(input: {
     variants,
     matchedVariant,
     jsonLdName,
+    reviews = [],
+    reviewSummary,
   } = input;
 
   const jsonLd: Record<string, unknown> = {
@@ -245,6 +262,35 @@ export function buildProductJsonLd(input: {
       offerCount: variants.length,
       url: `${BASE_URL}/products/${slug}`,
     };
+  }
+
+  const count = reviewSummary?.review_count ?? 0;
+  if (count > 0 && reviewSummary) {
+    jsonLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: reviewSummary.average_rating,
+      reviewCount: count,
+      bestRating: 5,
+      worstRating: 1,
+    };
+  }
+
+  if (reviews.length > 0) {
+    jsonLd.review = reviews.map((review) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: review.user_name },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+      reviewBody: review.comment.slice(0, 5000),
+      datePublished: review.created_at,
+      ...(review.is_verified_purchase && {
+        itemReviewed: { "@type": "Product", name: jsonLdName || name },
+      }),
+    }));
   }
 
   return jsonLd;

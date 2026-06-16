@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Authenticity & Sourcing Policy",
@@ -255,6 +256,14 @@ export default function AuthenticityPage() {
                 >
                   orders@decume.in
                 </a>
+                . For how we handle customer reviews and verified purchases, see
+                our{" "}
+                <Link
+                  href="/reviews-policy"
+                  className="text-emerald-600 underline underline-offset-4"
+                >
+                  Verified Customer Reviews policy
+                </Link>
                 .
               </p>
             </div>
