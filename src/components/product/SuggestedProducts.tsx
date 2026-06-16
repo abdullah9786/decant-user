@@ -163,9 +163,9 @@ export default function SuggestedProducts({
                   <div
                     key={product._id || product.id}
                     data-carousel-item
-                    className="flex-shrink-0 snap-start w-[calc((100%-0.75rem)/2.15)] sm:w-[calc((100%-1rem)/2.5)] md:w-[220px] lg:w-[240px]"
+                    className="flex-shrink-0 snap-start w-[calc((100%-0.75rem)/1.75)] sm:w-[calc((100%-1rem)/2.5)] md:w-[220px] lg:w-[240px]"
                   >
-                    <ProductCard {...product} />
+                    <ProductCard {...product} compact />
                   </div>
                 ))}
               </div>

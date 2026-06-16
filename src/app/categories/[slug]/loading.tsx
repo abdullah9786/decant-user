@@ -12,7 +12,7 @@ export default function CategoryDetailLoading() {
 
       {/* Product grid skeleton */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8 lg:gap-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 -mx-4 px-2 md:-mx-7 md:px-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="space-y-3">
               <div className="aspect-[3/4] rounded-2xl bg-slate-100" />

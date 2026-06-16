@@ -49,6 +49,8 @@ interface ProductCardProps {
   priceMode?: 'default' | 'pack';
   product_type?: string;
   set_items?: SetItemRef[];
+  /** Tighter layout for horizontal carousels (e.g. You may also like). */
+  compact?: boolean;
 }
 
 const TOAST_STYLE = {
@@ -71,7 +73,7 @@ function variantsMatch(a: Variant, b: Variant): boolean {
 const ProductCard = React.memo(({
   id, _id, slug, name, brand, variants, stock_ml, image_url, is_featured, is_new_arrival,
   notes_top = [], notes_middle = [], notes_base = [], chips = [], priceMode = 'default',
-  product_type, set_items = [],
+  product_type, set_items = [], compact = false,
 }: ProductCardProps) => {
   const productId = id || _id;
   const productSlug = slug || productId;
@@ -352,9 +354,15 @@ const ProductCard = React.memo(({
   return (
     <Link
       href={productHref}
-      className="group block w-full relative sm:cursor-pointer overflow-hidden rounded-[20px] border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-shadow duration-300 flex flex-col h-full"
+      className={`group block w-full relative sm:cursor-pointer overflow-hidden border border-emerald-900/10 bg-white hover:border-emerald-900/30 hover:shadow-md transition-shadow duration-300 flex flex-col h-full ${
+        compact ? 'rounded-2xl md:rounded-[20px]' : 'rounded-[20px]'
+      }`}
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10 shrink-0">
+      <div
+        className={`relative w-full overflow-hidden bg-[#F4F4F4] border-b border-emerald-900/10 shrink-0 ${
+          compact ? 'aspect-square md:aspect-[4/5]' : 'aspect-[4/5]'
+        }`}
+      >
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5">
           {showOutOfStock ? (
             <span className="bg-rose-600 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
@@ -377,7 +385,7 @@ const ProductCard = React.memo(({
         </div>
 
         {chips && chips.length > 0 && (
-          <div className="absolute top-2.5 right-2.5 z-20 max-w-[65%]">
+          <div className={`absolute top-2.5 right-2.5 z-20 max-w-[65%] ${compact ? 'hidden md:block' : ''}`}>
             <ChipList chips={chips} max={2} size="xs" align="end" />
           </div>
         )}
@@ -397,7 +405,7 @@ const ProductCard = React.memo(({
         )}
 
         {allNotes.length > 0 && (
-          <div className="absolute inset-x-0 bottom-0 p-3 pt-12 bg-gradient-to-t from-emerald-950/60 to-transparent z-10 pointer-events-none">
+          <div className={`absolute inset-x-0 bottom-0 p-3 pt-12 bg-gradient-to-t from-emerald-950/60 to-transparent z-10 pointer-events-none ${compact ? 'hidden md:block' : ''}`}>
             <div className="flex flex-wrap gap-1.5 justify-center">
               {allNotes.map((note, idx) => (
                 <span
@@ -412,23 +420,56 @@ const ProductCard = React.memo(({
         )}
       </div>
 
-      <div className="p-3 md:p-5 flex flex-col flex-1 min-h-0">
+      <div className={`flex flex-col flex-1 min-h-0 ${compact ? 'p-2 md:p-5' : 'p-3 md:p-5'}`}>
         <div className="shrink-0">
-          <p className="text-[11px] uppercase tracking-wider text-emerald-950 font-bold mb-1 leading-tight line-clamp-1">
+          <p
+            className={`uppercase tracking-wider text-emerald-950 font-bold leading-tight line-clamp-1 ${
+              compact ? 'text-[9px] mb-0.5 md:text-[11px] md:mb-1' : 'text-[11px] mb-1'
+            }`}
+          >
             {isSet ? 'Curated Set' : brand}
           </p>
-          <h3 className="font-serif text-[15px] md:text-[17px] text-emerald-950 leading-snug line-clamp-1 transition-colors group-hover:text-emerald-700 mb-1.5">
+          <h3
+            className={`font-serif text-emerald-950 leading-snug transition-colors group-hover:text-emerald-700 ${
+              compact
+                ? 'text-[13px] mb-1 line-clamp-2 md:text-[17px] md:mb-1.5 md:line-clamp-1'
+                : 'text-[15px] md:text-[17px] mb-1.5 line-clamp-1'
+            }`}
+          >
             {name}
           </h3>
-          <p className="text-[13px] font-medium text-emerald-950 whitespace-nowrap">
+          <p
+            className={`font-medium text-emerald-950 whitespace-nowrap ${
+              compact ? 'text-[12px] md:text-[13px]' : 'text-[13px]'
+            }`}
+          >
             {priceNode}
           </p>
         </div>
 
-        <div className="max-md:flex-none flex-1 min-h-0 md:min-h-[2.75rem]">
+        <div
+          className={
+            compact
+              ? 'max-md:flex-none min-h-0 md:flex-1 md:min-h-[2.75rem]'
+              : 'max-md:flex-none flex-1 min-h-0 md:min-h-[2.75rem]'
+          }
+        >
           {showSizePicker && pickerVariants && (
-            <div className="mt-2 -mx-1 md:mt-2.5 md:mx-0 carousel-clip" onClick={stopNav}>
-              <div className="carousel-scroll flex gap-1.5 flex-nowrap pb-2 -mb-2 md:pb-2 md:-mb-2">
+            <div
+              className={
+                compact
+                  ? 'mt-1.5 carousel-clip md:mt-2.5 md:-mx-0'
+                  : 'mt-2 -mx-1 md:mt-2.5 md:mx-0 carousel-clip'
+              }
+              onClick={stopNav}
+            >
+              <div
+                className={
+                  compact
+                    ? 'carousel-scroll flex gap-1 flex-nowrap md:gap-1.5 md:pb-2 md:-mb-2'
+                    : 'carousel-scroll flex gap-1.5 flex-nowrap pb-2 -mb-2 md:pb-2 md:-mb-2'
+                }
+              >
                 {pickerVariants.map((v) => {
                   const outOfStock = isSet
                     ? !isSetInStock(setProductRef, v.size_ml)
@@ -443,7 +484,11 @@ const ProductCard = React.memo(({
                       aria-pressed={isSelected}
                       title={outOfStock ? 'Currently out of stock' : undefined}
                       onClick={(e) => handleSelectVariant(e, v)}
-                      className={`shrink-0 min-w-[43px] px-1.5 py-2 text-[10px] font-bold uppercase tracking-wide border rounded-md transition-all ${
+                      className={`shrink-0 font-bold uppercase tracking-wide border rounded-md transition-all ${
+                        compact
+                          ? 'min-w-[36px] px-1 py-1 text-[8px] md:min-w-[43px] md:px-1.5 md:py-2 md:text-[10px]'
+                          : 'min-w-[43px] px-1.5 py-2 text-[10px]'
+                      } ${
                         outOfStock
                           ? isSelected
                             ? 'bg-gray-100 text-gray-500 border-emerald-700 ring-1 ring-emerald-700/30'
@@ -466,11 +511,23 @@ const ProductCard = React.memo(({
         </div>
 
         <div
-          className={`w-full shrink-0 ${showSizePicker ? 'mt-2.5 md:mt-3.5' : 'mt-auto pt-4'}`}
+          className={`w-full shrink-0 ${
+            showSizePicker
+              ? compact
+                ? 'mt-1.5 md:mt-3.5'
+                : 'mt-2.5 md:mt-3.5'
+              : compact
+                ? 'mt-2 md:mt-auto md:pt-4'
+                : 'mt-auto pt-4'
+          }`}
           onClick={stopNav}
         >
           {quantityInCart > 0 ? (
-            <div className="flex flex-row items-center justify-between border border-emerald-950 rounded-md bg-transparent w-full text-emerald-950 h-[42px]">
+            <div
+              className={`flex flex-row items-center justify-between border border-emerald-950 rounded-md bg-transparent w-full text-emerald-950 ${
+                compact ? 'h-[34px] md:h-[42px]' : 'h-[42px]'
+              }`}
+            >
               <button
                 onClick={handleDecrement}
                 className="w-10 h-full flex items-center justify-center hover:bg-emerald-50 transition-colors text-lg"
@@ -492,14 +549,18 @@ const ProductCard = React.memo(({
               type="button"
               disabled
               aria-disabled="true"
-              className="w-full text-center py-0 h-[42px] text-[10px] font-bold uppercase tracking-widest border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed"
+              className={`w-full text-center py-0 font-bold uppercase tracking-widest border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed ${
+                compact ? 'h-[34px] text-[9px] md:h-[42px] md:text-[10px]' : 'h-[42px] text-[10px]'
+              }`}
             >
               Sold Out
             </button>
           ) : (
             <button
               onClick={handleQuickAdd}
-              className="w-full text-center py-0 h-[42px] text-[10px] font-bold uppercase tracking-widest border border-emerald-950 text-emerald-950 bg-transparent rounded-md hover:bg-emerald-50 transition-colors cursor-pointer"
+              className={`w-full text-center py-0 font-bold uppercase tracking-widest border border-emerald-950 text-emerald-950 bg-transparent rounded-md hover:bg-emerald-50 transition-colors cursor-pointer ${
+                compact ? 'h-[34px] text-[9px] md:h-[42px] md:text-[10px]' : 'h-[42px] text-[10px]'
+              }`}
             >
               Add to Cart
             </button>
