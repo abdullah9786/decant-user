@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Playfair_Display } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
@@ -114,7 +115,9 @@ export default async function RootLayout({
           initialDeal={initialDealPayload?.deal ?? null}
           initialProducts={initialDealPayload?.products ?? []}
         >
-          <ProgressBar />
+          <Suspense fallback={null}>
+            <ProgressBar />
+          </Suspense>
           <ScrollToTop />
           <DailyDealBanner />
           <DealMarquee />

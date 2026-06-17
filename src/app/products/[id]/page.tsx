@@ -172,7 +172,13 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const [product, bottles] = await Promise.all([getProduct(id), getBottles()]);
+  // Related API accepts the same id/slug as the product route — run in parallel
+  // with product + bottles so we don't wait for product before starting /related.
+  const [product, bottles, relatedProducts] = await Promise.all([
+    getProduct(id),
+    getBottles(),
+    getRelatedProducts(id),
+  ]);
 
   if (!product) {
     return (
@@ -196,8 +202,7 @@ export default async function ProductDetailPage({
   const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
   const isSet = product.product_type === "set";
   const productId = String(product._id || product.id);
-  const [relatedProducts, reviews, reviewSummary] = await Promise.all([
-    getRelatedProducts(String(slug)),
+  const [reviews, reviewSummary] = await Promise.all([
     getProductReviews(productId),
     getReviewSummary(productId),
   ]);
