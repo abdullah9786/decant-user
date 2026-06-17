@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cache } from "react";
 import ProductDetailClient from "./ProductDetailClient";
 import SetDetailClient from "./SetDetailClient";
 import {
@@ -15,7 +16,7 @@ import { CACHE_REVALIDATE_SECONDS, cacheFetchOptions } from "@/lib/cacheConfig";
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-async function getProduct(id: string) {
+const getProduct = cache(async (id: string) => {
   try {
     const res = await fetch(`${API_URL}/products/${id}`, cacheFetchOptions());
     if (!res.ok) return null;
@@ -23,7 +24,7 @@ async function getProduct(id: string) {
   } catch {
     return null;
   }
-}
+});
 
 async function getBottles() {
   try {
