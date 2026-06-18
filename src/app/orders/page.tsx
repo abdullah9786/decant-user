@@ -30,7 +30,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, authHydrated } = useAuthStore();
 
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -38,7 +38,7 @@ export default function OrdersPage() {
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
-    if (!isAuthenticated) return;
+    if (!authHydrated || !isAuthenticated) return;
     try {
       const response = await orderApi.getUserOrders(
         user?.id || (user as any)?._id
@@ -52,8 +52,8 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [isAuthenticated]);
+    void fetchOrders();
+  }, [authHydrated, isAuthenticated]);
 
   const handleSyncOrders = async () => {
     setSyncing(true);
@@ -127,6 +127,14 @@ export default function OrdersPage() {
       setCancellingId(null);
     }
   };
+
+  if (!authHydrated) {
+    return (
+      <div className="py-20 flex justify-center">
+        <Loader2 className="animate-spin text-emerald-600" size={40} />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

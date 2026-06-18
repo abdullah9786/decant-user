@@ -16,6 +16,21 @@ async function getInfluencerUsernames(): Promise<string[]> {
   }
 }
 
+async function getBlogEntries(): Promise<{ slug: string; updated_at?: string }[]> {
+  try {
+    const res = await fetch(`${API_URL}/blog?limit=200`, cacheFetchOptions(["blog-list"]));
+    if (!res.ok) return [];
+    const data = await res.json();
+    const items = data.items || [];
+    return items.map((p: { slug: string; updated_at?: string }) => ({
+      slug: p.slug,
+      updated_at: p.updated_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 async function getAllProducts(): Promise<
   { slug: string; id: string; updated_at?: string }[]
 > {
@@ -34,9 +49,10 @@ async function getAllProducts(): Promise<
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, influencers] = await Promise.all([
+  const [products, influencers, blogPosts] = await Promise.all([
     getAllProducts(),
     getInfluencerUsernames(),
+    getBlogEntries(),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -142,6 +158,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.3,
     },
+    {
+      url: `${BASE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.65,
+    },
+    {
+      url: `${BASE_URL}/blog/guidelines`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.35,
+    },
   ];
 
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
@@ -158,5 +186,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...productRoutes, ...influencerRoutes];
+  const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((p) => ({
+    url: `${BASE_URL}/blog/${p.slug}`,
+    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.55,
+  }));
+
+  return [...staticRoutes, ...productRoutes, ...influencerRoutes, ...blogRoutes];
 }

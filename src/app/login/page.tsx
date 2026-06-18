@@ -16,6 +16,7 @@ function LoginForm() {
   const [resendLoading, setResendLoading] = useState(false);
   const searchParams = useSearchParams();
   const sessionExpired = searchParams.get('session') === 'expired';
+  const returnUrlRaw = searchParams.get('returnUrl');
 
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -36,7 +37,13 @@ function LoginForm() {
       const { access_token, refresh_token, user } = response.data;
 
       setAuth(user, access_token, refresh_token);
-      router.push('/profile');
+      const next =
+        returnUrlRaw &&
+        returnUrlRaw.startsWith('/') &&
+        !returnUrlRaw.startsWith('//')
+          ? returnUrlRaw
+          : '/profile';
+      router.push(next);
     } catch (err: any) {
       const detail = err.response?.data?.detail;
       if (detail && String(detail).toLowerCase().includes('verify')) {

@@ -173,4 +173,15 @@ export const reviewApi = {
         api.post('/reviews', data),
 };
 
+export const blogApi = {
+  listPublished: (params?: { skip?: number; limit?: number }) => api.get("/blog", { params }),
+  getPublished: (slug: string) => api.get(`/blog/${encodeURIComponent(slug)}`),
+  listMy: () => api.get("/blog/my"),
+  getMy: (id: string) => api.get(`/blog/my/${id}`),
+  createMy: (data: Record<string, unknown>) => api.post("/blog/my", data),
+  updateMy: (id: string, data: Record<string, unknown>) => api.put(`/blog/my/${id}`, data),
+  submitMy: (id: string) => api.post(`/blog/my/${id}/submit`),
+  deleteMy: (id: string) => api.delete(`/blog/my/${id}`),
+};
+
 export default api;

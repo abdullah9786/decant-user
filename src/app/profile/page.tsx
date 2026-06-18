@@ -8,13 +8,14 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { orderApi, revokeRefreshOnServer } from '@/lib/api';
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, authHydrated } = useAuthStore();
   const [recentOrder, setRecentOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    if (!authHydrated) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -37,7 +38,7 @@ export default function ProfilePage() {
       }
     };
     fetchRecentOrder();
-  }, [isAuthenticated, router]);
+  }, [authHydrated, isAuthenticated, router]);
 
   const handleSyncOrders = async () => {
     setSyncing(true);
@@ -59,7 +60,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (!isAuthenticated || !user) {
+  if (!authHydrated || !isAuthenticated || !user) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loader2 className="animate-spin text-emerald-600" size={32} />
