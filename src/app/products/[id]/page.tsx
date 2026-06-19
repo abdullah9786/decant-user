@@ -10,15 +10,18 @@ import {
   buildProductSeoCopy,
   type MatchedVariant,
 } from "@/lib/product/productSeo";
-import { productReviewsTag } from "@/lib/cacheTags";
+import { DAILY_DEAL_CACHE_TAG, productReviewsTag } from "@/lib/cacheTags";
 import { CACHE_REVALIDATE_SECONDS, cacheFetchOptions } from "@/lib/cacheConfig";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+/** Same tag as layout/home deal fetches so admin deal saves invalidate PDP data. */
+const productDealFetchOptions = cacheFetchOptions([DAILY_DEAL_CACHE_TAG]);
+
 const getProduct = cache(async (id: string) => {
   try {
-    const res = await fetch(`${API_URL}/products/${id}`, cacheFetchOptions());
+    const res = await fetch(`${API_URL}/products/${id}`, productDealFetchOptions);
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -40,7 +43,7 @@ async function getRelatedProducts(idOrSlug: string) {
   try {
     const res = await fetch(
       `${API_URL}/products/${encodeURIComponent(idOrSlug)}/related?limit=10`,
-      cacheFetchOptions(),
+      productDealFetchOptions,
     );
     if (!res.ok) return [];
     return await res.json();
