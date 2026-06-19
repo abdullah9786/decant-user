@@ -19,6 +19,15 @@ const API_URL =
 /** Same tag as layout/home deal fetches so admin deal saves invalidate PDP data. */
 const productDealFetchOptions = cacheFetchOptions([DAILY_DEAL_CACHE_TAG]);
 
+/**
+ * ISR window for the statically-rendered PDP. The route no longer reads
+ * `searchParams` (variant selection moved client-side), so Next can prerender
+ * + edge-cache the HTML and serve it instantly. Variant deep links (`?size=`)
+ * are applied on the client after hydration without de-opting to SSR.
+ */
+export const revalidate = 86400;
+export const dynamicParams = true;
+
 const getProduct = cache(async (id: string) => {
   try {
     const res = await fetch(`${API_URL}/products/${id}`, productDealFetchOptions);
@@ -32,34 +41,6 @@ const getProduct = cache(async (id: string) => {
 async function getBottles() {
   try {
     const res = await fetch(`${API_URL}/bottles`, cacheFetchOptions());
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-async function getRelatedProducts(idOrSlug: string) {
-  try {
-    const res = await fetch(
-      `${API_URL}/products/${encodeURIComponent(idOrSlug)}/related?limit=10`,
-      productDealFetchOptions,
-    );
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-async function getProductReviews(productId: string) {
-  try {
-    const res = await fetch(`${API_URL}/reviews/product/${productId}?limit=20`, {
-      next: {
-        revalidate: CACHE_REVALIDATE_SECONDS,
-        tags: [productReviewsTag(productId)],
-      },
-    });
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -82,37 +63,6 @@ async function getReviewSummary(productId: string) {
   }
 }
 
-function resolveMatchedVariant(
-  product: any,
-  sizeParam: number | null,
-  isPack: boolean,
-): MatchedVariant | null {
-  if (sizeParam == null) return null;
-  if (product.product_type === "set") {
-    const variant = product.variants?.find(
-      (v: any) =>
-        Number(v.size_ml) === sizeParam && !v.is_pack,
-    );
-    if (!variant) return null;
-    return {
-      size_ml: variant.size_ml,
-      price: variant.price,
-      is_pack: false,
-      stock: variant.stock,
-    };
-  }
-  const variant = product.variants?.find(
-    (v: any) => v.size_ml === sizeParam && !!v.is_pack === isPack,
-  );
-  if (!variant) return null;
-  return {
-    size_ml: variant.size_ml,
-    price: variant.price,
-    is_pack: !!variant.is_pack,
-    stock: variant.stock,
-  };
-}
-
 function seoInput(product: any, matchedVariant: MatchedVariant | null) {
   return {
     name: product.name,
@@ -126,23 +76,19 @@ function seoInput(product: any, matchedVariant: MatchedVariant | null) {
 
 export async function generateMetadata({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ size?: string; pack?: string; bottle?: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const sp = await searchParams;
   const product = await getProduct(id);
   if (!product) return { title: "Product Not Found | Decume" };
 
   const slug = product.slug || product._id || product.id;
-  const sizeParam = sp.size ? parseInt(sp.size, 10) : null;
-  const isPack = sp.pack === "true";
-  const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
-
-  const seo = buildProductSeoCopy(seoInput(product, matchedVariant));
-  const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
+  // Canonical is the clean product URL. Variant query params (?size=, ?pack=)
+  // are client-side UI state, not distinct indexable pages — pointing canonical
+  // at the base URL avoids duplicate-content dilution across variants.
+  const seo = buildProductSeoCopy(seoInput(product, null));
+  const canonicalUrl = buildProductCanonicalUrl(slug);
 
   return {
     title: seo.title,
@@ -166,21 +112,35 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Pre-render active products at build so popular PDPs ship as static HTML.
+ * Anything not listed here is rendered on first request, then ISR-cached
+ * (`dynamicParams = true`), so the catalog stays fully covered.
+ */
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${API_URL}/products`, cacheFetchOptions());
+    if (!res.ok) return [];
+    const products = await res.json();
+    return (Array.isArray(products) ? products : [])
+      .map((p: any) => ({ id: String(p.slug || p._id || p.id || "") }))
+      .filter((p: { id: string }) => p.id);
+  } catch {
+    return [];
+  }
+}
+
 export default async function ProductDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ size?: string; pack?: string; bottle?: string }>;
 }) {
   const { id } = await params;
-  const sp = await searchParams;
-  // Related API accepts the same id/slug as the product route — run in parallel
-  // with product + bottles so we don't wait for product before starting /related.
-  const [product, bottles, relatedProducts] = await Promise.all([
+  // Related products + the full review list are loaded client-side (below the
+  // fold, not SEO-critical) so they stay off the static render's critical path.
+  const [product, bottles] = await Promise.all([
     getProduct(id),
     getBottles(),
-    getRelatedProducts(id),
   ]);
 
   if (!product) {
@@ -200,18 +160,15 @@ export default async function ProductDetailPage({
   }
 
   const slug = product.slug || product._id || product.id;
-  const sizeParam = sp.size ? parseInt(sp.size, 10) : null;
-  const isPack = sp.pack === "true";
-  const matchedVariant = resolveMatchedVariant(product, sizeParam, isPack);
   const isSet = product.product_type === "set";
   const productId = String(product._id || product.id);
-  const [reviews, reviewSummary] = await Promise.all([
-    getProductReviews(productId),
-    getReviewSummary(productId),
-  ]);
+  // Only the lightweight summary is fetched server-side — it powers the
+  // aggregateRating rich snippet (stars) and the rating header. The full
+  // review list is loaded client-side.
+  const reviewSummary = await getReviewSummary(productId);
 
-  const seo = buildProductSeoCopy(seoInput(product, matchedVariant));
-  const canonicalUrl = buildProductCanonicalUrl(slug, matchedVariant, sp.bottle);
+  const seo = buildProductSeoCopy(seoInput(product, null));
+  const canonicalUrl = buildProductCanonicalUrl(slug);
 
   const productJsonLd = buildProductJsonLd({
     name: product.name,
@@ -221,15 +178,8 @@ export default async function ProductDetailPage({
     slug,
     stockMl: product.stock_ml,
     variants: product.variants,
-    matchedVariant,
+    matchedVariant: null,
     jsonLdName: seo.jsonLdName,
-    reviews: reviews.map((r: { user_name: string; rating: number; comment: string; created_at: string; is_verified_purchase?: boolean }) => ({
-      user_name: r.user_name,
-      rating: r.rating,
-      comment: r.comment,
-      created_at: r.created_at,
-      is_verified_purchase: r.is_verified_purchase,
-    })),
     reviewSummary:
       reviewSummary.review_count > 0
         ? {
@@ -258,21 +208,12 @@ export default async function ProductDetailPage({
         <SetDetailClient
           product={product}
           bottles={bottles}
-          initialSize={sizeParam}
-          initialBottleId={sp.bottle || null}
-          relatedProducts={relatedProducts}
-          reviews={reviews}
           reviewSummary={reviewSummary}
         />
       ) : (
         <ProductDetailClient
           product={product}
           bottles={bottles}
-          initialSize={sizeParam}
-          initialIsPack={isPack}
-          initialBottleId={sp.bottle || null}
-          relatedProducts={relatedProducts}
-          reviews={reviews}
           reviewSummary={reviewSummary}
         />
       )}

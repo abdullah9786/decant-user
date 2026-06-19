@@ -15,7 +15,7 @@ import {
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
 import FairPricing from "@/components/home/FairPricing";
-import { offerApi } from "@/lib/api";
+import { offerApi, productApi, reviewApi } from "@/lib/api";
 import { ChipList } from "@/components/ui/Chip";
 import { useActiveDeal } from "@/components/deal/ActiveDealProvider";
 import PriceTag from "@/components/deal/PriceTag";
@@ -34,48 +34,36 @@ import ProductReviews, {
 interface ProductDetailClientProps {
   product: any;
   bottles?: any[];
-  initialSize?: number | null;
-  initialIsPack?: boolean;
-  initialBottleId?: string | null;
-  relatedProducts?: any[];
-  reviews?: ReviewItem[];
   reviewSummary?: ReviewSummaryData;
 }
 
 export default function ProductDetailClient({
   product,
   bottles = [],
-  initialSize = null,
-  initialIsPack = false,
-  initialBottleId = null,
-  relatedProducts = [],
-  reviews: initialReviews = [],
   reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
 }: ProductDetailClientProps) {
   const router = useRouter();
-  const [reviews, setReviews] = useState(initialReviews);
+  // Related products + the full review list are fetched client-side so the page
+  // can be statically rendered + edge-cached. The lightweight review summary
+  // arrives from SSR (drives the rating header + JSON-LD stars).
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [reviewSummary, setReviewSummary] = useState(initialReviewSummary);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
 
-  useEffect(() => {
-    setReviews(initialReviews);
-    setReviewSummary(initialReviewSummary);
-  }, [initialReviews, initialReviewSummary]);
-  // Pick a sensible default size:
-  //   1. Honour the ?size= query param if it matches a real variant.
-  //   2. Otherwise, the first *in-stock* variant — so a sold-out 5ml
-  //      doesn't auto-select and visually mislead the user.
-  //   3. If every variant is sold out, fall back to the first one so
+  // Pick a sensible default size (deterministic for SSR so hydration matches):
+  //   1. The first *in-stock* variant — so a sold-out 5ml doesn't auto-select
+  //      and visually mislead the user.
+  //   2. If every variant is sold out, fall back to the first one so
   //      `currentVariant` is non-null and the price/section can render;
   //      the size button itself will be styled as disabled (see render).
+  // A `?size=`/`?pack=` deep link is applied after hydration (see effect below)
+  // so the page itself stays statically renderable.
   const productStockMl = product.stock_ml ?? 0;
-  const urlVariantMatch = product.variants?.find(
-    (v: any) => initialSize != null && v.size_ml === initialSize && !!v.is_pack === initialIsPack,
-  );
   const firstInStockVariant = product.variants?.find((v: any) =>
     isVariantInStock(v, productStockMl),
   );
   const fallbackVariant = product.variants?.[0];
-  const initialVariant = urlVariantMatch ?? firstInStockVariant ?? fallbackVariant;
+  const initialVariant = firstInStockVariant ?? fallbackVariant;
 
   const resolvedInitialSize = initialVariant?.size_ml ?? null;
   const resolvedInitialIsPack = !!initialVariant?.is_pack;
@@ -84,8 +72,58 @@ export default function ProductDetailClient({
   const [selectedIsPack, setSelectedIsPack] = useState<boolean>(resolvedInitialIsPack);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [sanitizedDescription, setSanitizedDescription] = useState("");
-  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(initialBottleId);
+  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const addItem = useCartStore((state) => state.addItem);
+
+  // Apply a variant deep link (?size=&pack=&bottle=) once, after hydration.
+  // Reading window.location here (rather than the server `searchParams` or the
+  // `useSearchParams` hook) keeps the route static instead of forcing SSR.
+  const deepLinkApplied = useRef(false);
+  // Holds a `?bottle=` id from a deep link until the bottle-sync effect can
+  // apply it (it has priority over the auto-selected default). Cleared once
+  // applied or when the user picks a bottle/size manually.
+  const pendingBottleRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (deepLinkApplied.current) return;
+    deepLinkApplied.current = true;
+    const sp = new URLSearchParams(window.location.search);
+    const sizeRaw = sp.get("size");
+    const pack = sp.get("pack") === "true";
+    const bottle = sp.get("bottle");
+    if (sizeRaw) {
+      const size = parseInt(sizeRaw, 10);
+      const match = product.variants?.find(
+        (v: any) => v.size_ml === size && !!v.is_pack === pack,
+      );
+      if (match) {
+        setSelectedSize(size);
+        setSelectedIsPack(pack);
+      }
+    }
+    if (bottle) pendingBottleRef.current = bottle;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Lazy-load below-the-fold, non-SEO-critical data off the critical path.
+  useEffect(() => {
+    const idOrSlug = product.slug || product._id || product.id;
+    let cancelled = false;
+    productApi
+      .getRelated(idOrSlug, 10)
+      .then((res) => {
+        if (!cancelled) setRelatedProducts(res.data || []);
+      })
+      .catch(() => {});
+    reviewApi
+      .getByProduct(String(product._id || product.id), { limit: 20 })
+      .then((res) => {
+        if (!cancelled) setReviews(res.data || []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product]);
 
   const [activeOffer, setActiveOffer] = useState<any>(null);
 
@@ -161,15 +199,14 @@ export default function ProductDetailClient({
     name: product.name,
     brand: product.brand,
     variants: product.variants,
-    matchedVariant:
-      initialSize != null && currentVariant
-        ? {
-            size_ml: currentVariant.size_ml,
-            price: currentVariant.price,
-            is_pack: !!currentVariant.is_pack,
-            stock: currentVariant.stock,
-          }
-        : null,
+    matchedVariant: currentVariant
+      ? {
+          size_ml: currentVariant.size_ml,
+          price: currentVariant.price,
+          is_pack: !!currentVariant.is_pack,
+          stock: currentVariant.stock,
+        }
+      : null,
   });
   const othersLow = selectedPrice ? selectedPrice + 200 : 0;
   const othersHigh = selectedPrice ? selectedPrice + 250 : 0;
@@ -191,6 +228,7 @@ export default function ProductDetailClient({
 
   useEffect(() => {
     if (availableBottles.length === 0) {
+      pendingBottleRef.current = null;
       if (selectedBottleId !== null) setSelectedBottleId(null);
       if (!hasSyncedInitial.current) {
         hasSyncedInitial.current = true;
@@ -198,12 +236,19 @@ export default function ProductDetailClient({
       }
       return;
     }
-    const current = availableBottles.find((b: any) => (b.id || b._id) === selectedBottleId);
+    // A deep-linked bottle takes priority over the current/default selection
+    // until it's been applied (it may only become compatible after the
+    // deep-linked size is applied a tick later).
+    const desiredId = pendingBottleRef.current ?? selectedBottleId;
+    const current = availableBottles.find((b: any) => (b.id || b._id) === desiredId);
     if (current) {
+      pendingBottleRef.current = null;
+      const cid = current.id || current._id;
+      if (cid !== selectedBottleId) setSelectedBottleId(cid);
       if (!hasSyncedInitial.current) {
         hasSyncedInitial.current = true;
-        updateUrl(selectedSize, selectedIsPack, selectedBottleId);
       }
+      updateUrl(selectedSize, selectedIsPack, cid);
       return;
     }
     const def = availableBottles.find((b: any) => b.is_default);
@@ -213,7 +258,7 @@ export default function ProductDetailClient({
       hasSyncedInitial.current = true;
     }
     updateUrl(selectedSize, selectedIsPack, newId);
-  }, [selectedMl, isPack, availableBottles.length]);
+  }, [selectedMl, isPack, availableBottles.length, selectedBottleId]);
 
   const handleAddToCart = () => {
     if (!product || !currentVariant) return;
@@ -510,7 +555,7 @@ export default function ProductDetailClient({
                       <button
                         key={v.size_ml}
                         type="button"
-                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(false); updateUrl(v.size_ml, false, selectedBottleId); }}
+                        onClick={() => { pendingBottleRef.current = null; setSelectedSize(v.size_ml); setSelectedIsPack(false); updateUrl(v.size_ml, false, selectedBottleId); }}
                         aria-pressed={isSelected}
                         title={outOfStock ? 'Currently out of stock' : undefined}
                         className={`min-w-[72px] md:min-w-[80px] py-2.5 md:py-3 px-3 md:px-4 text-[10px] font-bold transition-all border ${
@@ -552,7 +597,7 @@ export default function ProductDetailClient({
                       <button
                         key={`pack-${v.size_ml}`}
                         type="button"
-                        onClick={() => { setSelectedSize(v.size_ml); setSelectedIsPack(true); updateUrl(v.size_ml, true, null); }}
+                        onClick={() => { pendingBottleRef.current = null; setSelectedSize(v.size_ml); setSelectedIsPack(true); updateUrl(v.size_ml, true, null); }}
                         aria-pressed={isSelected}
                         title={outOfStock ? 'Currently out of stock' : undefined}
                         className={`min-w-[72px] md:min-w-[80px] py-2.5 md:py-3 px-3 md:px-4 text-[10px] font-bold transition-all border ${
@@ -586,7 +631,7 @@ export default function ProductDetailClient({
                         <button
                           key={bid}
                           type="button"
-                          onClick={() => { setSelectedBottleId(bid); updateUrl(selectedSize, selectedIsPack, bid); }}
+                          onClick={() => { pendingBottleRef.current = null; setSelectedBottleId(bid); updateUrl(selectedSize, selectedIsPack, bid); }}
                           className={`flex items-center space-x-3 px-4 py-3 rounded-xl border-2 transition-all ${
                             isSelected
                               ? "border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200"

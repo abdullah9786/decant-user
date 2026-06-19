@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ChevronRight, ShoppingBag, ShieldCheck, Truck } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
+import { productApi, reviewApi } from "@/lib/api";
 import { ChipList } from "@/components/ui/Chip";
 import PriceTag from "@/components/deal/PriceTag";
 import { buildProductSeoCopy } from "@/lib/product/productSeo";
@@ -21,29 +22,19 @@ import ProductReviews, {
 interface SetDetailClientProps {
   product: any;
   bottles?: any[];
-  initialSize?: number | null;
-  initialBottleId?: string | null;
-  relatedProducts?: any[];
-  reviews?: ReviewItem[];
   reviewSummary?: ReviewSummaryData;
 }
 
 export default function SetDetailClient({
   product,
   bottles = [],
-  initialSize = null,
-  initialBottleId = null,
-  relatedProducts = [],
-  reviews: initialReviews = [],
   reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
 }: SetDetailClientProps) {
-  const [reviews, setReviews] = useState(initialReviews);
+  // Related products + full review list load client-side so the page stays
+  // statically renderable; the summary comes from SSR (rating header + stars).
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [reviewSummary, setReviewSummary] = useState(initialReviewSummary);
-
-  useEffect(() => {
-    setReviews(initialReviews);
-    setReviewSummary(initialReviewSummary);
-  }, [initialReviews, initialReviewSummary]);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const addItem = useCartStore((state) => state.addItem);
   const productId = product.id || product._id;
   const slug = product.slug || productId;
@@ -53,21 +44,14 @@ export default function SetDetailClient({
     [product],
   );
 
-  const normalizedInitialSize =
-    initialSize != null ? normalizeSizeMl(initialSize) : null;
-
+  // Deterministic default (SSR-safe). A `?size=` deep link is applied after
+  // hydration via the effect below so the route can stay static.
   const pickDefaultVariant = useCallback(() => {
     const firstInStock = decantVariants.find((v) =>
       isSetInStock(product, v.size_ml),
     );
-    if (normalizedInitialSize != null) {
-      const fromUrl = decantVariants.find((v) =>
-        sizesMatch(v.size_ml, normalizedInitialSize),
-      );
-      if (fromUrl) return fromUrl;
-    }
     return firstInStock ?? decantVariants[0] ?? null;
-  }, [decantVariants, normalizedInitialSize, product]);
+  }, [decantVariants, product]);
 
   const [selectedSize, setSelectedSize] = useState<number | null>(() => {
     const def = pickDefaultVariant();
@@ -75,9 +59,46 @@ export default function SetDetailClient({
   });
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [sanitizedDescription, setSanitizedDescription] = useState("");
-  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(
-    initialBottleId,
-  );
+  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
+
+  // Apply a `?size=`/`?bottle=` deep link once, after hydration.
+  const deepLinkApplied = useRef(false);
+  const pendingBottleRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (deepLinkApplied.current) return;
+    deepLinkApplied.current = true;
+    const sp = new URLSearchParams(window.location.search);
+    const sizeRaw = sp.get("size");
+    const bottle = sp.get("bottle");
+    if (sizeRaw) {
+      const size = normalizeSizeMl(parseInt(sizeRaw, 10));
+      const match = decantVariants.find((v) => sizesMatch(v.size_ml, size));
+      if (match) setSelectedSize(match.size_ml);
+    }
+    if (bottle) pendingBottleRef.current = bottle;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Lazy-load below-the-fold, non-SEO-critical data off the critical path.
+  useEffect(() => {
+    const idOrSlug = product.slug || product._id || product.id;
+    let cancelled = false;
+    productApi
+      .getRelated(idOrSlug, 10)
+      .then((res) => {
+        if (!cancelled) setRelatedProducts(res.data || []);
+      })
+      .catch(() => {});
+    reviewApi
+      .getByProduct(String(product._id || product.id), { limit: 20 })
+      .then((res) => {
+        if (!cancelled) setReviews(res.data || []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product]);
 
   useEffect(() => {
     if (!product?.description) return;
@@ -171,6 +192,7 @@ export default function SetDetailClient({
 
   useEffect(() => {
     if (availableBottles.length === 0) {
+      pendingBottleRef.current = null;
       if (selectedBottleId !== null) setSelectedBottleId(null);
       if (!hasSyncedInitial.current) {
         hasSyncedInitial.current = true;
@@ -178,14 +200,19 @@ export default function SetDetailClient({
       }
       return;
     }
+    // Deep-linked bottle wins over the current/default until it's applied.
+    const desiredId = pendingBottleRef.current ?? selectedBottleId;
     const current = availableBottles.find(
-      (b: any) => (b.id || b._id) === selectedBottleId,
+      (b: any) => (b.id || b._id) === desiredId,
     );
     if (current) {
+      pendingBottleRef.current = null;
+      const cid = current.id || current._id;
+      if (cid !== selectedBottleId) setSelectedBottleId(cid);
       if (!hasSyncedInitial.current) {
         hasSyncedInitial.current = true;
-        updateUrl(selectedSize, selectedBottleId);
       }
+      updateUrl(selectedSize, cid);
       return;
     }
     const def = availableBottles.find((b: any) => b.is_default);
@@ -196,9 +223,10 @@ export default function SetDetailClient({
     setSelectedBottleId(newId);
     if (!hasSyncedInitial.current) hasSyncedInitial.current = true;
     updateUrl(selectedSize, newId);
-  }, [selectedMl, availableBottles.length]);
+  }, [selectedMl, availableBottles.length, selectedBottleId]);
 
   const selectSize = (size: number) => {
+    pendingBottleRef.current = null;
     const normalized = normalizeSizeMl(size);
     setSelectedSize(normalized);
     updateUrl(normalized, selectedBottleId);
@@ -370,6 +398,7 @@ export default function SetDetailClient({
                         key={bid}
                         type="button"
                         onClick={() => {
+                          pendingBottleRef.current = null;
                           setSelectedBottleId(bid);
                           updateUrl(selectedSize, bid);
                         }}

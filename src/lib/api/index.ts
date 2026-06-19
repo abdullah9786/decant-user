@@ -97,6 +97,9 @@ export const authApi = {
 export const productApi = {
     getAll: (params?: any) => api.get('/products', { params }),
     getOne: (id: string) => api.get(`/products/${id}`),
+    /** Related/"you may also like" products. Loaded client-side on the PDP. */
+    getRelated: (idOrSlug: string, limit = 10) =>
+        api.get(`/products/${encodeURIComponent(idOrSlug)}/related`, { params: { limit } }),
     /**
      * Paginated server-side search. Drives the navbar autosuggest dropdown
      * and the /search page (with Load More). Returns `{ items, total,
