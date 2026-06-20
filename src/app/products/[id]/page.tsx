@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { cache } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import ProductDetailClient from "./ProductDetailClient";
 import SetDetailClient from "./SetDetailClient";
 import {
@@ -61,6 +62,16 @@ async function getReviewSummary(productId: string) {
   } catch {
     return { average_rating: 0, review_count: 0, rating_breakdown: {} };
   }
+}
+
+/**
+ * Sanitize the rich-text product description on the server so it ships inside
+ * the static/ISR HTML (visible in view-source and to crawlers) instead of being
+ * injected client-side after hydration. `isomorphic-dompurify` runs in Node.
+ */
+function sanitizeDescription(raw: unknown): string {
+  if (!raw || typeof raw !== "string") return "";
+  return DOMPurify.sanitize(raw.replace(/&nbsp;|\u00A0/g, " "));
 }
 
 function seoInput(product: any, matchedVariant: MatchedVariant | null) {
@@ -169,6 +180,7 @@ export default async function ProductDetailPage({
 
   const seo = buildProductSeoCopy(seoInput(product, null));
   const canonicalUrl = buildProductCanonicalUrl(slug);
+  const descriptionHtml = sanitizeDescription(product.description);
 
   const productJsonLd = buildProductJsonLd({
     name: product.name,
@@ -209,12 +221,14 @@ export default async function ProductDetailPage({
           product={product}
           bottles={bottles}
           reviewSummary={reviewSummary}
+          descriptionHtml={descriptionHtml}
         />
       ) : (
         <ProductDetailClient
           product={product}
           bottles={bottles}
           reviewSummary={reviewSummary}
+          descriptionHtml={descriptionHtml}
         />
       )}
     </>

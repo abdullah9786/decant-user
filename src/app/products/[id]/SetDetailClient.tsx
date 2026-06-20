@@ -23,12 +23,15 @@ interface SetDetailClientProps {
   product: any;
   bottles?: any[];
   reviewSummary?: ReviewSummaryData;
+  /** Server-sanitized description HTML — rendered directly so it's in the SSR/SSG output. */
+  descriptionHtml?: string;
 }
 
 export default function SetDetailClient({
   product,
   bottles = [],
   reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
+  descriptionHtml = "",
 }: SetDetailClientProps) {
   // Related products + full review list load client-side so the page stays
   // statically renderable; the summary comes from SSR (rating header + stars).
@@ -58,7 +61,6 @@ export default function SetDetailClient({
     return def?.size_ml ?? null;
   });
   const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [sanitizedDescription, setSanitizedDescription] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
 
   // Apply a `?size=`/`?bottle=` deep link once, after hydration.
@@ -99,17 +101,6 @@ export default function SetDetailClient({
       cancelled = true;
     };
   }, [product]);
-
-  useEffect(() => {
-    if (!product?.description) return;
-    import("dompurify").then((mod) => {
-      setSanitizedDescription(
-        mod.default.sanitize(
-          (product.description || "").replace(/&nbsp;|\u00A0/g, " "),
-        ),
-      );
-    });
-  }, [product?.description]);
 
   const currentVariant = useMemo(
     () =>
@@ -477,10 +468,10 @@ export default function SetDetailClient({
               </div>
             )}
 
-            {sanitizedDescription && (
+            {descriptionHtml && (
               <div
                 className="prose prose-sm max-w-none text-gray-600 pt-4 border-t border-gray-100"
-                dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             )}
 

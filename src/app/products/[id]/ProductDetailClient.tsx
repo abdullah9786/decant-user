@@ -35,12 +35,15 @@ interface ProductDetailClientProps {
   product: any;
   bottles?: any[];
   reviewSummary?: ReviewSummaryData;
+  /** Server-sanitized description HTML — rendered directly so it's in the SSR/SSG output. */
+  descriptionHtml?: string;
 }
 
 export default function ProductDetailClient({
   product,
   bottles = [],
   reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
+  descriptionHtml = "",
 }: ProductDetailClientProps) {
   const router = useRouter();
   // Related products + the full review list are fetched client-side so the page
@@ -71,7 +74,6 @@ export default function ProductDetailClient({
   const [selectedSize, setSelectedSize] = useState<number | null>(resolvedInitialSize);
   const [selectedIsPack, setSelectedIsPack] = useState<boolean>(resolvedInitialIsPack);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [sanitizedDescription, setSanitizedDescription] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const addItem = useCartStore((state) => state.addItem);
 
@@ -147,18 +149,6 @@ export default function ProductDetailClient({
     },
     [router, slug]
   );
-
-  useEffect(() => {
-    if (!product?.description) return;
-    import("dompurify").then((mod) => {
-      const DOMPurify = mod.default;
-      setSanitizedDescription(
-        DOMPurify.sanitize(
-          (product.description || "").replace(/&nbsp;|\u00A0/g, " ")
-        )
-      );
-    });
-  }, [product?.description]);
 
   const allImages = [product.image_url, ...(product.images || [])].filter(
     Boolean
@@ -719,7 +709,7 @@ export default function ProductDetailClient({
                 <div
                   className="prose prose-sm font-serif italic text-gray-600 leading-relaxed text-lg rich-content"
                   style={{ wordBreak: "normal", overflowWrap: "break-word" }}
-                  dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+                  dangerouslySetInnerHTML={{ __html: descriptionHtml }}
                 />
               </div>
             </div>
