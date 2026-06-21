@@ -112,15 +112,26 @@ export default function ProductDetailClient({
     const idOrSlug = product.slug || product._id || product.id;
     let cancelled = false;
     setRelatedLoading(true);
-    productApi
-      .getRelated(idOrSlug, 10)
-      .then((res) => {
-        if (!cancelled) setRelatedProducts(res.data || []);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setRelatedLoading(false);
-      });
+    // Mobile networks occasionally drop/slow this request; without a timeout +
+    // retry a single hiccup would leave the rail empty and the section would
+    // hide. Retry a couple of times before giving up.
+    const loadRelated = async (attempt = 0) => {
+      try {
+        const res = await productApi.getRelated(idOrSlug, 10, { timeout: 8000 });
+        if (!cancelled) {
+          setRelatedProducts(res.data || []);
+          setRelatedLoading(false);
+        }
+      } catch {
+        if (cancelled) return;
+        if (attempt < 2) {
+          setTimeout(() => loadRelated(attempt + 1), 1200 * (attempt + 1));
+        } else {
+          setRelatedLoading(false);
+        }
+      }
+    };
+    loadRelated();
     reviewApi
       .getByProduct(String(product._id || product.id), { limit: 20 })
       .then((res) => {

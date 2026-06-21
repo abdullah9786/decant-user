@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -98,8 +98,8 @@ export const productApi = {
     getAll: (params?: any) => api.get('/products', { params }),
     getOne: (id: string) => api.get(`/products/${id}`),
     /** Related/"you may also like" products. Loaded client-side on the PDP. */
-    getRelated: (idOrSlug: string, limit = 10) =>
-        api.get(`/products/${encodeURIComponent(idOrSlug)}/related`, { params: { limit } }),
+    getRelated: (idOrSlug: string, limit = 10, config: AxiosRequestConfig = {}) =>
+        api.get(`/products/${encodeURIComponent(idOrSlug)}/related`, { params: { limit }, ...config }),
     /**
      * Paginated server-side search. Drives the navbar autosuggest dropdown
      * and the /search page (with Load More). Returns `{ items, total,
