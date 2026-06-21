@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { cache } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import ProductDetailClient from "./ProductDetailClient";
 import SetDetailClient from "./SetDetailClient";
 import {
@@ -67,11 +67,31 @@ async function getReviewSummary(productId: string) {
 /**
  * Sanitize the rich-text product description on the server so it ships inside
  * the static/ISR HTML (visible in view-source and to crawlers) instead of being
- * injected client-side after hydration. `isomorphic-dompurify` runs in Node.
+ * injected client-side after hydration.
+ *
+ * Uses `sanitize-html` (pure JS) instead of DOMPurify so the server bundle
+ * doesn't pull in `jsdom`, whose transitive ESM deps crash the Vercel
+ * serverless runtime (ERR_REQUIRE_ESM) when a non-prebuilt product renders
+ * on-demand.
  */
 function sanitizeDescription(raw: unknown): string {
   if (!raw || typeof raw !== "string") return "";
-  return DOMPurify.sanitize(raw.replace(/&nbsp;|\u00A0/g, " "));
+  const cleaned = raw.replace(/&nbsp;|\u00A0/g, " ");
+  return sanitizeHtml(cleaned, {
+    allowedTags: [
+      "p", "br", "span", "div", "b", "strong", "i", "em", "u", "s", "mark",
+      "small", "sub", "sup", "a", "ul", "ol", "li", "blockquote", "pre",
+      "code", "hr", "h1", "h2", "h3", "h4", "h5", "h6", "img", "figure",
+      "figcaption", "table", "thead", "tbody", "tr", "th", "td",
+    ],
+    allowedAttributes: {
+      a: ["href", "target", "rel", "name"],
+      img: ["src", "alt", "title", "width", "height"],
+      "*": ["class", "style"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowedSchemesByTag: { img: ["http", "https", "data"] },
+  });
 }
 
 function seoInput(product: any, matchedVariant: MatchedVariant | null) {
