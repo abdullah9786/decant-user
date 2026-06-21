@@ -8,6 +8,12 @@ import { cacheFetchOptions } from "@/lib/cacheConfig";
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+const SITE_URL = "https://decume.in";
+
+// Pre-render category pages at build time and refresh them via ISR (the
+// existing on-demand `revalidate_category` keeps them fresh on admin edits).
+export const revalidate = 86400;
+
 async function getCategories() {
   try {
     const res = await fetch(`${API_URL}/categories`, cacheFetchOptions());
@@ -29,6 +35,13 @@ async function getCategoryProducts(categoryId: string) {
   } catch {
     return [];
   }
+}
+
+export async function generateStaticParams() {
+  const categories = await getCategories();
+  return (categories || [])
+    .filter((c: { slug?: string }) => c?.slug)
+    .map((c: { slug: string }) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({
@@ -81,8 +94,49 @@ export default async function CategoryDetailPage({
   const categoryId = String(category._id || category.id);
   const products = await getCategoryProducts(categoryId);
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Categories",
+        item: `${SITE_URL}/categories`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: category.name,
+        item: `${SITE_URL}/categories/${slug}`,
+      },
+    ],
+  };
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: category.name,
+    numberOfItems: products.length,
+    itemListElement: products.map((product: any, index: number) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: product.name,
+      url: `${SITE_URL}/products/${product.slug || product._id || product.id}`,
+    })),
+  };
+
   return (
     <div className="bg-white min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <div className="relative h-72 md:h-72 overflow-hidden">
         {category.image_url ? (
           <Image

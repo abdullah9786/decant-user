@@ -1,46 +1,56 @@
-"use client";
+import Link from "next/link";
+import Image from "next/image";
+import { FolderOpen } from "lucide-react";
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { categoryApi } from '@/lib/api';
-import { Loader2, FolderOpen } from 'lucide-react';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+const SITE_URL = "https://decume.in";
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await categoryApi.getAll();
-        setCategories(response.data || []);
-      } catch (err) {
-        console.error("Error fetching categories", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+// ISR: render category list at build time, refresh daily (on-demand
+// revalidation via `revalidate_category` keeps it fresh on admin edits).
+export const revalidate = 86400;
 
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <Loader2 className="animate-spin text-emerald-600" size={32} />
-      </div>
-    );
+async function getCategories() {
+  try {
+    const res = await fetch(`${API_URL}/categories`, cacheFetchOptions());
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
   }
+}
+
+export default async function CategoriesPage() {
+  const categories = await getCategories();
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Shop by Category",
+    numberOfItems: categories.length,
+    itemListElement: categories.map((cat: any, index: number) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: cat.name,
+      url: `${SITE_URL}/categories/${cat.slug}`,
+    })),
+  };
 
   return (
     <div className="py-20 bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-serif text-emerald-950 mb-4 text-center">Shop by Category</h1>
         <p className="text-gray-500 text-center uppercase tracking-[0.2em] text-xs mb-16">Curated collections for every preference</p>
 
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((cat) => (
+            {categories.map((cat: any) => (
               <Link
                 key={cat._id || cat.slug}
                 href={`/categories/${cat.slug}`}
