@@ -219,11 +219,18 @@ export default async function BlogBlocks({ blocks }: { blocks: BlogBlocksPayload
                     {content.map((row: unknown, ri: number) => (
                       <tr key={ri} className="odd:bg-stone-50">
                         {Array.isArray(row)
-                          ? row.map((cell: unknown, ci: number) => (
-                              <td key={ci} className="border border-stone-200 px-2 py-1">
-                                {String(cell ?? "")}
-                              </td>
-                            ))
+                          ? row.map((cell: unknown, ci: number) => {
+                              const cellHtml =
+                                sanitizeBlogInlineHtml(String(cell ?? "")) || "\u00a0";
+                              return (
+                                <td
+                                  key={ci}
+                                  className={`border border-stone-200 px-2 py-1 ${linkProse}`}
+                                  // eslint-disable-next-line react/no-danger
+                                  dangerouslySetInnerHTML={{ __html: cellHtml }}
+                                />
+                              );
+                            })
                           : null}
                       </tr>
                     ))}

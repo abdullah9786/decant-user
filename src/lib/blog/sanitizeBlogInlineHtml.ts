@@ -15,5 +15,11 @@ export function sanitizeBlogInlineHtml(dirty: string): string {
       "*": ["class"],
     },
     allowedSchemes: ["http", "https", "mailto", "tel"],
+    transformTags: {
+      a: sanitizeHtml.simpleTransform("a", {
+        target: "_blank",
+        rel: "noopener noreferrer",
+      }),
+    },
   });
 }

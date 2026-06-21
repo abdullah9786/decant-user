@@ -103,11 +103,12 @@ export default async function BlogArticlePage({ params }: Props) {
           ) : null}
           {post.author_name && post.published_at ? <span aria-hidden className="text-stone-300">·</span> : null}
           {post.published_at ? (
-            <time dateTime={post.published_at}>
+            <time dateTime={post.published_at} suppressHydrationWarning>
               {new Date(post.published_at).toLocaleDateString("en-IN", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
+                timeZone: "UTC",
               })}
             </time>
           ) : null}
