@@ -7,6 +7,32 @@ import ProductCard from "@/components/ui/ProductCard";
 
 interface SuggestedProductsProps {
   products: any[];
+  loading?: boolean;
+}
+
+/** Shimmer placeholder that mirrors a compact ProductCard's footprint so the
+ * section reserves space while related products lazy-load (no layout jump). */
+function SuggestedSkeleton() {
+  return (
+    <div className="flex gap-3 md:gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex-shrink-0 w-[calc((100%-0.75rem)/1.75)] sm:w-[calc((100%-1rem)/2.5)] md:w-[220px] lg:w-[240px]"
+        >
+          <div className="animate-pulse rounded-xl border border-emerald-100 bg-white overflow-hidden">
+            <div className="aspect-square w-full bg-emerald-100/70" />
+            <div className="p-3 space-y-2">
+              <div className="h-2.5 w-1/3 rounded bg-emerald-100" />
+              <div className="h-3.5 w-3/4 rounded bg-emerald-100" />
+              <div className="h-3 w-1/2 rounded bg-emerald-100" />
+              <div className="h-7 w-full rounded bg-emerald-100 mt-3" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function getGap(el: HTMLDivElement): number {
@@ -62,6 +88,7 @@ function getCarouselMetrics(el: HTMLDivElement) {
 
 export default function SuggestedProducts({
   products,
+  loading = false,
 }: SuggestedProductsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
@@ -109,7 +136,10 @@ export default function SuggestedProducts({
     el.scrollTo({ left: target, behavior: "smooth" });
   }, []);
 
-  if (!products?.length) return null;
+  const showSkeleton = loading && !products?.length;
+
+  // Hide the whole section only once the fetch has settled with no results.
+  if (!showSkeleton && !products?.length) return null;
 
   return (
     <section className="border-t border-emerald-100 bg-white py-8 md:py-12">
@@ -145,6 +175,12 @@ export default function SuggestedProducts({
           </div>
 
           <div className="relative px-4 md:px-6 py-5 md:py-6">
+            {showSkeleton ? (
+              <div className="carousel-clip w-full overflow-hidden">
+                <SuggestedSkeleton />
+              </div>
+            ) : (
+            <>
             <button
               type="button"
               onClick={() => scrollByPage(-1)}
@@ -202,6 +238,8 @@ export default function SuggestedProducts({
                   />
                 ))}
               </div>
+            )}
+            </>
             )}
           </div>
         </div>

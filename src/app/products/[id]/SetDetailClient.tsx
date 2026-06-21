@@ -38,6 +38,7 @@ export default function SetDetailClient({
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [reviewSummary, setReviewSummary] = useState(initialReviewSummary);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
   const productId = product.id || product._id;
   const slug = product.slug || productId;
@@ -85,12 +86,16 @@ export default function SetDetailClient({
   useEffect(() => {
     const idOrSlug = product.slug || product._id || product.id;
     let cancelled = false;
+    setRelatedLoading(true);
     productApi
       .getRelated(idOrSlug, 10)
       .then((res) => {
         if (!cancelled) setRelatedProducts(res.data || []);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setRelatedLoading(false);
+      });
     reviewApi
       .getByProduct(String(product._id || product.id), { limit: 20 })
       .then((res) => {
@@ -503,7 +508,7 @@ export default function SetDetailClient({
         }}
       />
 
-      <SuggestedProducts products={relatedProducts} />
+      <SuggestedProducts products={relatedProducts} loading={relatedLoading} />
     </div>
   );
 }
