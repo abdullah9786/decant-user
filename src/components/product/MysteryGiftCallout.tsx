@@ -6,9 +6,9 @@ import {
   DEFAULT_ACCENT,
   tierIcon,
   formatINR,
-  useMysteryGiftOffer,
   resolveTierProgress,
 } from "@/lib/mysteryGift";
+import { useMysteryGiftOffer } from "@/lib/useMysteryGiftOffer";
 
 export default function MysteryGiftCallout() {
   const { offer, tiers } = useMysteryGiftOffer();

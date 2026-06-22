@@ -5,9 +5,9 @@ import {
   DEFAULT_ACCENT,
   tierIcon,
   formatINR,
-  useMysteryGiftOffer,
   resolveTierProgress,
 } from "@/lib/mysteryGift";
+import { useMysteryGiftOffer } from "@/lib/useMysteryGiftOffer";
 
 export default function MysteryGiftLadder({ subtotal }: { subtotal: number }) {
   const { offer, tiers } = useMysteryGiftOffer();

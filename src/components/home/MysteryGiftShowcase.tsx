@@ -1,12 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import {
-  DEFAULT_ACCENT,
-  formatINR,
-  useMysteryGiftOffer,
-} from "@/lib/mysteryGift";
+import { DEFAULT_ACCENT, formatINR, type MysteryTier } from "@/lib/mysteryGift";
 
 const BEAM_ANGLES = [-34, -17, 0, 17, 34];
 const SPARKLES = [
@@ -33,8 +27,13 @@ function Sparkle({ size, color }: { size: number; color: string }) {
   );
 }
 
-export default function MysteryGiftShowcase() {
-  const { offer, tiers } = useMysteryGiftOffer();
+export default function MysteryGiftShowcase({ offer }: { offer: any }) {
+  const tiers: MysteryTier[] = [...(offer?.config?.tiers || [])]
+    .filter((t: MysteryTier) => Number(t?.min_subtotal) > 0)
+    .sort(
+      (a: MysteryTier, b: MysteryTier) =>
+        Number(a.min_subtotal) - Number(b.min_subtotal),
+    );
 
   if (!offer || tiers.length === 0) return null;
 

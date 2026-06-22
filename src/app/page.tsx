@@ -84,6 +84,21 @@ async function getDailyDeal() {
   }
 }
 
+async function getMysteryGift() {
+  try {
+    const res = await fetch(`${API_URL}/offers/active`, cacheFetchOptions());
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (
+      (data || []).find(
+        (o: any) => o.type === "mystery_gift" && o.is_active,
+      ) || null
+    );
+  } catch {
+    return null;
+  }
+}
+
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -108,12 +123,13 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredSets, featuredFamilies, featuredCategories, dealResp] = await Promise.all([
+  const [featuredProducts, featuredSets, featuredFamilies, featuredCategories, dealResp, mysteryGift] = await Promise.all([
     getFeaturedProducts(),
     getFeaturedSets(),
     getFeaturedFamilies(),
     getFeaturedCategories(),
     getDailyDeal(),
+    getMysteryGift(),
   ]);
 
   const dailyDeal = dealResp?.deal ?? null;
@@ -144,7 +160,7 @@ export default async function HomePage() {
         <DefaultHero />
       )}
 
-      <MysteryGiftShowcase />
+      <MysteryGiftShowcase offer={mysteryGift} />
 
       <TopCategories categories={featuredCategories} />
 

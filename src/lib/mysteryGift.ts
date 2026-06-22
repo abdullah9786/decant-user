@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
 import {
   Gift,
   Sparkles,
@@ -11,7 +8,6 @@ import {
   Trophy,
   type LucideIcon,
 } from "lucide-react";
-import { offerApi } from "@/lib/api";
 
 export interface MysteryTier {
   id: string;
@@ -40,36 +36,6 @@ export function tierIcon(name?: string): LucideIcon {
 
 export function formatINR(n: number): string {
   return `\u20b9${Math.round(n).toLocaleString("en-IN")}`;
-}
-
-export function useMysteryGiftOffer() {
-  const [offer, setOffer] = useState<any>(null);
-
-  useEffect(() => {
-    let alive = true;
-    offerApi
-      .getActive()
-      .then((res) => {
-        if (!alive) return;
-        const mg = (res.data || []).find(
-          (o: any) => o.type === "mystery_gift" && o.is_active,
-        );
-        setOffer(mg || null);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const tiers: MysteryTier[] = useMemo(() => {
-    const raw: MysteryTier[] = offer?.config?.tiers || [];
-    return [...raw]
-      .filter((t) => Number(t?.min_subtotal) > 0)
-      .sort((a, b) => Number(a.min_subtotal) - Number(b.min_subtotal));
-  }, [offer]);
-
-  return { offer, tiers };
 }
 
 export interface TierProgress {
