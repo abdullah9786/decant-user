@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 const MIN_VISIBLE_MS = 220;
+const MAX_VISIBLE_MS = 10000;
 const Z_BAR = 100050;
 
 function routeKey(pathname: string, search: string) {
@@ -45,11 +46,26 @@ export default function ProgressBar() {
     finishNav();
   }, [key, finishNav]);
 
+  // Safety net: if a click started the bar but no navigation ever completes
+  // (cancelled nav, blocked route, etc.), force it off so it can't hang.
+  useEffect(() => {
+    if (!active) return;
+    const t = window.setTimeout(() => setActive(false), MAX_VISIBLE_MS);
+    return () => window.clearTimeout(t);
+  }, [active]);
+
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       const el = (e.target as HTMLElement | null)?.closest?.("a[href]");
       if (!el) return;
+      // A control nested inside the link (size chips, qty +/-, add-to-cart)
+      // handles the click in place and cancels navigation. Starting the bar
+      // here would leave it running forever since the route never changes.
+      const interactive = (e.target as HTMLElement | null)?.closest?.(
+        'button, [role="button"], input, select, textarea, label',
+      );
+      if (interactive && el.contains(interactive)) return;
       const a = el as HTMLAnchorElement;
       if (a.getAttribute("data-disable-nprogress") === "true") return;
       if (a.target === "_blank") return;
