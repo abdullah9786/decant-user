@@ -25,6 +25,7 @@ import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { isVariantInStock } from "@/lib/product/stock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
 import SuggestedProducts from "@/components/product/SuggestedProducts";
+import MysteryGiftCallout from "@/components/product/MysteryGiftCallout";
 import ProductReviews, {
   ProductRatingHeader,
   type ReviewItem,
@@ -688,6 +689,8 @@ export default function ProductDetailClient({
                       </div>
                     );
                   })()}
+
+                  <MysteryGiftCallout />
 
                   <button
                     onClick={handleAddToCart}

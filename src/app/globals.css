@@ -195,3 +195,56 @@ body {
     opacity: 0.85;
   }
 }
+
+/* Mystery-gift loot box (homepage showcase).
+ * Pure CSS — no images, GIFs, or libraries. Only `transform`/`opacity` are
+ * animated (GPU-composited) on a handful of nodes, so there is no measurable
+ * page-weight or runtime cost. All motion is disabled for reduced-motion
+ * users, who still get a static half-open box. */
+@keyframes mgift-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -7px, 0); }
+}
+
+@keyframes mgift-glow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 0.95; transform: translate(-50%, -50%) scale(1.12); }
+}
+
+@keyframes mgift-beam {
+  0%, 100% { opacity: 0.2; transform: translateX(-50%) rotate(var(--mgift-rot, 0deg)) scaleY(0.9); }
+  50%      { opacity: 0.7; transform: translateX(-50%) rotate(var(--mgift-rot, 0deg)) scaleY(1.06); }
+}
+
+@keyframes mgift-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  50%      { opacity: 1; transform: scale(1); }
+}
+
+@keyframes mgift-lid {
+  0%, 100% { transform: translateX(-50%) rotateX(60deg) translateY(0); }
+  50%      { transform: translateX(-50%) rotateX(64deg) translateY(-2px); }
+}
+
+.mgift-float { animation: mgift-float 4.5s ease-in-out infinite; }
+.mgift-glow { animation: mgift-glow 3s ease-in-out infinite; }
+.mgift-beam {
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(var(--mgift-rot, 0deg));
+  animation: mgift-beam 2.6s ease-in-out infinite;
+}
+.mgift-twinkle { animation: mgift-twinkle 2.4s ease-in-out infinite; }
+.mgift-lid {
+  transform: translateX(-50%) rotateX(60deg);
+  animation: mgift-lid 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mgift-float,
+  .mgift-glow,
+  .mgift-beam,
+  .mgift-twinkle,
+  .mgift-lid {
+    animation: none;
+  }
+}

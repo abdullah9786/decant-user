@@ -12,6 +12,7 @@ import DefaultHero from "@/components/home/DefaultHero";
 import DailyDealHero from "@/components/home/DailyDealHero";
 import DailyDealRail from "@/components/home/DailyDealRail";
 import TopCategories from "@/components/home/TopCategories";
+import MysteryGiftShowcase from "@/components/home/MysteryGiftShowcase";
 import SectionHeader from "@/components/home/SectionHeader";
 import HomeSectionShell from "@/components/home/HomeSectionShell";
 import { cacheFetchOptions } from "@/lib/cacheConfig";
@@ -142,6 +143,8 @@ export default async function HomePage() {
       ) : (
         <DefaultHero />
       )}
+
+      <MysteryGiftShowcase />
 
       <TopCategories categories={featuredCategories} />
 

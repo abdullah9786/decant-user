@@ -13,6 +13,7 @@ import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { getSetDecantVariants, isSetInStock, normalizeSizeMl, sizesMatch } from "@/lib/product/setStock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
 import SuggestedProducts from "@/components/product/SuggestedProducts";
+import MysteryGiftCallout from "@/components/product/MysteryGiftCallout";
 import ProductReviews, {
   ProductRatingHeader,
   type ReviewItem,
@@ -432,6 +433,8 @@ export default function SetDetailClient({
                 </div>
               </div>
             )}
+
+            <MysteryGiftCallout />
 
             <button
               type="button"

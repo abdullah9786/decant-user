@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { orderApi, influencerApi, offerApi, settingsApi } from '@/lib/api';
 import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
 import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, Tag, AlertTriangle, ShieldCheck, Lock, Banknote } from 'lucide-react';
+import MysteryGiftLadder from '@/components/cart/MysteryGiftLadder';
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
@@ -428,6 +429,12 @@ export default function CheckoutPage() {
             >
               Go to Cart
             </Link>
+          </div>
+        )}
+
+        {step < 3 && (
+          <div className="mb-8">
+            <MysteryGiftLadder subtotal={subtotal} />
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Gift } from 'lucide-react
 import { useCartStore, getQualifyingCount, type FreeDecantItem } from '@/store/useCartStore';
 import { offerApi, productApi } from '@/lib/api';
 import FreeDecantPicker from '@/components/cart/FreeDecantPicker';
+import MysteryGiftLadder from '@/components/cart/MysteryGiftLadder';
 
 export const dynamic = 'force-dynamic';
 
@@ -145,6 +146,8 @@ export default function CartPage() {
 
           {/* Summary */}
           <div className="h-fit sticky top-32 space-y-6">
+            <MysteryGiftLadder subtotal={subtotal} />
+
             {offer && entitledCount > 0 && eligibleProducts.length > 0 && (
               <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-6">
                 <FreeDecantPicker
