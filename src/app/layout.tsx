@@ -13,6 +13,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import { ActiveDealProvider } from "@/components/deal/ActiveDealProvider";
 import DailyDealBanner from "@/components/deal/DailyDealBanner";
 import DealMarquee from "@/components/deal/DealMarquee";
+import MysteryGiftBar from "@/components/cart/MysteryGiftBar";
 import { fetchDailyDealSSR } from "@/lib/server/deal";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -119,6 +120,7 @@ export default async function RootLayout({
             <ProgressBar />
           </Suspense>
           <ScrollToTop />
+          <MysteryGiftBar />
           <DailyDealBanner />
           <DealMarquee />
           <Navbar />

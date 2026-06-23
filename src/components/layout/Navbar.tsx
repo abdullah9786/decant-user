@@ -86,7 +86,10 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+    <nav
+      className="sticky z-50 bg-white border-b border-gray-100 shadow-sm"
+      style={{ top: "var(--mgift-bar-h, 0px)" }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           {/* Mobile: hamburger + logo */}
