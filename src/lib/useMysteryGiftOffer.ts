@@ -6,6 +6,7 @@ import type { MysteryTier } from "@/lib/mysteryGift";
 
 export function useMysteryGiftOffer() {
   const [offer, setOffer] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
@@ -18,7 +19,10 @@ export function useMysteryGiftOffer() {
         );
         setOffer(mg || null);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
     return () => {
       alive = false;
     };
@@ -31,5 +35,5 @@ export function useMysteryGiftOffer() {
       .sort((a, b) => Number(a.min_subtotal) - Number(b.min_subtotal));
   }, [offer]);
 
-  return { offer, tiers };
+  return { offer, tiers, loading };
 }

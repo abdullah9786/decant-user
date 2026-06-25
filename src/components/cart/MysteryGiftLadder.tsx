@@ -10,8 +10,9 @@ import {
 import { useMysteryGiftOffer } from "@/lib/useMysteryGiftOffer";
 
 export default function MysteryGiftLadder({ subtotal }: { subtotal: number }) {
-  const { offer, tiers } = useMysteryGiftOffer();
+  const { offer, tiers, loading } = useMysteryGiftOffer();
 
+  if (loading) return <MysteryGiftLadderSkeleton />;
   if (!offer || tiers.length === 0) return null;
 
   const { unlockedIdx, unlockedTier, nextTier, topThreshold, fillPct, remaining } =
@@ -153,7 +154,7 @@ export default function MysteryGiftLadder({ subtotal }: { subtotal: number }) {
                     )}
                   </div>
                   {t.tagline ? (
-                    <p className="text-[11px] text-emerald-950/50 truncate mt-0.5">{t.tagline}</p>
+                    <p className="text-[11px] text-emerald-950/50 mt-0.5 leading-snug">{t.tagline}</p>
                   ) : null}
                 </div>
                 <div className="text-right flex-shrink-0">
@@ -188,6 +189,52 @@ export default function MysteryGiftLadder({ subtotal }: { subtotal: number }) {
             </p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function MysteryGiftLadderSkeleton() {
+  return (
+    <div className="rounded-2xl border border-emerald-900/10 bg-white overflow-hidden shadow-sm animate-pulse">
+      {/* Header */}
+      <div className="px-5 py-4 flex items-center gap-2.5 bg-emerald-900/10">
+        <div className="h-[18px] w-[18px] rounded-full bg-emerald-900/15" />
+        <div className="space-y-1.5">
+          <div className="h-3 w-40 rounded bg-emerald-900/15" />
+          <div className="h-2 w-28 rounded bg-emerald-900/10" />
+        </div>
+      </div>
+
+      <div className="p-5 space-y-5">
+        {/* Progress track */}
+        <div className="pt-3">
+          <div className="h-2 rounded-full bg-emerald-900/10" />
+        </div>
+
+        {/* Tier rows */}
+        <div className="space-y-2.5">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-xl border border-emerald-900/10 p-3"
+            >
+              <div className="h-10 w-10 flex-shrink-0 rounded-full bg-emerald-900/10" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="h-3.5 w-32 rounded bg-emerald-900/15" />
+                <div className="h-2.5 w-24 rounded bg-emerald-900/10" />
+              </div>
+              <div className="flex-shrink-0 space-y-1.5 text-right">
+                <div className="ml-auto h-2 w-12 rounded bg-emerald-900/10" />
+                <div className="ml-auto h-3 w-14 rounded bg-emerald-900/15" />
+              </div>
+            </div>
+          ))}
+          <div className="h-2.5 w-56 rounded bg-emerald-900/10" />
+        </div>
+
+        {/* Nudge */}
+        <div className="h-11 rounded-xl bg-emerald-50 border border-emerald-200/70" />
       </div>
     </div>
   );
