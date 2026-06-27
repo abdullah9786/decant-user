@@ -134,7 +134,7 @@ export default function MysteryGiftLadder({ subtotal }: { subtotal: number }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p
-                      className="font-serif text-[15px] leading-tight truncate"
+                      className="font-serif text-[15px] leading-tight"
                       style={{ color: isAwarded ? accent : "#064e3b" }}
                     >
                       {t.name || `Tier ${i + 1}`}
