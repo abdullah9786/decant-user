@@ -38,7 +38,10 @@ export default function MysteryGiftShowcase({ offer }: { offer: any }) {
   if (!offer || tiers.length === 0) return null;
 
   const title = offer?.display?.title_gift || "Unlock a Mystery Gift";
-  const accent = tiers[tiers.length - 1]?.accent_color || DEFAULT_ACCENT;
+  const accent =
+    offer?.display?.box_color ||
+    tiers[tiers.length - 1]?.accent_color ||
+    DEFAULT_ACCENT;
 
   return (
     <section className="py-10 md:py-14">
