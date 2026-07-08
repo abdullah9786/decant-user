@@ -173,6 +173,34 @@ body {
   overflow: hidden;
 }
 
+/* Vertical list scroll — always show a visible scrollbar (reviews, etc.) */
+.review-list-scroll {
+  overflow-y: scroll;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(167 243 208 / 0.9) rgb(236 253 245);
+}
+
+.review-list-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.review-list-scroll::-webkit-scrollbar-track {
+  background: rgb(236 253 245);
+  border-radius: 9999px;
+}
+
+.review-list-scroll::-webkit-scrollbar-thumb {
+  background: rgb(110 231 183);
+  border-radius: 9999px;
+  border: 2px solid rgb(236 253 245);
+}
+
+.review-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(52 211 153);
+}
+
 /* Route transition bar (see ProgressBar.tsx — replaces broken nprogress + pushState). */
 @keyframes decume-nav-progress-slide {
   0% {

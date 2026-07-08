@@ -321,16 +321,10 @@ export default function ProductReviews({
                   <p className="text-sm mt-1">Be the first to share your experience.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {reviews.length > 5 && (
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      Showing {reviews.length} reviews — scroll for more
-                    </p>
-                  )}
-                  <ul
-                    className="space-y-4 max-h-[calc(5*9rem+4*1rem)] overflow-y-auto overscroll-contain pr-2 -mr-1"
-                    aria-label="Customer reviews"
-                  >
+                <ul
+                  className="review-list-scroll space-y-4 max-h-[calc(5*9rem+4*1rem)] overflow-y-scroll pr-2"
+                  aria-label="Customer reviews"
+                >
                     {reviews.map((review) => {
                       const key = review._id || review.id || `${review.user_name}-${review.created_at}`;
                       return (
@@ -362,7 +356,6 @@ export default function ProductReviews({
                       );
                     })}
                   </ul>
-                </div>
               )}
             </div>
           </div>
