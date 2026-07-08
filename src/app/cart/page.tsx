@@ -57,8 +57,8 @@ export default function CartPage() {
     }
     return acc;
   }, 0);
-  const shippingFee = subtotal > 999 ? 0 : 90;
-  const freeDeliveryThreshold = 999;
+  const shippingFee = subtotal > 2999 ? 0 : 90;
+  const freeDeliveryThreshold = 2999;
   const amountToFreeDelivery = Math.max(0, freeDeliveryThreshold + 1 - subtotal);
   const grandTotal = subtotal + shippingFee;
 

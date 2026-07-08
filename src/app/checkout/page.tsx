@@ -35,7 +35,7 @@ export default function CheckoutPage() {
     reason: string;
   } | null>(null);
   const subtotal = totalPrice();
-  const shippingFee = subtotal > 999 ? 0 : 90;
+  const shippingFee = subtotal > 2999 ? 0 : 90;
 
   const [freeDecantOffer, setFreeDecantOffer] = useState<any>(null);
 
