@@ -211,7 +211,7 @@ export default function ProductReviews({
             </div>
           </div>
 
-          <div className="px-4 md:px-6 py-5 md:py-6 grid gap-8 lg:grid-cols-[280px_1fr]">
+          <div className="px-4 md:px-6 pt-5 pb-5 md:pt-6 md:pb-6 grid gap-8 lg:grid-cols-[280px_1fr] items-start">
             <div className="space-y-5">
               <div>
                 <div className="text-5xl font-serif text-emerald-950">
@@ -322,7 +322,7 @@ export default function ProductReviews({
                 </div>
               ) : (
                 <ul
-                  className="review-list-scroll space-y-4 max-h-[calc(5*9rem+4*1rem)] overflow-y-scroll pr-2"
+                  className="review-list-scroll flex flex-col gap-4 max-h-[calc(5*9rem+4*1rem)] overflow-y-scroll pr-2"
                   aria-label="Customer reviews"
                 >
                     {reviews.map((review) => {
@@ -330,7 +330,7 @@ export default function ProductReviews({
                       return (
                         <li
                           key={key}
-                          className="rounded-xl border border-emerald-100 bg-white p-5 h-[9rem] flex flex-col"
+                          className="rounded-xl border border-emerald-100 bg-white p-5"
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
                             <div>
@@ -349,7 +349,7 @@ export default function ProductReviews({
                               <StarRating rating={review.rating} size={14} />
                             </div>
                           </div>
-                          <p className="mt-3 text-sm text-slate-700 leading-relaxed line-clamp-4 flex-1 min-h-0 overflow-hidden">
+                          <p className="mt-3 text-sm text-slate-700 leading-relaxed line-clamp-4 overflow-hidden">
                             {review.comment}
                           </p>
                         </li>
