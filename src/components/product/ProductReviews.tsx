@@ -321,38 +321,48 @@ export default function ProductReviews({
                   <p className="text-sm mt-1">Be the first to share your experience.</p>
                 </div>
               ) : (
-                <ul className="space-y-4">
-                  {reviews.map((review) => {
-                    const key = review._id || review.id || `${review.user_name}-${review.created_at}`;
-                    return (
-                      <li
-                        key={key}
-                        className="rounded-xl border border-emerald-100 bg-white p-5"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <p className="font-medium text-emerald-950">{review.user_name}</p>
-                            <p className="text-xs text-slate-400 mt-0.5">
-                              {formatReviewDate(review.created_at)}
-                            </p>
+                <div className="space-y-3">
+                  {reviews.length > 5 && (
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Showing {reviews.length} reviews — scroll for more
+                    </p>
+                  )}
+                  <ul
+                    className="space-y-4 max-h-[calc(5*9rem+4*1rem)] overflow-y-auto overscroll-contain pr-2 -mr-1"
+                    aria-label="Customer reviews"
+                  >
+                    {reviews.map((review) => {
+                      const key = review._id || review.id || `${review.user_name}-${review.created_at}`;
+                      return (
+                        <li
+                          key={key}
+                          className="rounded-xl border border-emerald-100 bg-white p-5 h-[9rem] flex flex-col"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
+                            <div>
+                              <p className="font-medium text-emerald-950">{review.user_name}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">
+                                {formatReviewDate(review.created_at)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {review.is_verified_purchase && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-700">
+                                  <ShieldCheck size={12} />
+                                  Verified purchase
+                                </span>
+                              )}
+                              <StarRating rating={review.rating} size={14} />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            {review.is_verified_purchase && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-700">
-                                <ShieldCheck size={12} />
-                                Verified purchase
-                              </span>
-                            )}
-                            <StarRating rating={review.rating} size={14} />
-                          </div>
-                        </div>
-                        <p className="mt-3 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                          {review.comment}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
+                          <p className="mt-3 text-sm text-slate-700 leading-relaxed line-clamp-4 flex-1 min-h-0 overflow-hidden">
+                            {review.comment}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               )}
             </div>
           </div>
