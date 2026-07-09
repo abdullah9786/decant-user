@@ -40,8 +40,6 @@ interface ProductCardProps {
    */
   stock_ml?: number;
   image_url?: string;
-  is_featured?: boolean;
-  is_new_arrival?: boolean;
   notes_top?: string[];
   notes_middle?: string[];
   notes_base?: string[];
@@ -71,7 +69,7 @@ function variantsMatch(a: Variant, b: Variant): boolean {
 }
 
 const ProductCard = React.memo(({
-  id, _id, slug, name, brand, variants, stock_ml, image_url, is_featured, is_new_arrival,
+  id, _id, slug, name, brand, variants, stock_ml, image_url,
   notes_top = [], notes_middle = [], notes_base = [], chips = [], priceMode = 'default',
   product_type, set_items = [], compact = false,
 }: ProductCardProps) => {
@@ -364,23 +362,10 @@ const ProductCard = React.memo(({
         }`}
       >
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5">
-          {showOutOfStock ? (
+          {showOutOfStock && (
             <span className="bg-rose-600 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
               Out of Stock
             </span>
-          ) : (
-            <>
-              {is_new_arrival && (
-                <span className="bg-white/95 text-emerald-950 px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max border border-emerald-50">
-                  New Arrival
-                </span>
-              )}
-              {is_featured && !is_new_arrival && (
-                <span className="bg-emerald-950 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-full shadow-sm w-max">
-                  Featured
-                </span>
-              )}
-            </>
           )}
         </div>
 
