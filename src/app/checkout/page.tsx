@@ -27,6 +27,8 @@ export default function CheckoutPage() {
     zip: '',
     phone: '',
   });
+  const [postInstaPackingVideo, setPostInstaPackingVideo] = useState(false);
+  const [instagramUsername, setInstagramUsername] = useState('');
 
   const { items, totalPrice, clearCart, freeDecants, clearFreeDecants } = useCartStore();
   const [pendingPay, setPendingPay] = useState<{
@@ -173,6 +175,10 @@ export default function CheckoutPage() {
             size_ml: fd.size_ml,
             offer_id: fd.offer_id,
           })),
+        }),
+        ...(postInstaPackingVideo && {
+          instagram_packing_opt_in: true,
+          instagram_username: instagramUsername.trim(),
         }),
       };
 
@@ -494,6 +500,33 @@ export default function CheckoutPage() {
                 onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
                 className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
+
+              <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-4 space-y-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={postInstaPackingVideo}
+                    onChange={(e) => {
+                      setPostInstaPackingVideo(e.target.checked);
+                      if (!e.target.checked) setInstagramUsername('');
+                    }}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-950 focus:ring-emerald-600"
+                  />
+                  <span className="text-sm text-emerald-950 leading-relaxed">
+                    Post my order packing video on Instagram
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Instagram username (e.g. decume.in)"
+                  value={instagramUsername}
+                  onChange={(e) => setInstagramUsername(e.target.value.replace(/^@+/, ''))}
+                  disabled={!postInstaPackingVideo}
+                  className={`w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    postInstaPackingVideo ? 'border-l-4 border-l-red-400' : ''
+                  }`}
+                />
+              </div>
               
               <button 
                 onClick={handleNext}
@@ -505,7 +538,8 @@ export default function CheckoutPage() {
                   !shippingAddress.city || 
                   !shippingAddress.zip || 
                   !shippingAddress.phone ||
-                  (!isAuthenticated && !shippingAddress.email)
+                  (!isAuthenticated && !shippingAddress.email) ||
+                  (postInstaPackingVideo && !instagramUsername.trim())
                 }
                 className="w-full bg-emerald-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 disabled:opacity-50"
               >
