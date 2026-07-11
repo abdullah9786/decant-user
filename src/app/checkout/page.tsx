@@ -43,7 +43,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     offerApi.getActive().then(res => {
-      const offer = (res.data || []).find((o: any) => o.type === 'free_decant' && o.is_active);
+      const offers = res.data || [];
+      const offer = offers.find((o: any) => o.type === 'free_decant' && o.is_active);
       if (offer) {
         setFreeDecantOffer(offer);
       } else if (freeDecants.length > 0) {

@@ -13,6 +13,7 @@ import {
 import { orderApi } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "react-hot-toast";
+import { PromoOrderLink } from "@/components/promo/PromoOrderLink";
 
 function safeDate(v: string | undefined | null): Date {
   if (!v) return new Date();
@@ -255,7 +256,7 @@ export default function OrdersPage() {
                       ? ` + ${order.items.length - 1} more`
                       : ""}
                   </span>
-                  <div className="mb-2 md:mb-0 flex items-center gap-2">
+                  <div className="mb-2 md:mb-0 flex flex-wrap items-center gap-2">
                     <span
                       className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${statusClasses(order.status)}`}
                     >
@@ -267,7 +268,8 @@ export default function OrdersPage() {
                       </span>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <PromoOrderLink order={order} />
                     {isCancelEligible(order) && (
                       <button
                         onClick={() => openCancelModal(order)}

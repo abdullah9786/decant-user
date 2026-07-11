@@ -14,7 +14,9 @@ import { ActiveDealProvider } from "@/components/deal/ActiveDealProvider";
 import DailyDealBanner from "@/components/deal/DailyDealBanner";
 import DealMarquee from "@/components/deal/DealMarquee";
 import MysteryGiftBar from "@/components/cart/MysteryGiftBar";
+import InstagramPromoBanner from "@/components/promo/InstagramPromoBanner";
 import { fetchDailyDealSSR } from "@/lib/server/deal";
+import { fetchInstagramPromoSSR } from "@/lib/server/offers";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -109,6 +111,7 @@ export default async function RootLayout({
   // 24h with on-demand invalidation when admin saves an offer; provider
   // still refetches on focus/visibility.
   const initialDealPayload = await fetchDailyDealSSR();
+  const instagramPromo = await fetchInstagramPromoSSR();
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans text-[color:var(--text-primary)] antialiased`}>
@@ -121,8 +124,9 @@ export default async function RootLayout({
           </Suspense>
           <ScrollToTop />
           <MysteryGiftBar />
-          <DailyDealBanner />
-          <DealMarquee />
+          {!instagramPromo && <DailyDealBanner />}
+          {!instagramPromo && <DealMarquee />}
+          <InstagramPromoBanner offer={instagramPromo} />
           <Navbar />
           <ClientToaster />
           <PromoModal />

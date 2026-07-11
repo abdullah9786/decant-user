@@ -5,6 +5,7 @@ import { orderApi } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Loader2, PackageSearch, XCircle, AlertTriangle, Gift } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { PromoOrderLink } from "@/components/promo/PromoOrderLink";
 
 export const dynamic = "force-dynamic";
 
@@ -139,7 +140,7 @@ function TrackOrderContent() {
                 <p className="text-[10px] uppercase tracking-widest text-gray-400">Order ID</p>
                 <p className="text-lg font-bold text-emerald-950">{order.id || order._id}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                 {order.payment_method === "cod" && (
                   <span className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-800 border border-amber-200">
                     COD
@@ -157,6 +158,10 @@ function TrackOrderContent() {
                   {order.status}
                 </span>
               </div>
+            </div>
+
+            <div className="mt-6">
+              <PromoOrderLink order={order} variant="banner" />
             </div>
 
             <div className="text-sm text-gray-500 mb-6">

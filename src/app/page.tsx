@@ -12,7 +12,8 @@ import DefaultHero from "@/components/home/DefaultHero";
 import DailyDealHero from "@/components/home/DailyDealHero";
 import DailyDealRail from "@/components/home/DailyDealRail";
 import TopCategories from "@/components/home/TopCategories";
-import MysteryGiftShowcase from "@/components/home/MysteryGiftShowcase";
+import HomeOffersSection from "@/components/home/offers/HomeOffersSection";
+import { filterHomeRewardsOffers } from "@/lib/homeOffers";
 import SectionHeader from "@/components/home/SectionHeader";
 import HomeSectionShell from "@/components/home/HomeSectionShell";
 import { cacheFetchOptions } from "@/lib/cacheConfig";
@@ -84,19 +85,19 @@ async function getDailyDeal() {
   }
 }
 
-async function getMysteryGift() {
+async function getActiveOffers() {
   try {
     const res = await fetch(`${API_URL}/offers/active`, cacheFetchOptions());
-    if (!res.ok) return null;
-    const data = await res.json();
-    return (
-      (data || []).find(
-        (o: any) => o.type === "mystery_gift" && o.is_active,
-      ) || null
-    );
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
-    return null;
+    return [];
   }
+}
+
+async function getHomeRewardsOffers() {
+  const data = await getActiveOffers();
+  return filterHomeRewardsOffers(data);
 }
 
 const websiteJsonLd = {
@@ -123,13 +124,13 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredSets, featuredFamilies, featuredCategories, dealResp, mysteryGift] = await Promise.all([
+  const [featuredProducts, featuredSets, featuredFamilies, featuredCategories, dealResp, homeRewardsOffers] = await Promise.all([
     getFeaturedProducts(),
     getFeaturedSets(),
     getFeaturedFamilies(),
     getFeaturedCategories(),
     getDailyDeal(),
-    getMysteryGift(),
+    getHomeRewardsOffers(),
   ]);
 
   const dailyDeal = dealResp?.deal ?? null;
@@ -160,7 +161,7 @@ export default async function HomePage() {
         <DefaultHero />
       )}
 
-      <MysteryGiftShowcase offer={mysteryGift} />
+      <HomeOffersSection offers={homeRewardsOffers} />
 
       <TopCategories categories={featuredCategories} />
 

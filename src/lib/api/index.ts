@@ -162,6 +162,20 @@ export const offerApi = {
     getDailyDeal: () => api.get('/offers/daily-deal/today'),
 };
 
+export const promoSubmissionApi = {
+    getByOrder: (orderId: string, email?: string) =>
+        api.get(`/promo-submissions/by-order/${orderId}`, {
+            params: email ? { email } : undefined,
+        }),
+    submit: (body: {
+        order_id: string;
+        email?: string;
+        post_url: string;
+        poster_instagram_username: string;
+        posted_by_note?: string;
+    }) => api.post('/promo-submissions/', body),
+};
+
 export const influencerApi = {
     validateCoupon: (code: string, cartItems?: { product_id: string; quantity?: number }[]) =>
         api.post('/influencers/coupons/validate', { code, cart_items: cartItems ?? [] }),
