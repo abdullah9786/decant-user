@@ -1,13 +1,26 @@
 import Link from "next/link";
 import { ArrowRight, Gift } from "lucide-react";
 import type { HomeOffer } from "@/lib/homeOffers";
+import {
+  offerCardArticleClass,
+  offerCardBodyClass,
+  offerCardChipClass,
+  offerCardEyebrowClass,
+  offerCardPrimaryCtaClass,
+  offerCardTitleClass,
+} from "./offerCardShared";
 
 type Props = {
   offer: HomeOffer;
   expanded?: boolean;
+  compact?: boolean;
 };
 
-export default function FreeDecantOfferCard({ offer, expanded = false }: Props) {
+export default function FreeDecantOfferCard({
+  offer,
+  expanded = false,
+  compact = false,
+}: Props) {
   const title = offer.display?.title?.trim() || offer.name?.trim() || "Free Decant";
   const subtitle =
     offer.display?.subtitle?.trim() ||
@@ -17,6 +30,60 @@ export default function FreeDecantOfferCard({ offer, expanded = false }: Props) 
   const minMl = Number(offer.config?.min_qualifying_ml) || 10;
   const freeMl = Number(offer.config?.free_size_ml) || 2;
   const maxFree = offer.config?.max_free_per_order as number | null | undefined;
+
+  if (compact) {
+    return (
+      <article
+        className={offerCardArticleClass(
+          "flex flex-col border-emerald-200/80 bg-gradient-to-br from-emerald-50 via-white to-teal-50/40",
+        )}
+      >
+        {banner ? (
+          <div className="border-b border-white/10 bg-[image:var(--accent-gradient)] px-4 py-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[color:var(--accent-muted)] line-clamp-1">
+              {banner}
+            </p>
+          </div>
+        ) : null}
+
+        <div className={offerCardBodyClass}>
+          <div className="flex gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/80">
+              <Gift size={17} strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0">
+              <p className={`${offerCardEyebrowClass} text-emerald-700`}>Free decant</p>
+              <h2 className={`${offerCardTitleClass(expanded)} text-emerald-950`}>{title}</h2>
+            </div>
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <span className={`${offerCardChipClass} border-emerald-200/80 bg-white/80 text-emerald-800`}>
+              {minMl}ml+ qualifies
+            </span>
+            <span className={`${offerCardChipClass} border-emerald-200/80 bg-white/80 text-emerald-800`}>
+              {freeMl}ml free
+            </span>
+            {maxFree != null && maxFree > 0 ? (
+              <span className={`${offerCardChipClass} border-emerald-200/80 bg-white/80 text-emerald-800`}>
+                Up to {maxFree}/order
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-auto pt-3">
+            <Link
+              href="/products?type=decant"
+              className={`${offerCardPrimaryCtaClass} w-full border border-emerald-200/80 bg-white text-emerald-950 hover:bg-emerald-50`}
+            >
+              Shop decants
+              <ArrowRight size={11} />
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 shadow-sm">
@@ -29,9 +96,7 @@ export default function FreeDecantOfferCard({ offer, expanded = false }: Props) 
       ) : null}
 
       <div className="relative flex flex-1 flex-col p-5 md:p-6">
-        <div
-          className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/80"
-        >
+        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/80">
           <Gift size={20} strokeWidth={1.75} />
         </div>
 

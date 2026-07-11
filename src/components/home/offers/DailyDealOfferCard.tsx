@@ -5,13 +5,26 @@ import { ArrowRight, Sparkles, Flame } from "lucide-react";
 import DealCountdown from "@/components/deal/DealCountdown";
 import { deepenAccent } from "@/components/deal/constants";
 import type { HomeOffer } from "@/lib/homeOffers";
+import {
+  offerCardArticleClass,
+  offerCardBodyClass,
+  offerCardChipClass,
+  offerCardEyebrowClass,
+  offerCardPrimaryCtaClass,
+  offerCardTitleClass,
+} from "./offerCardShared";
 
 type Props = {
   offer: HomeOffer;
   expanded?: boolean;
+  compact?: boolean;
 };
 
-export default function DailyDealOfferCard({ offer, expanded = false }: Props) {
+export default function DailyDealOfferCard({
+  offer,
+  expanded = false,
+  compact = false,
+}: Props) {
   const accent = offer.display?.accent_color?.trim() || "#dc2626";
   const deepAccent = deepenAccent(accent);
   const discount = Number(offer.config?.discount_percent) || 0;
@@ -23,7 +36,66 @@ export default function DailyDealOfferCard({ offer, expanded = false }: Props) {
     (discount > 0 ? `${discount}% off — today only` : "Limited-time picks at special prices");
   const ctaLabel = offer.display?.cta_label?.trim() || "Shop today's deal";
   const ctaHref = offer.display?.cta_href?.trim() || "/deals/today";
-  const marquee = offer.display?.marquee_text?.trim() || "";
+  const marquee = offer.display?.marquee_text?.trim() || "Decume Daily";
+
+  if (compact) {
+    return (
+      <article
+        className={offerCardArticleClass("flex flex-col border bg-white")}
+        style={{ borderColor: `${deepAccent}33` }}
+      >
+        <div
+          className="border-b border-white/10 px-4 py-1.5 text-white"
+          style={{ backgroundColor: deepAccent }}
+        >
+          <p className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 line-clamp-1">
+            <Flame size={11} className="shrink-0" />
+            {marquee}
+          </p>
+        </div>
+
+        <div className={offerCardBodyClass}>
+          <div className="min-w-0">
+            <p className={`${offerCardEyebrowClass} text-slate-500`}>Today&apos;s drop</p>
+            <h2 className={`${offerCardTitleClass(expanded)} text-emerald-950`}>{title}</h2>
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {discount > 0 ? (
+              <span
+                className={`${offerCardChipClass} border-transparent text-white`}
+                style={{ backgroundColor: deepAccent }}
+              >
+                {discount}% off
+              </span>
+            ) : null}
+            {productCount > 0 ? (
+              <span className={`${offerCardChipClass} border-emerald-200/80 bg-emerald-50 text-emerald-800`}>
+                {productCount} {productCount === 1 ? "pick" : "picks"}
+              </span>
+            ) : null}
+            {offer.ends_at ? (
+              <span className={`${offerCardChipClass} border-slate-200 bg-slate-50 text-slate-600`}>
+                Ends{" "}
+                <DealCountdown endsAt={offer.ends_at} compact className="inline font-semibold" />
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-auto pt-3">
+            <Link
+              href={ctaHref}
+              className={`${offerCardPrimaryCtaClass} w-full text-white hover:opacity-90`}
+              style={{ backgroundColor: deepAccent }}
+            >
+              {ctaLabel}
+              <ArrowRight size={11} />
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article

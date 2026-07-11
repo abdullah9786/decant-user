@@ -2,13 +2,25 @@ import Link from "next/link";
 import { ArrowRight, Tag } from "lucide-react";
 import type { HomeOffer } from "@/lib/homeOffers";
 import { offerTypeLabel } from "@/lib/homeOffers";
+import {
+  offerCardArticleClass,
+  offerCardBodyClass,
+  offerCardEyebrowClass,
+  offerCardPrimaryCtaClass,
+  offerCardTitleClass,
+} from "./offerCardShared";
 
 type Props = {
   offer: HomeOffer;
   expanded?: boolean;
+  compact?: boolean;
 };
 
-export default function GenericOfferCard({ offer, expanded = false }: Props) {
+export default function GenericOfferCard({
+  offer,
+  expanded = false,
+  compact = false,
+}: Props) {
   const title =
     offer.display?.title?.trim() ||
     offer.display?.headline?.trim() ||
@@ -19,6 +31,40 @@ export default function GenericOfferCard({ offer, expanded = false }: Props) {
     offer.display?.subheadline?.trim() ||
     offer.display?.rules_copy?.trim() ||
     "An active promotion is running now — see details on site.";
+
+  if (compact) {
+    return (
+      <article
+        className={offerCardArticleClass(
+          "border-emerald-200/80 bg-gradient-to-br from-emerald-50 via-white to-teal-50/40",
+        )}
+      >
+        <div className={offerCardBodyClass}>
+          <div className="flex gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/80">
+              <Tag size={17} strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0">
+              <p className={`${offerCardEyebrowClass} text-emerald-700`}>
+                {offerTypeLabel(offer.type)}
+              </p>
+              <h2 className={`${offerCardTitleClass(expanded)} text-emerald-950`}>{title}</h2>
+            </div>
+          </div>
+
+          <div className="mt-auto pt-3">
+            <Link
+              href="/products"
+              className={`${offerCardPrimaryCtaClass} w-full border border-emerald-200/80 bg-white text-emerald-950 hover:bg-emerald-50`}
+            >
+              Shop now
+              <ArrowRight size={11} />
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 shadow-sm">

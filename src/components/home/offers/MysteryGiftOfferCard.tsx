@@ -4,20 +4,97 @@ import { DEFAULT_ACCENT, formatINR } from "@/lib/mysteryGift";
 import {
   getMysteryTiers,
   mysteryGiftAccent,
+  mysteryGiftHook,
   mysteryGiftTitle,
 } from "./mysteryGiftShared";
+import {
+  offerCardArticleClass,
+  offerCardBodyClass,
+  offerCardChipClass,
+  offerCardEyebrowClass,
+  offerCardPrimaryCtaClass,
+  offerCardTitleClass,
+} from "./offerCardShared";
 
 type Props = {
   offer: any;
   expanded?: boolean;
+  compact?: boolean;
 };
 
-export default function MysteryGiftOfferCard({ offer, expanded = false }: Props) {
+export default function MysteryGiftOfferCard({
+  offer,
+  expanded = false,
+  compact = false,
+}: Props) {
   const tiers = getMysteryTiers(offer);
   if (!offer || tiers.length === 0) return null;
 
   const title = mysteryGiftTitle(offer);
   const accent = mysteryGiftAccent(offer, tiers);
+  const hook = mysteryGiftHook(offer, tiers);
+
+  if (compact) {
+    const tierChips = tiers.slice(0, expanded ? tiers.length : 2);
+    return (
+      <article
+        className={offerCardArticleClass(
+          "border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)]",
+        )}
+      >
+        <div className={offerCardBodyClass}>
+          <div className="flex gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20">
+              <Gift size={17} className="text-white" strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0">
+              <p className={`${offerCardEyebrowClass} text-[color:var(--accent-muted)]`}>
+                Mystery gift
+              </p>
+              <h2 className={`${offerCardTitleClass(expanded)} text-white`}>{title}</h2>
+            </div>
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {tierChips.map((t, i) => {
+              const dot = t.accent_color || DEFAULT_ACCENT;
+              return (
+                <span
+                  key={t.id}
+                  className={`${offerCardChipClass} border-white/20 bg-white/10 text-white/90`}
+                >
+                  <span
+                    className="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle"
+                    style={{ background: dot }}
+                  />
+                  {t.name || `Tier ${i + 1}`} · {formatINR(Number(t.min_subtotal))}
+                </span>
+              );
+            })}
+            {!expanded && tiers.length > 2 ? (
+              <span className={`${offerCardChipClass} border-white/20 bg-white/10 text-white/70`}>
+                +{tiers.length - 2} more
+              </span>
+            ) : null}
+          </div>
+
+          <p className="mt-2 text-[11px] leading-relaxed text-[color:var(--accent-muted)] line-clamp-2">
+            {hook}
+          </p>
+
+          <div className="mt-auto pt-2">
+            <Link
+              href="/products"
+              className={`${offerCardPrimaryCtaClass} w-full bg-white text-emerald-950 hover:bg-emerald-50`}
+            >
+              Shop to unlock
+              <ArrowRight size={11} />
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)] shadow-sm">
