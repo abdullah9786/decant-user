@@ -4,7 +4,6 @@ import { DEFAULT_ACCENT, formatINR } from "@/lib/mysteryGift";
 import {
   getMysteryTiers,
   mysteryGiftAccent,
-  mysteryGiftHook,
   mysteryGiftTitle,
 } from "./mysteryGiftShared";
 import {
@@ -32,10 +31,10 @@ export default function MysteryGiftOfferCard({
 
   const title = mysteryGiftTitle(offer);
   const accent = mysteryGiftAccent(offer, tiers);
-  const hook = mysteryGiftHook(offer, tiers);
 
   if (compact) {
     const tierChips = tiers.slice(0, expanded ? tiers.length : 2);
+    const entrySpend = tiers[0] ? formatINR(Number(tiers[0].min_subtotal)) : null;
     return (
       <article
         className={offerCardArticleClass(
@@ -78,8 +77,8 @@ export default function MysteryGiftOfferCard({
             ) : null}
           </div>
 
-          <p className="mt-2 text-[11px] leading-relaxed text-[color:var(--accent-muted)] line-clamp-2">
-            {hook}
+          <p className="mt-2 text-[10px] font-medium uppercase tracking-widest text-[color:var(--accent-muted)]">
+            {entrySpend ? `From ${entrySpend} · one gift per order` : "One gift per order"}
           </p>
 
           <div className="mt-auto pt-2">

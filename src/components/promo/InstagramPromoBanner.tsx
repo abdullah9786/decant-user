@@ -92,7 +92,7 @@ export default function InstagramPromoBanner({
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="hidden shrink-0 items-center gap-3 sm:flex">
           <Link
             href="/instagram-promo/how-to-enter"
             className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-950 transition-colors hover:bg-emerald-50 sm:text-[10px]"
