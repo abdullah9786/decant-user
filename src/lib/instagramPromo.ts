@@ -14,12 +14,27 @@ export const INSTAGRAM_PROMO_STEPS = [
   {
     key: "post",
     title: "Post on Instagram",
-    body: "Share a short unboxing or review video on Instagram from a public account that meets the follower requirement.",
+    body: "Share a short video about Decume on Instagram — unboxing, review, styling, or anything you like — from a public account that meets the follower requirement.",
   },
   {
     key: "submit",
     title: "Submit your reel link",
-    body: "Come back to Decume with your order ID and paste your Instagram post or reel URL for review.",
+    body: "Open the submission page, paste your Instagram post or reel URL, and enter the account that posted it. We review every entry after you submit.",
+  },
+] as const;
+
+export const INSTAGRAM_PROMO_SUBMIT_PATHS = [
+  {
+    key: "orders",
+    title: "From My Orders",
+    body: "Once your order is delivered, go to My Orders, open the order, and tap the Instagram promo link. It opens the submission form with your order ID ready.",
+    href: "/orders",
+    hrefLabel: "Go to My Orders",
+  },
+  {
+    key: "email",
+    title: "From your delivery email",
+    body: "When your order is marked delivered, we email you a promo invite with a Submit Promo Video button. Tap it to open the same submission page — no need to hunt for your order ID.",
   },
 ] as const;
 
@@ -30,7 +45,7 @@ export function buildInstagramPromoCopy(offer: InstagramPromoOffer): string {
 
   let copy =
     offer.display?.rules_copy?.trim() ||
-    `Order while this promo is live, then post your unboxing on Instagram within ${days} days of delivery to enter our draw for a free decant.`;
+    `Order while this promo is live, then post a video about Decume on Instagram within ${days} days of delivery to enter our draw for a free decant.`;
 
   if (!offer.display?.rules_copy?.trim() && (mention || tags)) {
     copy += " Remember to";

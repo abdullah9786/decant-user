@@ -8,10 +8,13 @@ import {
   ShoppingBag,
   Video,
   CheckCircle2,
+  Mail,
+  ClipboardList,
 } from "lucide-react";
 import { fetchInstagramPromoSSR } from "@/lib/server/offers";
 import {
   INSTAGRAM_PROMO_STEPS,
+  INSTAGRAM_PROMO_SUBMIT_PATHS,
   buildInstagramPromoCopy,
   formatPromoEndDate,
   getInstagramPromoPrizes,
@@ -72,10 +75,6 @@ export default async function InstagramPromoHowToEnterPage() {
             About this offer
           </h2>
           <p className="text-[15px] text-gray-700 leading-relaxed">{overview}</p>
-          <p className="mt-4 text-sm text-gray-500">
-            Submitting a video does not guarantee a prize. Winners are chosen by our team after
-            review. The best part? You can still claim all our other live offers in the same order.
-          </p>
         </section>
 
         {prizes.length > 0 ? (
@@ -129,6 +128,45 @@ export default async function InstagramPromoHowToEnterPage() {
         </section>
 
         <section className="bg-white border border-gray-100 shadow-sm p-6 md:p-8">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
+            How to submit your reel
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed mb-6">
+            After your video is live on Instagram, use either option below to reach the submission
+            form. Paste your reel or post link, add the poster&apos;s username, and send it for
+            review.
+          </p>
+          <div className="space-y-4">
+            {INSTAGRAM_PROMO_SUBMIT_PATHS.map((path) => {
+              const Icon = path.key === "email" ? Mail : ClipboardList;
+              return (
+                <div
+                  key={path.key}
+                  className="flex gap-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-5"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-emerald-700 ring-1 ring-emerald-200">
+                    <Icon size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-serif text-lg text-emerald-950">{path.title}</h3>
+                    <p className="mt-2 text-sm text-gray-600 leading-relaxed">{path.body}</p>
+                    {"href" in path && path.href ? (
+                      <Link
+                        href={path.href}
+                        className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-800 border-b border-emerald-600/50 pb-0.5 hover:text-emerald-950"
+                      >
+                        {path.hrefLabel}
+                        <ArrowRight size={11} />
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="bg-white border border-gray-100 shadow-sm p-6 md:p-8">
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
             Rules & eligibility
           </h2>
@@ -158,7 +196,11 @@ export default async function InstagramPromoHowToEnterPage() {
             <li className="flex gap-2">
               <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
               <span>
-                Submit within {deadlineDays} days of delivery using your order ID.
+                Submit within {deadlineDays} days of delivery — via{" "}
+                <Link href="/orders" className="text-emerald-700 hover:underline">
+                  My Orders
+                </Link>{" "}
+                or the link in your delivery email.
               </span>
             </li>
             <li className="flex gap-2">

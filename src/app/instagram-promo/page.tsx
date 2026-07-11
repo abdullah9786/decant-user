@@ -164,7 +164,7 @@ function PromoContent() {
           <h1 className="text-3xl font-serif text-emerald-950">Instagram Promo</h1>
         </div>
         <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-          Post a short promo video after your order is delivered for a chance to win a free
+          Post any video about Decume on Instagram after your order is delivered for a chance to win a free
           decant.{" "}
           <Link href="/instagram-promo/how-to-enter" className="text-emerald-700 hover:underline">
             Read how to enter

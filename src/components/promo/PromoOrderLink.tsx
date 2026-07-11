@@ -54,7 +54,7 @@ export function PromoOrderLink({
               Win a free decant — post your Instagram video
             </p>
             <p className="mt-1 text-xs text-emerald-800/80 leading-relaxed">
-              Share your unboxing on Instagram and enter our giveaway draw.
+              Share a video about Decume on Instagram and enter our giveaway draw.
             </p>
             <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-600 pb-0.5 group-hover:text-emerald-900 group-hover:border-emerald-800 transition-colors">
               Enter the draw
