@@ -14,6 +14,7 @@ import { orderApi } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "react-hot-toast";
 import { PromoOrderLink } from "@/components/promo/PromoOrderLink";
+import OrderTrackingInfo from "@/components/orders/OrderTrackingInfo";
 
 function safeDate(v: string | undefined | null): Date {
   if (!v) return new Date();
@@ -270,6 +271,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="text-right flex flex-col items-end gap-2">
                     <PromoOrderLink order={order} />
+                    <OrderTrackingInfo order={order} compact />
                     {isCancelEligible(order) && (
                       <button
                         onClick={() => openCancelModal(order)}

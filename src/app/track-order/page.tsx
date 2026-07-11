@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Loader2, PackageSearch, XCircle, AlertTriangle, Gift } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { PromoOrderLink } from "@/components/promo/PromoOrderLink";
+import OrderTrackingInfo from "@/components/orders/OrderTrackingInfo";
 
 export const dynamic = "force-dynamic";
 
@@ -162,6 +163,10 @@ function TrackOrderContent() {
 
             <div className="mt-6">
               <PromoOrderLink order={order} variant="banner" />
+            </div>
+
+            <div className="mt-4">
+              <OrderTrackingInfo order={order} />
             </div>
 
             <div className="text-sm text-gray-500 mb-6">
