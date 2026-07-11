@@ -19,6 +19,7 @@ import ProductReviews, {
   type ReviewItem,
   type ReviewSummaryData,
 } from "@/components/product/ProductReviews";
+import LiveGiveawaySection from "@/components/product/LiveGiveawaySection";
 
 interface SetDetailClientProps {
   product: any;
@@ -522,6 +523,8 @@ export default function SetDetailClient({
           setReviewSummary(nextSummary);
         }}
       />
+
+      <LiveGiveawaySection productName={product.name} />
 
       <SuggestedProducts products={relatedProducts} loading={relatedLoading} />
     </div>

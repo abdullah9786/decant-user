@@ -13,8 +13,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import { ActiveDealProvider } from "@/components/deal/ActiveDealProvider";
 import DailyDealBanner from "@/components/deal/DailyDealBanner";
 import DealMarquee from "@/components/deal/DealMarquee";
-import MysteryGiftBar from "@/components/cart/MysteryGiftBar";
-import InstagramPromoBanner from "@/components/promo/InstagramPromoBanner";
+import TopAnnouncements from "@/components/layout/TopAnnouncements";
 import { fetchDailyDealSSR } from "@/lib/server/deal";
 import { fetchInstagramPromoSSR } from "@/lib/server/offers";
 
@@ -123,10 +122,9 @@ export default async function RootLayout({
             <ProgressBar />
           </Suspense>
           <ScrollToTop />
-          <MysteryGiftBar />
+          <TopAnnouncements instagramPromo={instagramPromo} />
           {!instagramPromo && <DailyDealBanner />}
           {!instagramPromo && <DealMarquee />}
-          <InstagramPromoBanner offer={instagramPromo} />
           <Navbar />
           <ClientToaster />
           <PromoModal />

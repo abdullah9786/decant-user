@@ -2,27 +2,68 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { Instagram } from "lucide-react";
 import { isDealChromeHidden } from "@/components/deal/constants";
 import type { InstagramPromoOffer } from "@/lib/server/offers";
 
+type InstagramPromoBannerProps = {
+  offer: InstagramPromoOffer | null;
+  onVisibilityChange?: (visible: boolean) => void;
+};
+
 export default function InstagramPromoBanner({
   offer,
-}: {
-  offer: InstagramPromoOffer | null;
-}) {
+  onVisibilityChange,
+}: InstagramPromoBannerProps) {
   const pathname = usePathname();
+  const bannerRef = useRef<HTMLDivElement | null>(null);
 
-  if (!offer) return null;
-  if (isDealChromeHidden(pathname)) return null;
-  if (pathname === "/instagram-promo" || pathname === "/instagram-promo/how-to-enter") return null;
+  const hiddenRoute =
+    isDealChromeHidden(pathname) ||
+    pathname === "/instagram-promo" ||
+    pathname === "/instagram-promo/how-to-enter";
 
-  const message = offer.display?.checkout_label?.trim();
-  const title = offer.name?.trim();
-  if (!message && !title) return null;
+  const message = offer?.display?.checkout_label?.trim();
+  const title = offer?.name?.trim();
+  const shouldRender = !!offer && !hiddenRoute && !!(message || title);
+
+  useEffect(() => {
+    if (!onVisibilityChange) return;
+    if (!shouldRender) {
+      onVisibilityChange(false);
+      return;
+    }
+
+    const el = bannerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      const mysteryH = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--mgift-bar-h") ||
+          "0",
+      );
+      // Visible when the promo strip still sits below the sticky mystery bar.
+      onVisibilityChange(rect.bottom > mysteryH + 1);
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("mgift-bar-resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("mgift-bar-resize", update);
+    };
+  }, [onVisibilityChange, shouldRender]);
+
+  if (!shouldRender) return null;
 
   return (
     <div
+      ref={bannerRef}
       className="relative w-full border-b border-emerald-100/30 bg-[image:var(--accent-gradient)] text-[color:var(--accent-text)]"
       role="region"
       aria-label="Instagram promo announcement"
