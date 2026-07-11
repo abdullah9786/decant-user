@@ -1,25 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Instagram, Gift, Video } from "lucide-react";
 import type { HomeOffer } from "@/lib/homeOffers";
-
-function buildDefaultCopy(offer: HomeOffer): string {
-  const days = Number(offer.config?.submission_deadline_days) || 14;
-  const mention = String(offer.config?.required_mention || "").trim();
-  const tags = ((offer.config?.required_hashtags as string[]) || []).filter(Boolean).join(" ");
-
-  let copy =
-    `Order while this promo is live, then post your unboxing on Instagram within ${days} days of delivery to enter our draw for a free decant.`;
-
-  if (mention || tags) {
-    copy += " Remember to";
-    if (mention) copy += ` mention ${mention}`;
-    if (mention && tags) copy += " and";
-    if (tags) copy += ` use ${tags}`;
-    copy += ".";
-  }
-
-  return copy;
-}
+import { buildInstagramPromoCopy, getInstagramPromoPrizes } from "@/lib/instagramPromo";
 
 const STEPS = [
   { icon: Gift, label: "Order during the promo" },
@@ -34,13 +16,10 @@ type Props = {
 
 export default function InstagramPromoOfferCard({ offer, expanded = false }: Props) {
   const title = offer.name?.trim() || "Win a Free Decant on Instagram";
-  const description = offer.display?.rules_copy?.trim() || buildDefaultCopy(offer);
+  const description = buildInstagramPromoCopy(offer);
   const tagline = offer.display?.checkout_label?.trim() || "";
 
-  const prizes = ((offer.config?.prize_templates as { label?: string }[]) || [])
-    .map((t) => t.label?.trim())
-    .filter(Boolean)
-    .slice(0, expanded ? 5 : 2);
+  const prizes = getInstagramPromoPrizes(offer).slice(0, expanded ? 5 : 2);
 
   return (
     <article className="relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 shadow-sm">
@@ -121,10 +100,10 @@ export default function InstagramPromoOfferCard({ offer, expanded = false }: Pro
             </Link>
             <div className="text-center">
               <Link
-                href="/instagram-promo"
+                href="/instagram-promo/how-to-enter"
                 className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-800 border-b border-emerald-600/50 pb-0.5 hover:text-emerald-950 hover:border-emerald-800 transition-colors"
               >
-                {expanded ? "Already ordered? Enter or check your entry" : "How to enter"}
+                {expanded ? "Read full details" : "How to enter"}
                 <ArrowRight size={11} />
               </Link>
             </div>

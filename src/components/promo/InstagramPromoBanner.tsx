@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Instagram, ArrowRight } from "lucide-react";
+import { Instagram } from "lucide-react";
 import { isDealChromeHidden } from "@/components/deal/constants";
 import type { InstagramPromoOffer } from "@/lib/server/offers";
 
@@ -15,7 +15,7 @@ export default function InstagramPromoBanner({
 
   if (!offer) return null;
   if (isDealChromeHidden(pathname)) return null;
-  if (pathname === "/instagram-promo") return null;
+  if (pathname === "/instagram-promo" || pathname === "/instagram-promo/how-to-enter") return null;
 
   const message = offer.display?.checkout_label?.trim();
   const title = offer.name?.trim();
@@ -53,17 +53,16 @@ export default function InstagramPromoBanner({
 
         <div className="flex shrink-0 items-center gap-3">
           <Link
-            href="/products"
+            href="/instagram-promo/how-to-enter"
             className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-950 transition-colors hover:bg-emerald-50 sm:text-[10px]"
           >
-            Shop now
-            <ArrowRight size={11} />
+            How to enter
           </Link>
           <Link
             href="/instagram-promo"
-            className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-white/85 border-b border-white/40 pb-0.5 transition-colors hover:text-white hover:border-white/70 sm:text-[10px]"
+            className="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white/90 transition-colors hover:bg-white/10 sm:text-[10px]"
           >
-            How to enter
+            Submit entry
           </Link>
         </div>
       </div>

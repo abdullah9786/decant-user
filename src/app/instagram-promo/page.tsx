@@ -163,10 +163,13 @@ function PromoContent() {
           <Instagram className="text-emerald-600" size={28} />
           <h1 className="text-3xl font-serif text-emerald-950">Instagram Promo</h1>
         </div>
-        <p className="text-sm text-gray-600 mb-10 leading-relaxed">
+        <p className="text-sm text-gray-600 mb-6 leading-relaxed">
           Post a short promo video after your order is delivered for a chance to win a free
-          decant. You can use your account or a friend&apos;s. Winners are selected by our
-          team — submitting does not guarantee a prize.
+          decant.{" "}
+          <Link href="/instagram-promo/how-to-enter" className="text-emerald-700 hover:underline">
+            Read how to enter
+          </Link>
+          .
         </p>
 
         <form onSubmit={handleLookup} className="mb-8 flex gap-3">

@@ -2,7 +2,11 @@ import Link from 'next/link';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import Logo from './Logo';
 
-const Footer = () => {
+type FooterProps = {
+  instagramPromoActive?: boolean;
+};
+
+const Footer = ({ instagramPromoActive = false }: FooterProps) => {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,6 +25,13 @@ const Footer = () => {
               <li><Link href="/new-arrivals" className="hover:text-emerald-600">New Arrivals</Link></li>
               <li><Link href="/creators" className="hover:text-emerald-600">Creators</Link></li>
               <li><Link href="/bestsellers" className="hover:text-emerald-600">Best Sellers</Link></li>
+              {instagramPromoActive ? (
+                <li>
+                  <Link href="/instagram-promo/how-to-enter" className="hover:text-emerald-600">
+                    Instagram Promo — How to Enter
+                  </Link>
+                </li>
+              ) : null}
             </ul>
           </div>
           <div>

@@ -133,7 +133,7 @@ export default async function RootLayout({
           <main className="bg-[color:var(--surface-bg)]">
             {children}
           </main>
-          <Footer />
+          <Footer instagramPromoActive={!!instagramPromo} />
         </ActiveDealProvider>
         {gaMeasurementId ? (
           <GoogleAnalytics gaId={gaMeasurementId} />
