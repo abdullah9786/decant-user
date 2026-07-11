@@ -6,12 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { Gift, PartyPopper, Trophy } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { useMysteryGiftOffer } from "@/lib/useMysteryGiftOffer";
-import { DEFAULT_ACCENT, formatINR } from "@/lib/mysteryGift";
-import {
-  isDealChromeHidden,
-  deepenAccent,
-  lightenAccent,
-} from "@/components/deal/constants";
+import { formatINR } from "@/lib/mysteryGift";
+import { isDealChromeHidden } from "@/components/deal/constants";
 
 export default function MysteryGiftBar() {
   const { offer, tiers } = useMysteryGiftOffer();
@@ -29,8 +25,6 @@ export default function MysteryGiftBar() {
     subtotal > 0 &&
     !isDealChromeHidden(pathname);
 
-  // Publish the bar height so the (also-sticky) navbar can offset itself and
-  // sit directly beneath it instead of overlapping. Collapses to 0 when hidden.
   useEffect(() => {
     const root = document.documentElement;
     const setVar = () => {
@@ -56,9 +50,6 @@ export default function MysteryGiftBar() {
   const nextTier =
     unlockedIdx + 1 < tiers.length ? tiers[unlockedIdx + 1] : null;
 
-  // One full bar = one tier: progress is measured within the current segment
-  // (the tier already unlocked -> the next one), so it resets and refills as
-  // each tier is reached.
   const segStart = unlockedTier ? Number(unlockedTier.min_subtotal) : 0;
   const segEnd = nextTier ? Number(nextTier.min_subtotal) : segStart;
   const segPct =
@@ -66,12 +57,6 @@ export default function MysteryGiftBar() {
       ? Math.min(100, Math.max(0, ((subtotal - segStart) / (segEnd - segStart)) * 100))
       : 100;
   const remaining = nextTier ? Math.max(0, segEnd - subtotal) : 0;
-
-  const accent =
-    nextTier?.accent_color || unlockedTier?.accent_color || DEFAULT_ACCENT;
-  const trackBg = deepenAccent(accent);
-  const fillFrom = accent;
-  const fillTo = lightenAccent(accent);
 
   let icon = <Gift size={13} />;
   let message: React.ReactNode;
@@ -104,64 +89,33 @@ export default function MysteryGiftBar() {
     <Link
       ref={barRef}
       href="/cart"
-      className="group sticky top-0 z-40 block w-full overflow-hidden"
-      style={{
-        background: `linear-gradient(180deg, ${lightenAccent(trackBg)}1a, transparent), ${trackBg}`,
-        boxShadow:
-          "inset 0 -1px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.10)",
-      }}
+      className="group sticky top-0 z-40 block w-full border-b border-emerald-100/80 bg-white/95 backdrop-blur-sm"
       aria-label="Mystery gift progress"
     >
-      {/* Progress fill — the right edge fades into the track so it reads as one
-          continuous, glowing bar rather than two divided blocks. */}
-      <div
-        className="absolute inset-y-0 left-0 overflow-hidden transition-[width] duration-700 ease-out"
-        style={{
-          width: `${segPct}%`,
-          background: `linear-gradient(90deg, ${fillFrom} 0%, ${fillTo} 70%, ${fillTo}00 100%)`,
-        }}
-      >
-        {/* glossy top sheen for depth */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.22), transparent)",
-          }}
-        />
-        {/* soft glow pooled at the leading edge */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-16"
-          style={{
-            background:
-              "radial-gradient(60% 80% at 100% 50%, rgba(255,255,255,0.35), transparent 70%)",
-          }}
-        />
-        {/* travelling sheen */}
-        <span
-          aria-hidden
-          className="mgift-bar-sheen pointer-events-none absolute inset-y-0 left-0 w-1/4"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent)",
-          }}
-        />
-      </div>
-
-      {/* Content (centered) */}
-      <div
-        className="relative z-10 flex items-center justify-center gap-2.5 px-9 py-2.5 text-center text-white"
-        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.45)" }}
-      >
-        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/20 ring-1 ring-white/30">
+      <div className="relative flex items-center justify-center gap-2.5 px-4 py-2.5 text-center sm:px-9">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
           {icon}
         </span>
-        <p className="text-[11px] font-semibold leading-tight tracking-tight sm:text-xs">
+        <p className="text-[11px] font-medium leading-tight tracking-tight text-emerald-950 sm:text-xs">
           {message}
         </p>
       </div>
+
+      {nextTier ? (
+        <div
+          className="h-0.5 w-full bg-emerald-100"
+          role="progressbar"
+          aria-valuenow={Math.round(segPct)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Mystery gift tier progress"
+        >
+          <div
+            className="h-full bg-emerald-600 transition-[width] duration-700 ease-out"
+            style={{ width: `${segPct}%` }}
+          />
+        </div>
+      ) : null}
     </Link>
   );
 }
