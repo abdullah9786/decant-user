@@ -266,7 +266,7 @@ export default async function HomePage() {
         <div className="mt-6 md:mt-8">
           <Link
             href="/products?type=decant"
-            className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200/80 bg-white/80 hover:bg-white transition-colors rounded-lg"
+            className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-white bg-emerald-950 hover:bg-emerald-900 transition-colors rounded-lg"
           >
             Shop all decants
           </Link>
@@ -292,7 +292,7 @@ export default async function HomePage() {
         <div className="mt-6 md:mt-8">
           <Link
             href="/products?type=full-bottle"
-            className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-emerald-950 border border-emerald-200/80 bg-white/80 hover:bg-white transition-colors rounded-lg"
+            className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-white bg-emerald-950 hover:bg-emerald-900 transition-colors rounded-lg"
           >
             Shop all sealed bottles
           </Link>
