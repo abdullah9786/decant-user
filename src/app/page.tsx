@@ -268,7 +268,7 @@ export default async function HomePage() {
             href="/products?type=decant"
             className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-white bg-emerald-950 hover:bg-emerald-900 transition-colors rounded-lg"
           >
-            Shop all decants
+            View more decants
           </Link>
         </div>
       </HomeSectionShell>
@@ -294,7 +294,7 @@ export default async function HomePage() {
             href="/products?type=full-bottle"
             className="block w-full text-center py-4 text-xs font-bold uppercase tracking-widest text-white bg-emerald-950 hover:bg-emerald-900 transition-colors rounded-lg"
           >
-            Shop all sealed bottles
+            View more sealed bottles
           </Link>
         </div>
       </HomeSectionShell>
