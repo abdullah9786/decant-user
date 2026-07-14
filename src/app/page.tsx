@@ -29,16 +29,47 @@ export const metadata: Metadata = {
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-async function getFeaturedProducts() {
+const HOME_RAIL_LIMIT = 4;
+
+async function getHomeDecants() {
   try {
-    const res = await fetch(`${API_URL}/products?is_featured=true`, cacheFetchOptions());
+    const res = await fetch(`${API_URL}/products?featured_decant=true`, cacheFetchOptions());
     if (!res.ok) return [];
     const data = await res.json();
-    return data.filter((p: any) => p.is_featured);
+    return data
+      .filter(
+        (p: any) =>
+          p.featured_decant &&
+          p.product_type !== "set" &&
+          p.variants?.some((v: any) => !v.is_pack),
+      )
+      .slice(0, HOME_RAIL_LIMIT);
   } catch {
     return [];
   }
 }
+
+async function getHomeSealedBottles() {
+  try {
+    const res = await fetch(
+      `${API_URL}/products?featured_sealed_bottle=true`,
+      cacheFetchOptions(),
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data
+      .filter(
+        (p: any) =>
+          p.featured_sealed_bottle &&
+          p.product_type !== "set" &&
+          p.variants?.some((v: any) => v.is_pack),
+      )
+      .slice(0, HOME_RAIL_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
 
 async function getFeaturedSets() {
   try {
@@ -124,8 +155,9 @@ const organizationJsonLd = {
 };
 
 export default async function HomePage() {
-  const [featuredProducts, featuredSets, featuredFamilies, featuredCategories, dealResp, homeRewardsOffers] = await Promise.all([
-    getFeaturedProducts(),
+  const [homeDecants, homeSealedBottles, featuredSets, featuredFamilies, featuredCategories, dealResp, homeRewardsOffers] = await Promise.all([
+    getHomeDecants(),
+    getHomeSealedBottles(),
     getFeaturedSets(),
     getFeaturedFamilies(),
     getFeaturedCategories(),
@@ -135,14 +167,6 @@ export default async function HomePage() {
 
   const dailyDeal = dealResp?.deal ?? null;
   const dealProducts = dealResp?.products ?? [];
-
-  // Sets have their own section — exclude them from decant / full-bottle rails.
-  const decantProducts = featuredProducts.filter((p: any) =>
-    p.product_type !== 'set' && p.variants?.some((v: any) => !v.is_pack),
-  );
-  const fullBottleProducts = featuredProducts.filter((p: any) =>
-    p.product_type !== 'set' && p.variants?.some((v: any) => v.is_pack),
-  );
 
   return (
     <div className="bg-transparent">
@@ -255,8 +279,8 @@ export default async function HomePage() {
           href="/products?type=decant"
         />
 
-        {decantProducts.length > 0 ? (
-          <FeaturedProducts products={decantProducts} compact />
+        {homeDecants.length > 0 ? (
+          <FeaturedProducts products={homeDecants} compact />
         ) : (
           <div className="text-center text-slate-400 italic py-12">
             No decants available yet.
@@ -281,8 +305,8 @@ export default async function HomePage() {
           href="/products?type=full-bottle"
         />
 
-        {fullBottleProducts.length > 0 ? (
-          <FeaturedProducts products={fullBottleProducts} priceMode="pack" compact />
+        {homeSealedBottles.length > 0 ? (
+          <FeaturedProducts products={homeSealedBottles} priceMode="pack" compact />
         ) : (
           <div className="text-center text-slate-400 italic py-12">
             No sealed bottles available yet.
