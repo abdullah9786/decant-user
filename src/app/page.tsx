@@ -29,8 +29,6 @@ export const metadata: Metadata = {
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-const HOME_RAIL_LIMIT = 4;
-
 async function getHomeDecants() {
   try {
     const res = await fetch(`${API_URL}/products?featured_decant=true`, cacheFetchOptions());
@@ -42,8 +40,7 @@ async function getHomeDecants() {
           p.featured_decant &&
           p.product_type !== "set" &&
           p.variants?.some((v: any) => !v.is_pack),
-      )
-      .slice(0, HOME_RAIL_LIMIT);
+      );
   } catch {
     return [];
   }
@@ -63,8 +60,7 @@ async function getHomeSealedBottles() {
           p.featured_sealed_bottle &&
           p.product_type !== "set" &&
           p.variants?.some((v: any) => v.is_pack),
-      )
-      .slice(0, HOME_RAIL_LIMIT);
+      );
   } catch {
     return [];
   }
