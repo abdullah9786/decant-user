@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Loader2, Search as SearchIcon } from 'lucide-react';
 import ProductCard from '@/components/ui/ProductCard';
 import { brandApi, fragranceFamilyApi, productApi } from '@/lib/api';
+import { logCommittedSearch } from '@/lib/searchAnalytics';
 
 const normalize = (value: string) => value.trim().toLowerCase();
 const PAGE_SIZE = 12;
@@ -36,6 +37,7 @@ function SearchClient() {
   // Sequence id so a slow earlier search response can't overwrite a faster
   // later one. Common autocomplete race-condition guard.
   const searchSeqRef = useRef(0);
+  const shouldLogSearchRef = useRef(Boolean(qParam));
 
   const [brands, setBrands] = useState<any[]>([]);
   const [fragranceFamilies, setFragranceFamilies] = useState<any[]>([]);
@@ -98,6 +100,7 @@ function SearchClient() {
   useEffect(() => {
     setQuery(qParam);
     setSubmittedQuery(qParam);
+    shouldLogSearchRef.current = Boolean(qParam.trim());
   }, [qParam]);
 
   // Server-side search: refetch whenever `submittedQuery` changes. When the
@@ -121,6 +124,14 @@ function SearchClient() {
         setServerResults(res.data?.items || []);
         setServerTotal(res.data?.total || 0);
         setServerHasMore(Boolean(res.data?.has_more));
+        if (shouldLogSearchRef.current) {
+          logCommittedSearch({
+            query: term,
+            result_count: res.data?.total ?? 0,
+            source: 'search_page',
+          });
+          shouldLogSearchRef.current = false;
+        }
       })
       .catch(() => {
         if (mySeq !== searchSeqRef.current) return;
@@ -177,6 +188,7 @@ function SearchClient() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    shouldLogSearchRef.current = true;
     runSearch(query);
   };
 

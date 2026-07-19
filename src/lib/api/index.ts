@@ -116,6 +116,14 @@ export const fragranceFamilyApi = {
     getAll: (params?: any) => api.get('/fragrance-families', { params }),
 };
 
+export const analyticsApi = {
+    logSearch: (data: {
+        query: string;
+        result_count?: number;
+        source: 'navbar' | 'search_page';
+    }) => api.post('/analytics/search-queries', data),
+};
+
 export const categoryApi = {
     getAll: (params?: any) => api.get('/categories', { params }),
     getOne: (id: string) => api.get(`/categories/${id}`),
