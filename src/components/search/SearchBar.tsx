@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search as SearchIcon, X as XIcon, Loader2, ArrowRight } from 'lucide-react';
 import { productApi } from '@/lib/api';
+import { logCommittedSearch } from '@/lib/searchAnalytics';
 
 interface Variant {
   size_ml: number;
@@ -151,6 +152,11 @@ export default function SearchBar({
         const res = await productApi.search(trimmed, { limit: AUTOSUGGEST_LIMIT });
         if (mySeq !== seqRef.current) return; // outdated
         setHits(res.data?.items || []);
+        logCommittedSearch({
+          query: trimmed,
+          result_count: res.data?.total ?? 0,
+          source: 'navbar',
+        });
       } catch {
         if (mySeq !== seqRef.current) return;
         setHits([]);

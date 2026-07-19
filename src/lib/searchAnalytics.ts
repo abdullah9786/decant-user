@@ -6,7 +6,7 @@ const STORAGE_KEY = 'decume_last_search_log';
 type SearchLogSource = 'navbar' | 'search_page';
 
 /**
- * Log a committed search (submit / "see all"), not autosuggest keystrokes.
+ * Log a search after debounce settles (type-ahead) or on submit.
  * Dedupes identical queries within 30s (navbar → /search double-fire).
  * Never blocks UI — failures are swallowed.
  */
