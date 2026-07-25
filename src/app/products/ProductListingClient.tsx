@@ -163,8 +163,8 @@ export default function ProductListingClient({
           </div>
         </div>
 
-        {/* Filter / Sort Bar */}
-        <div className="w-full border-t border-b border-gray-200 py-3 mb-8 flex justify-between items-center relative z-40">
+        {/* Filter / Sort Bar — z-10 keeps this below sticky header (mgift z-40, nav z-50) */}
+        <div className="w-full border-t border-b border-gray-200 py-3 mb-8 flex justify-between items-center relative z-10">
           
           {/* Desktop Filter Dropdowns */}
           <div className="hidden md:flex items-center space-x-8">

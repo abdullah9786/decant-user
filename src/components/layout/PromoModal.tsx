@@ -17,28 +17,28 @@ const OPEN_DELAY_MS = 1500;
 const EXCLUDED_PREFIXES = DEAL_HIDDEN_PREFIXES;
 
 // Fallback static promo for when no daily deal is active. Tuned around
-// Baccarat Rouge 540 since that's our flagship hook.
+// Khadlaj Panache Angel Dust as the flagship hook.
 const STATIC_PROMO = {
-  badge: "Iconic · Limited Decants",
-  brand: "Maison Francis Kurkdjian",
-  name: "Baccarat Rouge 540",
-  tagline: "An elixir of light.",
+  badge: "Rare · Limited Decants",
+  brand: "Khadlaj",
+  name: "Panache Angel Dust",
+  tagline: "Sweet, creamy, and impossible to ignore.",
   description:
-    "A 70 ml retail bottle costs around a Lakh. With Decume, sample the icon from just 2 ml — hand-filled from a verified original bottle.",
-  bottlePrice: "₹70,000",
+    "A sophisticated gourmand blending juicy berries, soft florals, and warm vanilla. Sample it from just 5 ml — hand-filled from a verified original bottle.",
+  bottlePrice: "₹6,200",
   bottleSize: "100 ml retail",
-  decantFrom: "2 ml",
+  decantFrom: "5 ml",
   decantSubtitle: "Decume Decant",
   notes: [
-    { label: "Top", value: "Saffron · Jasmine" },
-    { label: "Heart", value: "Amberwood · Ambergris" },
-    { label: "Base", value: "Fir Resin · Cedar" },
+    { label: "Top", value: "Strawberry · Raspberry · Bergamot" },
+    { label: "Heart", value: "Orange Blossom · Jasmine · Rose" },
+    { label: "Base", value: "Vanilla · Musk · Amber" },
   ],
   imageUrl:
-    "https://ik.imagekit.io/smhon4suw/Maison_Francis_Kurkdjian_Baccarat_Rouge_540_6.8_oz.jpg_v=1770783807?updatedAt=1779109762950",
-  ctaLabel: "Try the Icon",
+    "https://ik.imagekit.io/smhon4suw/panacheangeldust12.jpg_v=1783085060&width=1800",
+  ctaLabel: "Try Angel Dust",
   ctaHref:
-    "https://decume.in/products/baccarat-rouge-540-extrait-de-parfum-maison-francis-kurkdjian?size=5&bottle=69dc05d2490f198e75a729a4",
+    "https://decume.in/products/khadlaj-panache-angel-dust-khadlaj?size=5&bottle=69dc05d2490f198e75a729a4",
 };
 
 // Format an INR amount without throwing on undefined.
@@ -70,14 +70,14 @@ export default function PromoModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   // When a daily deal is active, the hero product is the first one in the
-  // admin-configured list. Otherwise we fall back to the static Baccarat
-  // Rouge 540 hook.
+  // admin-configured list. Otherwise we fall back to the static Angel Dust
+  // hook.
   //
   // We deliberately pick the first *in-stock* product (rather than just
   // `products[0]`) so the modal never promotes something the user can't
   // actually buy. If every deal product is sold out, `hero` is undefined,
   // `isDealMode` becomes false, and we fall through to the static
-  // Baccarat hook — which is the right behaviour: better to show a
+  // Angel Dust hook — which is the right behaviour: better to show a
   // non-deal evergreen pitch than push a sold-out card.
   const hero = products?.find((p) => !isProductOutOfStock(p));
   const isDealMode = Boolean(deal && hero);
