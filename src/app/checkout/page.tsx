@@ -21,7 +21,7 @@ export default function CheckoutPage() {
     last_name: '',
     email: '',
     building_name: '',
-    floor_no: '',
+    room_no: '',
     street: '',
     city: '',
     zip: '',
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
           bottle_price: item.bottle_price || 0,
         })),
         total_amount: grandTotal,
-        shipping_address: `${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.floor_no ? shippingAddress.floor_no + ', ' : ''}${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
+        shipping_address: `Room ${shippingAddress.room_no}, ${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
         status: 'pending',
         payment_method: paymentMethod,
         ...(paymentMethod === 'cod' && codFee > 0 && { cod_fee: codFee }),
@@ -455,7 +455,7 @@ export default function CheckoutPage() {
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input 
                     placeholder="Building Name / House No *" 
                     required
@@ -464,10 +464,10 @@ export default function CheckoutPage() {
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
-                    placeholder="Floor / Apartment No *" 
+                    placeholder="Enter room no (enter 0 if not applicable) *" 
                     required
-                    value={shippingAddress.floor_no}
-                    onChange={(e) => setShippingAddress({...shippingAddress, floor_no: e.target.value})}
+                    value={shippingAddress.room_no}
+                    onChange={(e) => setShippingAddress({...shippingAddress, room_no: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               </div>
@@ -534,7 +534,7 @@ export default function CheckoutPage() {
                 disabled={
                   !shippingAddress.first_name || 
                   !shippingAddress.building_name || 
-                  !shippingAddress.floor_no || 
+                  !shippingAddress.room_no ||
                   !shippingAddress.street || 
                   !shippingAddress.city || 
                   !shippingAddress.zip || 
