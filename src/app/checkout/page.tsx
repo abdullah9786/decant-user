@@ -11,6 +11,17 @@ import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
 import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, AlertTriangle, ShieldCheck, Lock, Banknote } from 'lucide-react';
 import MysteryGiftLadder from '@/components/cart/MysteryGiftLadder';
 
+function normalizeIndianMobile(phone: string): string | null {
+  const digits = phone.replace(/\D/g, '');
+  let normalized = digits;
+  if (normalized.length === 12 && normalized.startsWith('91')) {
+    normalized = normalized.slice(2);
+  } else if (normalized.length === 11 && normalized.startsWith('0')) {
+    normalized = normalized.slice(1);
+  }
+  return /^[6-9]\d{9}$/.test(normalized) ? normalized : null;
+}
+
 export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
   const [loading, setLoading] = useState(false);
@@ -105,6 +116,14 @@ export default function CheckoutPage() {
 
   const handleNext = async () => {
      if (step === 1) {
+       const normalizedPhone = normalizeIndianMobile(shippingAddress.phone);
+       if (!normalizedPhone) {
+         alert('Please enter a valid 10-digit Indian mobile number.');
+         return;
+       }
+       if (normalizedPhone !== shippingAddress.phone) {
+         setShippingAddress((prev) => ({ ...prev, phone: normalizedPhone }));
+       }
        setStep(2);
      } else if (step === 2) {
        await handleSubmitOrder();
@@ -117,6 +136,13 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       const customerEmail = isAuthenticated ? (user?.email || '') : shippingAddress.email;
+      const normalizedPhone = normalizeIndianMobile(shippingAddress.phone);
+      if (!normalizedPhone) {
+        alert('Please enter a valid 10-digit Indian mobile number.');
+        setLoading(false);
+        submittingRef.current = false;
+        return;
+      }
 
       let influencerId: string | null = null;
       let referralCode: string | null = null;
@@ -142,7 +168,7 @@ export default function CheckoutPage() {
         user_id: isAuthenticated ? (user?.id || (user as any)._id) : "guest",
         customer_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
         customer_email: customerEmail,
-        customer_phone: shippingAddress.phone,
+        customer_phone: normalizedPhone,
         items: items.map((item: any) => ({
           product_id: item.id || (item as any)._id,
           name: item.gift_box_id ? `${item.name} (Gift Box)` : item.name,
@@ -326,7 +352,7 @@ export default function CheckoutPage() {
       prefill: {
         name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
         email: customerEmail,
-        contact: shippingAddress.phone,
+        contact: orderData.customer_phone,
       },
       theme: {
         color: "#022c22",
