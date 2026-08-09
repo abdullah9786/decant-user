@@ -18,7 +18,7 @@ function connectSrcForBlog(): string {
  * Route-level CSP for blog (defense in depth with sanitized HTML).
  * Tune `connect-src` / `script-src` if third-party analytics must load on /blog.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith("/blog")) {
     return NextResponse.next();
