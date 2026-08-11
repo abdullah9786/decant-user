@@ -120,10 +120,20 @@ export function buildProductSeoCopy(input: {
   const priceText = startingPrice(variants);
   const formatLabel = getFormatLabel(format);
 
-  if (format.hasDecant && !format.hasPack) {
+  // Decant takes priority as the *default* page's title/description whenever
+  // it's available — even for products that also sell a sealed bottle. A
+  // product offering both used to get one diluted title ("X by Brand —
+  // Decants & Sealed Bottles") that targeted neither search intent well.
+  // Sealed-bottle intent now gets its own dedicated, crisply-titled page at
+  // `/products/{slug}/sealed-bottle` (see that route's `generateMetadata`),
+  // so the default page can stay focused on decant — the more common intent
+  // — while still mentioning sealed-bottle availability in the description
+  // as a secondary signal.
+  if (format.hasDecant) {
     const sizes = sortedSizes(variants ?? [], false);
     const title = `${name} Decant by ${brand}`;
-    const description = `Buy ${name} perfume decant by ${brand}.${sizes ? ` Available in ${sizes}.` : ""} ${priceText}${deliverySuffix(false)}`;
+    const alsoPack = format.hasPack ? " Also available as a sealed bottle." : "";
+    const description = `Buy ${name} perfume decant by ${brand}.${sizes ? ` Available in ${sizes}.` : ""} ${priceText}${deliverySuffix(false)}${alsoPack}`;
     return {
       title,
       description,
@@ -133,7 +143,7 @@ export function buildProductSeoCopy(input: {
     };
   }
 
-  if (format.hasPack && !format.hasDecant) {
+  if (format.hasPack) {
     const sizes = sortedSizes(variants ?? [], true);
     const title = `${name} Sealed Bottle by ${brand}`;
     const description = `Buy ${name} sealed bottle by ${brand}.${sizes ? ` Available in ${sizes}.` : ""} ${priceText}${deliverySuffix(true)}`;
@@ -146,19 +156,14 @@ export function buildProductSeoCopy(input: {
     };
   }
 
-  const decantSizes = sortedSizes(variants ?? [], false);
-  const packSizes = sortedSizes(variants ?? [], true);
-  const availabilityParts = [
-    decantSizes ? `decants (${decantSizes})` : null,
-    packSizes ? `sealed bottles (${packSizes})` : null,
-  ].filter(Boolean);
-  const title = `${name} by ${brand} — Decants & Sealed Bottles`;
-  const description = `Buy ${name} by ${brand}. Available as ${availabilityParts.join(" and ")}. ${priceText}Authentic fragrance, pan-India delivery.`;
+  // No variants at all — shouldn't normally happen, but keep a sane fallback.
+  const title = `${name} by ${brand}`;
+  const description = `${name} by ${brand}. ${priceText}Authentic fragrance, pan-India delivery.`;
   return {
     title,
     description,
     formatLabel,
-    imageAlt: `${name} by ${brand} — decants and sealed bottles`,
+    imageAlt: `${name} by ${brand}`,
     jsonLdName: `${name} by ${brand}`,
   };
 }
@@ -176,6 +181,15 @@ export function buildProductCanonicalUrl(
   if (matchedVariant.is_pack) qp.set("pack", "true");
   if (bottle) qp.set("bottle", bottle);
   return `${url}?${qp.toString()}`;
+}
+
+/**
+ * Canonical for the dedicated sealed-bottle landing page — a real path (not
+ * a query param) so it's independently indexable and crawlable, unlike
+ * `?pack=true` on the main PDP which intentionally collapses to the base URL.
+ */
+export function buildSealedBottleCanonicalUrl(slug: string): string {
+  return `${BASE_URL}/products/${slug}/sealed-bottle`;
 }
 
 function variantAvailability(
@@ -215,6 +229,8 @@ export function buildProductJsonLd(input: {
   jsonLdName: string;
   reviews?: ProductReviewJsonLdInput[];
   reviewSummary?: ProductReviewSummaryJsonLdInput;
+  /** Overrides the computed offer URL — used by the sealed-bottle landing page so its JSON-LD points at its own canonical instead of the base PDP's `?pack=true` deep link. */
+  canonicalUrlOverride?: string;
 }): Record<string, unknown> {
   const {
     name,
@@ -228,6 +244,7 @@ export function buildProductJsonLd(input: {
     jsonLdName,
     reviews = [],
     reviewSummary,
+    canonicalUrlOverride,
   } = input;
 
   const jsonLd: Record<string, unknown> = {
@@ -244,7 +261,7 @@ export function buildProductJsonLd(input: {
       "@type": "Offer",
       priceCurrency: "INR",
       price: matchedVariant.price,
-      url: buildProductCanonicalUrl(slug, matchedVariant),
+      url: canonicalUrlOverride ?? buildProductCanonicalUrl(slug, matchedVariant),
       availability: variantAvailability(matchedVariant, stockMl),
       itemCondition: "https://schema.org/NewCondition",
       name: `${name} ${matchedVariant.size_ml}ml ${getVariantTypeLabel(matchedVariant.is_pack)}`,
@@ -260,7 +277,7 @@ export function buildProductJsonLd(input: {
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       offerCount: variants.length,
-      url: `${BASE_URL}/products/${slug}`,
+      url: canonicalUrlOverride ?? `${BASE_URL}/products/${slug}`,
     };
   }
 

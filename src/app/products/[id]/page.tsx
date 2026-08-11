@@ -1,24 +1,24 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { cache } from "react";
-import sanitizeHtml from "sanitize-html";
 import ProductDetailClient from "./ProductDetailClient";
 import SetDetailClient from "./SetDetailClient";
+import {
+  API_URL,
+  getBottles,
+  getProduct,
+  getReviewSummary,
+  sanitizeDescription,
+  seoInput,
+} from "./productData";
 import {
   buildProductBreadcrumbJsonLd,
   buildProductCanonicalUrl,
   buildProductJsonLd,
   buildProductSeoCopy,
-  type MatchedVariant,
+  buildSealedBottleCanonicalUrl,
+  getProductFormat,
 } from "@/lib/product/productSeo";
-import { DAILY_DEAL_CACHE_TAG, productReviewsTag } from "@/lib/cacheTags";
-import { CACHE_REVALIDATE_SECONDS, cacheFetchOptions } from "@/lib/cacheConfig";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-
-/** Same tag as layout/home deal fetches so admin deal saves invalidate PDP data. */
-const productDealFetchOptions = cacheFetchOptions([DAILY_DEAL_CACHE_TAG]);
+import { cacheFetchOptions } from "@/lib/cacheConfig";
 
 /**
  * ISR window for the statically-rendered PDP. The route no longer reads
@@ -28,82 +28,6 @@ const productDealFetchOptions = cacheFetchOptions([DAILY_DEAL_CACHE_TAG]);
  */
 export const revalidate = 86400;
 export const dynamicParams = true;
-
-const getProduct = cache(async (id: string) => {
-  try {
-    const res = await fetch(`${API_URL}/products/${id}`, productDealFetchOptions);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-});
-
-async function getBottles() {
-  try {
-    const res = await fetch(`${API_URL}/bottles`, cacheFetchOptions());
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-async function getReviewSummary(productId: string) {
-  try {
-    const res = await fetch(`${API_URL}/reviews/product/${productId}/summary`, {
-      next: {
-        revalidate: CACHE_REVALIDATE_SECONDS,
-        tags: [productReviewsTag(productId)],
-      },
-    });
-    if (!res.ok) return { average_rating: 0, review_count: 0, rating_breakdown: {} };
-    return await res.json();
-  } catch {
-    return { average_rating: 0, review_count: 0, rating_breakdown: {} };
-  }
-}
-
-/**
- * Sanitize the rich-text product description on the server so it ships inside
- * the static/ISR HTML (visible in view-source and to crawlers) instead of being
- * injected client-side after hydration.
- *
- * Uses `sanitize-html` (pure JS) instead of DOMPurify so the server bundle
- * doesn't pull in `jsdom`, whose transitive ESM deps crash the Vercel
- * serverless runtime (ERR_REQUIRE_ESM) when a non-prebuilt product renders
- * on-demand.
- */
-function sanitizeDescription(raw: unknown): string {
-  if (!raw || typeof raw !== "string") return "";
-  const cleaned = raw.replace(/&nbsp;|\u00A0/g, " ");
-  return sanitizeHtml(cleaned, {
-    allowedTags: [
-      "p", "br", "span", "div", "b", "strong", "i", "em", "u", "s", "mark",
-      "small", "sub", "sup", "a", "ul", "ol", "li", "blockquote", "pre",
-      "code", "hr", "h1", "h2", "h3", "h4", "h5", "h6", "img", "figure",
-      "figcaption", "table", "thead", "tbody", "tr", "th", "td",
-    ],
-    allowedAttributes: {
-      a: ["href", "target", "rel", "name"],
-      img: ["src", "alt", "title", "width", "height"],
-      "*": ["class", "style"],
-    },
-    allowedSchemes: ["http", "https", "mailto", "tel"],
-    allowedSchemesByTag: { img: ["http", "https", "data"] },
-  });
-}
-
-function seoInput(product: any, matchedVariant: MatchedVariant | null) {
-  return {
-    name: product.name,
-    brand: product.brand,
-    variants: product.variants,
-    matchedVariant,
-    productType: product.product_type,
-    setItemCount: product.set_items?.length ?? 0,
-  };
-}
 
 export async function generateMetadata({
   params,
@@ -249,6 +173,15 @@ export default async function ProductDetailPage({
           bottles={bottles}
           reviewSummary={reviewSummary}
           descriptionHtml={descriptionHtml}
+          // Only products with BOTH formats get a distinct sealed-bottle
+          // landing page — a pack-only product's own base page already IS
+          // the sealed-bottle page (see `sealed-bottle/page.tsx`'s redirect).
+          sealedBottleUrl={
+            getProductFormat(product.variants).hasPack &&
+            getProductFormat(product.variants).hasDecant
+              ? `/products/${slug}/sealed-bottle`
+              : null
+          }
         />
       )}
     </>

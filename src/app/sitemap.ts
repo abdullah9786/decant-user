@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { cacheFetchOptions } from "@/lib/cacheConfig";
+import { getProductFormat } from "@/lib/product/productSeo";
 
 const BASE_URL = "https://decume.in";
 const API_URL =
@@ -32,17 +33,24 @@ async function getBlogEntries(): Promise<{ slug: string; updated_at?: string }[]
 }
 
 async function getAllProducts(): Promise<
-  { slug: string; id: string; updated_at?: string }[]
+  { slug: string; id: string; updated_at?: string; hasSealedBottlePage: boolean }[]
 > {
   try {
     const res = await fetch(`${API_URL}/products`, cacheFetchOptions());
     if (!res.ok) return [];
     const products = await res.json();
-    return products.map((p: any) => ({
-      slug: p.slug || p._id || p.id,
-      id: p._id || p.id,
-      updated_at: p.updated_at,
-    }));
+    return products.map((p: any) => {
+      const format = getProductFormat(p.variants);
+      return {
+        slug: p.slug || p._id || p.id,
+        id: p._id || p.id,
+        updated_at: p.updated_at,
+        // Matches the `sealed-bottle/page.tsx` redirect rules: only products
+        // with BOTH formats get a distinct, indexable sealed-bottle page.
+        hasSealedBottlePage:
+          p.product_type !== "set" && format.hasPack && format.hasDecant,
+      };
+    });
   } catch {
     return [];
   }
@@ -179,6 +187,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const sealedBottleRoutes: MetadataRoute.Sitemap = products
+    .filter((p) => p.hasSealedBottlePage)
+    .map((p) => ({
+      url: `${BASE_URL}/products/${p.slug}/sealed-bottle`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.65,
+    }));
+
   const influencerRoutes: MetadataRoute.Sitemap = influencers.map((username) => ({
     url: `${BASE_URL}/${username}`,
     lastModified: new Date(),
@@ -193,5 +210,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
-  return [...staticRoutes, ...productRoutes, ...influencerRoutes, ...blogRoutes];
+  return [
+    ...staticRoutes,
+    ...productRoutes,
+    ...sealedBottleRoutes,
+    ...influencerRoutes,
+    ...blogRoutes,
+  ];
 }

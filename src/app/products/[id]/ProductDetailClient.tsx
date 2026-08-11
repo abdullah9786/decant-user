@@ -39,6 +39,12 @@ interface ProductDetailClientProps {
   reviewSummary?: ReviewSummaryData;
   /** Server-sanitized description HTML — rendered directly so it's in the SSR/SSG output. */
   descriptionHtml?: string;
+  /** True when rendered from `/products/[id]/sealed-bottle` — defaults the initial variant to a pack/sealed-bottle size instead of whichever variant comes first. */
+  initialIsPack?: boolean;
+  /** Set when this product also sells a sealed bottle on a dedicated page — renders a cross-link to it. */
+  sealedBottleUrl?: string | null;
+  /** Set when rendered from the sealed-bottle page for a product that also sells decants — renders a cross-link back to the main PDP. */
+  decantUrl?: string | null;
 }
 
 export default function ProductDetailClient({
@@ -46,6 +52,9 @@ export default function ProductDetailClient({
   bottles = [],
   reviewSummary: initialReviewSummary = { average_rating: 0, review_count: 0 },
   descriptionHtml = "",
+  initialIsPack = false,
+  sealedBottleUrl = null,
+  decantUrl = null,
 }: ProductDetailClientProps) {
   const router = useRouter();
   // Related products + the full review list are fetched client-side so the page
@@ -65,10 +74,16 @@ export default function ProductDetailClient({
   // A `?size=`/`?pack=` deep link is applied after hydration (see effect below)
   // so the page itself stays statically renderable.
   const productStockMl = product.stock_ml ?? 0;
-  const firstInStockVariant = product.variants?.find((v: any) =>
+  // The sealed-bottle landing page wants its default selection to actually
+  // be a pack variant, not just whichever variant happens to be listed
+  // first — otherwise the page would render showing a decant by default.
+  const candidateVariants = initialIsPack
+    ? (product.variants ?? []).filter((v: any) => v.is_pack)
+    : product.variants;
+  const firstInStockVariant = candidateVariants?.find((v: any) =>
     isVariantInStock(v, productStockMl),
   );
-  const fallbackVariant = product.variants?.[0];
+  const fallbackVariant = candidateVariants?.[0] ?? product.variants?.[0];
   const initialVariant = firstInStockVariant ?? fallbackVariant;
 
   const resolvedInitialSize = initialVariant?.size_ml ?? null;
@@ -475,6 +490,22 @@ export default function ProductDetailClient({
                 </h1>
                 <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-medium mb-3 md:mb-6">
                   {seoCopy.formatLabel}
+                  {sealedBottleUrl && (
+                    <>
+                      {" · "}
+                      <Link href={sealedBottleUrl} className="text-emerald-600 hover:underline">
+                        Also available as a Sealed Bottle
+                      </Link>
+                    </>
+                  )}
+                  {decantUrl && (
+                    <>
+                      {" · "}
+                      <Link href={decantUrl} className="text-emerald-600 hover:underline">
+                        Also available as a Decant
+                      </Link>
+                    </>
+                  )}
                 </p>
 
                 <div className="flex items-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
