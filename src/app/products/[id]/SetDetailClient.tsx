@@ -148,7 +148,12 @@ export default function SetDetailClient({
   const selectedBottle = availableBottles.find(
     (b: any) => (b.id || b._id) === selectedBottleId,
   );
-  const bottleAddon = selectedBottle?.size_prices?.[String(selectedMl)] ?? 0;
+  // A set contains multiple fragrances (`setItems.length`), and each one is
+  // decanted into its own bottle — so the bottle add-on price applies once
+  // per fragrance in the set, not once for the whole set.
+  const setItemCount = setItems.length || 1;
+  const bottleUnitAddon = selectedBottle?.size_prices?.[String(selectedMl)] ?? 0;
+  const bottleAddon = bottleUnitAddon * setItemCount;
 
   const setItemSnapshot = useMemo(
     () =>
@@ -402,7 +407,8 @@ export default function SetDetailClient({
                   {availableBottles.map((b: any) => {
                     const bid = b.id || b._id;
                     const isSelected = selectedBottleId === bid;
-                    const addon = b.size_prices?.[String(selectedMl)] ?? 0;
+                    const unitAddon = b.size_prices?.[String(selectedMl)] ?? 0;
+                    const addon = unitAddon * setItemCount;
                     return (
                       <button
                         key={bid}
@@ -426,7 +432,11 @@ export default function SetDetailClient({
                         <div className="text-left">
                           <p className="text-xs font-bold text-emerald-950">{b.name}</p>
                           <p className="text-[10px] text-gray-400">
-                            {addon > 0 ? `+₹${addon}` : "+₹0"}
+                            {addon > 0
+                              ? setItemCount > 1
+                                ? `+₹${addon} (₹${unitAddon} × ${setItemCount})`
+                                : `+₹${addon}`
+                              : "+₹0"}
                           </p>
                         </div>
                       </button>
