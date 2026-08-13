@@ -27,10 +27,10 @@ export default function DealMarquee() {
   // Swap the marquee copy when the drop sells out. The countdown lives
   // on the banner above, so this strip just carries the regret line.
   const text = allOutOfStock
-    ? "Sold out · You missed today's drop · Be ready for the next one"
+    ? 'Sold out · You missed this drop · Be ready for the next one'
     : deal.display?.marquee_text ||
       deal.display?.subheadline ||
-      `${deal.config?.discount_percent || 0}% OFF today only`;
+      `${deal.config?.discount_percent || 0}% OFF · Limited time`;
   const href = deal.display?.cta_href || '/deals/today';
 
   // Repeats *inside one group*. Each group then gets duplicated below for
@@ -57,7 +57,7 @@ export default function DealMarquee() {
       href={href}
       className="group relative block overflow-hidden text-white"
       style={{ background: `linear-gradient(90deg, ${accent}f2, ${accent})` }}
-      aria-label="Today's daily deal"
+      aria-label="Current daily deal"
     >
       {/* Track holds two identical groups. The `deal-marquee-track` class
           (defined in globals.css) drives the translate animation with a

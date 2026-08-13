@@ -53,7 +53,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
   const headline = deal.display?.headline || 'Decume Daily';
   const subheadline =
     deal.display?.subheadline ||
-    `${deal.config?.discount_percent || 0}% OFF — today only`;
+    `${deal.config?.discount_percent || 0}% OFF — limited time`;
   const discountPercent = deal.config?.discount_percent || 0;
   // Once all the products in today's deal are gone, swap the rail's
   // selling tone for a regret + anticipation tone. Same accent, same
@@ -63,7 +63,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
     ? {
         eyebrowSuffix: 'Sold Out',
         headlineLead: 'Vanished',
-        headlineTail: "today's picks are gone",
+        headlineTail: 'the deal picks are gone',
         intro: `Don't miss the next one — drops in`,
         timerLabel: 'Next deal in',
         viewAllLabel: 'See what you missed',
@@ -73,7 +73,7 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
         spotlightLeadSuffix: '',
         spotlightTagline: 'Off Limits',
         spotlightBody:
-          "Today's drop sold out. The next deal opens when this clock " +
+          'This drop sold out. The next deal opens when this clock ' +
           'hits zero — set a reminder.',
         spotlightCtaLabel: 'See what you missed',
         footerLead: 'Sold out.',
@@ -83,22 +83,22 @@ export default function DailyDealRail({ deal, products }: DailyDealRailProps) {
         cardCtaActive: 'Grab Deal',
       }
     : {
-        eyebrowSuffix: 'Today Only',
+        eyebrowSuffix: 'Limited Time',
         headlineLead: `${discountPercent}% OFF`,
-        headlineTail: "on Today's Picks",
+        headlineTail: 'on Selected Picks',
         intro: `${subheadline}. Hand-filled from verified retail bottles, ends`,
         timerLabel: 'Ends in',
         viewAllLabel: 'View all deal products',
-        spotlightBadge: 'Deal of the day',
+        spotlightBadge: 'Limited-time deal',
         spotlightTopline: headline,
         spotlightLeadValue: String(discountPercent),
         spotlightLeadSuffix: '%',
-        spotlightTagline: 'Off Today',
+        spotlightTagline: 'Off Now',
         spotlightBody: `${subheadline}. Ends ${formatDealEnd(deal.ends_at)}.`,
-        spotlightCtaLabel: "Shop today's deal",
+        spotlightCtaLabel: 'Shop the deal',
         footerLead: 'Limited window.',
         footerBody: `These prices vanish ${formatDealEnd(deal.ends_at)}.`,
-        footerCta: "Shop today's deal",
+        footerCta: 'Shop the deal',
         cardCtaSoldOut: 'Sold Out',
         cardCtaActive: 'Grab Deal',
       };

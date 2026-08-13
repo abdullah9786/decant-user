@@ -553,7 +553,7 @@ export default function ProductDetailClient({
                 )}
                 {isOnDeal && activeDeal && (
                   <p className="text-[11px] text-slate-500">
-                    Part of today's Daily Deal — ends {formatDealEnd(activeDeal.ends_at)}.
+                    Part of the current Daily Deal — ends {formatDealEnd(activeDeal.ends_at)}.
                   </p>
                 )}
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">

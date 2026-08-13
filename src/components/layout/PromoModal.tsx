@@ -238,7 +238,7 @@ export default function PromoModal() {
     const pack = packVariant(hero);
     const discountPercent = deal.config?.discount_percent || 0;
     content = {
-      badge: deal.display?.headline ? `${deal.display.headline} · Today Only` : "Decume Daily · Today Only",
+      badge: deal.display?.headline || 'Decume Daily',
       brand: hero.brand || "Decume",
       name: hero.name,
       tagline: deal.display?.subheadline,
@@ -250,9 +250,9 @@ export default function PromoModal() {
       bottlePrice: pack ? inr(pack.original_price ?? pack.price) : undefined,
       bottleSize: pack ? `${pack.size_ml} ml retail` : undefined,
       decantFrom: entry ? `${entry.size_ml} ml @ ${inr(entry.sale_price ?? entry.price)}` : `${discountPercent}% OFF`,
-      decantSubtitle: `Today · ${discountPercent}% OFF`,
+      decantSubtitle: `Limited Time · ${discountPercent}% OFF`,
       imageUrl: deal.display?.hero_image || hero.image_url || STATIC_PROMO.imageUrl,
-      ctaLabel: deal.display?.cta_label || "Shop Today's Deal",
+      ctaLabel: deal.display?.cta_label || 'Shop the Deal',
       ctaHref: deal.display?.cta_href || "/deals/today",
       accentColor: deal.display?.accent_color || "#dc2626",
       endsAt: deal.ends_at,

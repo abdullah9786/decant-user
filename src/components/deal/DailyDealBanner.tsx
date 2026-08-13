@@ -50,9 +50,9 @@ export default function DailyDealBanner() {
   const accent = deal.display?.accent_color || '#dc2626';
   const adminHeadline = deal.display?.headline || 'Decume Daily';
   const adminSubheadline =
-    deal.display?.subheadline || `${deal.config?.discount_percent || 0}% OFF today`;
+    deal.display?.subheadline || `${deal.config?.discount_percent || 0}% OFF · Limited Time`;
   const adminCtaHref = deal.display?.cta_href || '/deals/today';
-  const adminCtaLabel = deal.display?.cta_label || "Shop Today's Deal";
+  const adminCtaLabel = deal.display?.cta_label || 'Shop the Deal';
 
   // When everything is sold out, flip the banner from "buy now" mode to
   // "you missed it, the next one is loaded" mode. Same accent, same
@@ -60,7 +60,7 @@ export default function DailyDealBanner() {
   // visually consistent and the regret/anticipation tone takes over.
   const headline = allOutOfStock ? 'Sold Out' : adminHeadline;
   const subheadline = allOutOfStock
-    ? 'Today\'s drop is gone — next deal in'
+    ? 'This drop is gone — next deal in'
     : adminSubheadline;
   const ctaHref = allOutOfStock ? '/deals/today' : adminCtaHref;
   const ctaLabel = allOutOfStock ? 'See what you missed' : adminCtaLabel;

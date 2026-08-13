@@ -33,8 +33,8 @@ export default function DailyDealOfferCard({
   const title = offer.display?.headline?.trim() || offer.name?.trim() || "Decume Daily";
   const subtitle =
     offer.display?.subheadline?.trim() ||
-    (discount > 0 ? `${discount}% off — today only` : "Limited-time picks at special prices");
-  const ctaLabel = offer.display?.cta_label?.trim() || "Shop today's deal";
+    (discount > 0 ? `${discount}% off — limited time` : "Limited-time picks at special prices");
+  const ctaLabel = offer.display?.cta_label?.trim() || 'Shop the deal';
   const ctaHref = offer.display?.cta_href?.trim() || "/deals/today";
   const marquee = offer.display?.marquee_text?.trim() || "Decume Daily";
 
@@ -56,7 +56,7 @@ export default function DailyDealOfferCard({
 
         <div className={offerCardBodyClass}>
           <div className="min-w-0">
-            <p className={`${offerCardEyebrowClass} text-slate-500`}>Today&apos;s drop</p>
+            <p className={`${offerCardEyebrowClass} text-slate-500`}>Limited-time offer</p>
             <h2 className={`${offerCardTitleClass(expanded)} text-emerald-950`}>{title}</h2>
           </div>
 
@@ -130,7 +130,7 @@ export default function DailyDealOfferCard({
         </div>
 
         <p className="text-[10px] font-bold uppercase tracking-[0.35em] opacity-80">
-          Today&apos;s drop
+          Limited-time offer
         </p>
         <h2
           className={`mt-2 font-serif text-emerald-950 ${

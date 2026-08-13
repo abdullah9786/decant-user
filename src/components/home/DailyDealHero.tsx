@@ -62,8 +62,8 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
 
   const adminHeadline = deal.display?.headline || 'Decume Daily';
   const adminSubheadline =
-    deal.display?.subheadline || `${deal.config?.discount_percent || 0}% OFF today`;
-  const adminCtaLabel = deal.display?.cta_label || "Shop Today's Deal";
+    deal.display?.subheadline || `${deal.config?.discount_percent || 0}% OFF`;
+  const adminCtaLabel = deal.display?.cta_label || 'Shop the Deal';
   const adminCtaHref = deal.display?.cta_href || '/deals/today';
 
   // Copy bundle. Branching all the text decisions here keeps the JSX
@@ -73,7 +73,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
     ? {
         eyebrow: `Sold Out · You Missed It`,
         headlineLead: 'Vanished.',
-        headlineTail: `Today's ${discountPercent}% picks are gone.`,
+        headlineTail: `These ${discountPercent}% picks are gone.`,
         body:
           'Decants at this price empty fast. The next drop is loaded and ' +
           "waiting — be on the page when the clock hits zero, or you'll " +
@@ -84,19 +84,62 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
         secondaryCtaLabel: 'Browse All',
       }
     : {
-        eyebrow: `${adminHeadline} · Today Only`,
+        eyebrow: adminHeadline,
         headlineLead: `${discountPercent}% OFF`,
         headlineTail: adminSubheadline,
         body:
           `Ends ${formatDealEnd(deal.ends_at)}. Hand-filled from verified ` +
-          "retail bottles — same authenticity promise, just today's price.",
+          'retail bottles — same authenticity promise, at a limited-time price.',
         timerLabel: 'Ends in',
         primaryCtaLabel: adminCtaLabel,
         primaryCtaHref: adminCtaHref,
         secondaryCtaLabel: 'Browse All',
       };
 
-  const collage = products.slice(0, 3);
+  // Every product selected in the admin belongs in the hero. The previous
+  // three-item cap made larger deals look as though they only applied to the
+  // visible products, even though the backend had discounted the full list.
+  const collage = products;
+  const isCompactCollage = collage.length >= 4;
+
+  const collageGridClass =
+    collage.length === 4
+      ? 'grid grid-cols-2 gap-2.5 md:gap-3'
+      : collage.length >= 5
+        ? 'grid grid-cols-2 sm:grid-cols-6 gap-2.5 md:gap-3'
+        : 'grid grid-cols-2 gap-4';
+
+  const collageCardClass = (index: number) => {
+    const count = collage.length;
+
+    // Keep the established editorial hierarchy for small deals: the first
+    // product is the wide feature card and the remaining products are square.
+    if (count <= 3) {
+      return index === 0 ? 'col-span-2 aspect-[16/9]' : 'aspect-square';
+    }
+
+    // Four products form a simple, balanced 2x2 grid.
+    if (count === 4) return 'aspect-square';
+
+    // Five or more products use a six-column desktop grid (three cards per
+    // full row). A two-card final row expands to equal halves; a one-card final
+    // row is centred. On phones the grid becomes two columns and an odd final
+    // card spans the row so there is never a misleading empty slot.
+    const remainder = count % 3;
+    const isLast = index === count - 1;
+    const isInTwoCardFinalRow = remainder === 2 && index >= count - 2;
+    const mobileOddTail = count % 2 === 1 && isLast
+      ? 'col-span-2 aspect-[16/9]'
+      : 'col-span-1 aspect-square';
+
+    if (isInTwoCardFinalRow) {
+      return `${mobileOddTail} sm:col-span-3 sm:aspect-square`;
+    }
+    if (remainder === 1 && isLast) {
+      return `${mobileOddTail} sm:col-span-2 sm:col-start-3 sm:aspect-square`;
+    }
+    return `${mobileOddTail} sm:col-span-2 sm:aspect-square`;
+  };
 
   return (
     <section className="relative overflow-hidden">
@@ -187,7 +230,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
                 </div>
               ) : null
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className={collageGridClass}>
                 {collage.map((p, i) => {
                   const v = cheapestVariant(p);
                   const outOfStock = isProductOutOfStock(p);
@@ -195,7 +238,7 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
                     <Link
                       key={(p._id || p.id || i) as string}
                       href={`/products/${p.slug || p._id || p.id}`}
-                      className={`group relative overflow-hidden rounded-2xl bg-white border border-emerald-50 shadow-lg ${i === 0 ? 'col-span-2 aspect-[16/9]' : 'aspect-square'}`}
+                      className={`group relative overflow-hidden rounded-2xl bg-white border border-emerald-50 shadow-lg ${collageCardClass(i)}`}
                     >
                       {p.image_url && (
                         <Image
@@ -210,29 +253,29 @@ export default function DailyDealHero({ deal, products }: DailyDealHeroProps) {
                           the discount % so we never advertise a deal on a
                           product the user can't actually buy. */}
                       {outOfStock ? (
-                        <span className="absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-md bg-rose-600">
+                        <span className={`absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full font-bold uppercase tracking-widest text-white shadow-md bg-rose-600 ${isCompactCollage ? 'text-[8px] md:text-[9px]' : 'text-[10px]'}`}>
                           Out of Stock
                         </span>
                       ) : v && (v.discount_percent ?? 0) > 0 ? (
                         <span
-                          className="absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-md"
+                          className={`absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full font-bold uppercase tracking-widest text-white shadow-md ${isCompactCollage ? 'text-[8px] md:text-[9px]' : 'text-[10px]'}`}
                           style={{ backgroundColor: deepAccent }}
                         >
                           -{v.discount_percent}%
                         </span>
                       ) : null}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3">
-                        <p className="text-[9px] uppercase tracking-widest text-white/70 font-bold">
+                      <div className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent ${isCompactCollage ? 'p-2 md:p-2.5' : 'p-3'}`}>
+                        <p className={`uppercase tracking-widest text-white/70 font-bold ${isCompactCollage ? 'text-[7px] md:text-[8px]' : 'text-[9px]'}`}>
                           {p.brand}
                         </p>
-                        <p className="text-sm text-white font-bold truncate">{p.name}</p>
+                        <p className={`text-white font-bold truncate ${isCompactCollage ? 'text-[11px] md:text-xs' : 'text-sm'}`}>{p.name}</p>
                         {v && (
-                          <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-                            <span className="text-sm font-extrabold text-white tabular-nums">
+                          <div className={`flex items-baseline flex-wrap ${isCompactCollage ? 'mt-0.5 gap-1.5' : 'mt-1 gap-2'}`}>
+                            <span className={`font-extrabold text-white tabular-nums ${isCompactCollage ? 'text-[11px] md:text-xs' : 'text-sm'}`}>
                               {inr(v.sale_price ?? v.price)}
                             </span>
                             {(v.original_price ?? 0) > (v.sale_price ?? v.price) && (
-                              <span className="text-[11px] text-white/55 line-through tabular-nums">
+                              <span className={`text-white/55 line-through tabular-nums ${isCompactCollage ? 'text-[8px] md:text-[9px]' : 'text-[11px]'}`}>
                                 {inr(v.original_price)}
                               </span>
                             )}

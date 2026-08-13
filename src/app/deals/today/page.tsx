@@ -9,7 +9,7 @@ import { cacheFetchOptions } from '@/lib/cacheConfig';
 import { DAILY_DEAL_CACHE_TAG } from '@/lib/cacheTags';
 
 export const metadata: Metadata = {
-  title: "Today's Daily Deal | Decume",
+  title: "Limited-Time Fragrance Deal | Decume",
   description:
     "Decume Daily — a fresh fragrance deal every day. Hand-filled decants and sealed bottles from verified retail stock with limited-time pricing.",
   alternates: { canonical: 'https://decume.in/deals/today' },
@@ -41,7 +41,7 @@ export default async function DealsTodayPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
         <Sparkles className="mx-auto mb-4 text-emerald-700" size={32} />
         <h1 className="text-3xl md:text-4xl font-serif text-emerald-950">
-          No deal today
+          No active deal
         </h1>
         <p className="mt-4 text-slate-500">
           Check back soon for the next Decume Daily, or explore the full
@@ -69,10 +69,10 @@ export default async function DealsTodayPage() {
   // accent palette, same countdown, but the eyebrow / headline / footer
   // copy carry the "you missed it, next drop incoming" tone.
   const soldOut = areAllProductsOutOfStock(products);
-  const eyebrowSuffix = soldOut ? 'Sold Out · You Missed It' : 'Today Only';
+  const eyebrowSuffix = soldOut ? 'Sold Out · You Missed It' : 'Limited Time';
   const headline = soldOut ? 'Vanished' : adminHeadline;
   const subheadline = soldOut
-    ? `Today's ${deal.config?.discount_percent || 0}% picks are gone.`
+    ? `These ${deal.config?.discount_percent || 0}% picks are gone.`
     : adminSubheadline;
   const timerCaption = soldOut
     ? `Next deal opens ${formatDealEnd(deal.ends_at)}`
