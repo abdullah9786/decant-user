@@ -10,8 +10,10 @@ export interface SetProductRef {
     size_ml: number;
     is_pack?: boolean;
     price?: number;
-    sale_price?: number;
-    original_price?: number;
+    sale_price?: number | null;
+    original_price?: number | null;
+    discount_percent?: number | null;
+    deal_id?: string | null;
     label?: string | null;
   }[];
 }

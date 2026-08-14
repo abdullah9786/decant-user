@@ -24,6 +24,10 @@ interface Variant {
   is_pack?: boolean;
   stock?: number;
   label?: string | null;
+  original_price?: number | null;
+  sale_price?: number | null;
+  discount_percent?: number | null;
+  deal_id?: string | null;
 }
 
 interface ProductCardProps {
@@ -66,6 +70,14 @@ function variantKey(v: Variant): string {
 
 function variantsMatch(a: Variant, b: Variant): boolean {
   return a.size_ml === b.size_ml && !!a.is_pack === !!b.is_pack;
+}
+
+function effectivePrice(variant: Variant): number {
+  return variant.sale_price ?? variant.price;
+}
+
+function formatInr(value: number): string {
+  return `₹${Math.round(value).toLocaleString('en-IN')}`;
 }
 
 const ProductCard = React.memo(({
@@ -144,7 +156,7 @@ const ProductCard = React.memo(({
     );
     const pool = inStockVariants.length > 0 ? inStockVariants : variants ?? [];
     const def = pool.length > 0
-      ? pool.reduce((m, v) => (v.price < m.price ? v : m), pool[0])
+      ? pool.reduce((m, v) => (effectivePrice(v) < effectivePrice(m) ? v : m), pool[0])
       : null;
     return {
       defaultVariant: def,
@@ -207,10 +219,34 @@ const ProductCard = React.memo(({
       ? `/products/${productSlug}?size=${activeVariant.size_ml}`
       : `/products/${productSlug}`;
 
+  const activeOriginalPrice = activeVariant?.original_price ?? activeVariant?.price ?? 0;
+  const activeSalePrice = activeVariant?.sale_price ?? activeVariant?.price ?? 0;
+  const activeDiscountPercent = activeVariant?.discount_percent ?? 0;
+  const activeDealId = activeVariant?.deal_id ?? null;
+  const activeVariantIsOnDeal =
+    activeDiscountPercent > 0 && activeSalePrice < activeOriginalPrice;
+
   const priceNode = useMemo(() => {
-    if (activeVariant) return <>₹{activeVariant.price}</>;
-    return <>₹0</>;
-  }, [activeVariant]);
+    if (!activeVariant) return <>₹0</>;
+    if (!activeVariantIsOnDeal) return <>{formatInr(activeOriginalPrice)}</>;
+    return (
+      <span className="inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+        <span className="font-bold text-rose-600">{formatInr(activeSalePrice)}</span>
+        <span className="text-[10px] text-slate-400 line-through tabular-nums">
+          {formatInr(activeOriginalPrice)}
+        </span>
+        <span className="rounded-full border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700">
+          -{activeDiscountPercent}%
+        </span>
+      </span>
+    );
+  }, [
+    activeVariant,
+    activeVariantIsOnDeal,
+    activeOriginalPrice,
+    activeSalePrice,
+    activeDiscountPercent,
+  ]);
 
   const allNotes = useMemo(
     () => [...(notes_top || []), ...(notes_middle || []), ...(notes_base || [])].slice(0, 3),
@@ -262,7 +298,10 @@ const ProductCard = React.memo(({
       name,
       brand,
       size_ml: activeVariant.size_ml,
-      price: activeVariant.price,
+      price: activeSalePrice,
+      original_price: activeOriginalPrice,
+      discount_percent: activeDiscountPercent,
+      deal_id: activeDealId,
       quantity: 1,
       image_url,
       is_pack: !!activeVariant.is_pack,
