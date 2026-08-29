@@ -1,119 +1,94 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/ui/ProductCard';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ProductListingClientProps {
   initialProducts: any[];
   initialFragranceFamilies: any[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
 }
 
 export default function ProductListingClient({
   initialProducts,
   initialFragranceFamilies,
+  currentPage,
+  totalPages,
+  totalItems
 }: ProductListingClientProps) {
-  const [sortBy, setSortBy] = useState('custom');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterBrands, setFilterBrands] = useState<string[]>([]);
-  const [filterFamilies, setFilterFamilies] = useState<string[]>([]);
-  const [filterType, setFilterType] = useState<'all' | 'decant' | 'full-bottle' | 'set'>('all');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'custom');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [filterBrands, setFilterBrands] = useState<string[]>(searchParams.getAll('brand'));
+  const [filterFamilies, setFilterFamilies] = useState<string[]>(searchParams.getAll('fragrance_family'));
+  const [filterType, setFilterType] = useState(searchParams.get('type') || 'all');
+  
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterBrandOpen, setIsFilterBrandOpen] = useState(false);
   const [isFilterFamilyOpen, setIsFilterFamilyOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState<null | 'filter' | 'sort'>(null);
-  const searchParams = useSearchParams();
-  const router = useRouter();
 
-  React.useEffect(() => {
-    const familyParams = searchParams.getAll('fragrance_family');
-    const brandParams = searchParams.getAll('brand');
-    const typeParam = searchParams.get('type');
-    setFilterFamilies(familyParams);
-    setFilterBrands(brandParams);
-    setFilterType(
-      typeParam === 'decant' || typeParam === 'full-bottle' || typeParam === 'set'
-        ? typeParam
-        : 'all',
-    );
-  }, [searchParams]);
+  const brands = Array.from(new Set(initialProducts.map(p => p.brand))).filter(Boolean);
 
-  const brands = useMemo(() => {
-    return Array.from(new Set(initialProducts.map(p => p.brand)));
-  }, [initialProducts]);
-
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = [...initialProducts];
-
-    if (searchTerm.trim().length > 0) {
-      const term = searchTerm.trim().toLowerCase();
-      result = result.filter((p) =>
-        `${p.name || ''} ${p.brand || ''}`.toLowerCase().includes(term)
-      );
-    }
-
-    if (filterBrands.length > 0) {
-      result = result.filter(p => filterBrands.includes(p.brand));
-    }
-    if (filterFamilies.length > 0) {
-      result = result.filter(p => filterFamilies.includes(p.fragrance_family));
-    }
-
-    if (filterType === 'decant') {
-      result = result.filter(p => p.product_type !== 'set' && p.variants?.some((v: any) => !v.is_pack));
-    } else if (filterType === 'full-bottle') {
-      result = result.filter(p => p.product_type !== 'set' && p.variants?.some((v: any) => v.is_pack));
-    } else if (filterType === 'set') {
-      result = result.filter(p => p.product_type === 'set');
-    }
-
-    if (sortBy === 'price-asc') {
-      result.sort((a, b) => (a.variants?.[0]?.price || 0) - (b.variants?.[0]?.price || 0));
-    } else if (sortBy === 'price-desc') {
-      result.sort((a, b) => (b.variants?.[0]?.price || 0) - (a.variants?.[0]?.price || 0));
-    } else if (sortBy === 'featured') {
-      result.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
-    }
-
-    return result;
-  }, [initialProducts, filterBrands, filterFamilies, filterType, sortBy, searchTerm]);
-
-  const updateUrl = (brands: string[], families: string[], type: 'all' | 'decant' | 'full-bottle' | 'set') => {
+  const updateUrl = (
+    newBrands: string[], 
+    newFamilies: string[], 
+    newType: string, 
+    newSort: string, 
+    newSearch: string,
+    newPage: number
+  ) => {
     const params = new URLSearchParams();
-    brands.forEach(b => params.append('brand', b));
-    families.forEach(f => params.append('fragrance_family', f));
-    if (type !== 'all') params.set('type', type);
+    newBrands.forEach(b => params.append('brand', b));
+    newFamilies.forEach(f => params.append('fragrance_family', f));
+    if (newType !== 'all') params.set('type', newType);
+    if (newSort !== 'custom') params.set('sort', newSort);
+    if (newSearch.trim()) params.set('q', newSearch.trim());
+    if (newPage > 1) params.set('page', newPage.toString());
+
     const qs = params.toString();
     router.replace(qs ? `/products?${qs}` : '/products', { scroll: false });
   };
 
   const toggleBrand = (brand: string) => {
-    setFilterBrands((prev) => {
-      const next = prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand];
-      updateUrl(next, filterFamilies, filterType);
-      return next;
-    });
+    const next = filterBrands.includes(brand) ? filterBrands.filter((b) => b !== brand) : [...filterBrands, brand];
+    setFilterBrands(next);
+    updateUrl(next, filterFamilies, filterType, sortBy, searchTerm, 1);
   };
 
   const toggleFamily = (family: string) => {
-    setFilterFamilies((prev) => {
-      const next = prev.includes(family) ? prev.filter((c) => c !== family) : [...prev, family];
-      updateUrl(filterBrands, next, filterType);
-      return next;
-    });
+    const next = filterFamilies.includes(family) ? filterFamilies.filter((c) => c !== family) : [...filterFamilies, family];
+    setFilterFamilies(next);
+    updateUrl(filterBrands, next, filterType, sortBy, searchTerm, 1);
   };
 
-  const handleTypeChange = (type: 'all' | 'decant' | 'full-bottle' | 'set') => {
+  const handleTypeChange = (type: string) => {
     setFilterType(type);
-    updateUrl(filterBrands, filterFamilies, type);
+    updateUrl(filterBrands, filterFamilies, type, sortBy, searchTerm, 1);
+  };
+
+  const handleSortChange = (sort: string) => {
+    setSortBy(sort);
+    updateUrl(filterBrands, filterFamilies, filterType, sort, searchTerm, 1);
+  };
+
+  const handleSearchSubmit = () => {
+    updateUrl(filterBrands, filterFamilies, filterType, sortBy, searchTerm, 1);
   };
 
   const clearAllFilters = () => {
     setFilterBrands([]);
     setFilterFamilies([]);
     setFilterType('all');
+    setSortBy('custom');
+    setSearchTerm('');
     router.replace('/products', { scroll: false });
   };
 
@@ -124,6 +99,17 @@ export default function ProductListingClient({
     { label: 'Price: High to Low', value: 'price-desc' },
   ];
 
+  const createPageUrl = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (page > 1) {
+      params.set('page', page.toString());
+    } else {
+      params.delete('page');
+    }
+    const qs = params.toString();
+    return qs ? `/products?${qs}` : '/products';
+  };
+
   return (
     <div className="pt-6 pb-12 md:py-20 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,6 +119,7 @@ export default function ProductListingClient({
               <Link href="/">Home</Link> / <span className="text-emerald-600">Shop All</span>
             </nav>
             <h1 className="text-4xl font-serif text-emerald-950">Fragrance Collection</h1>
+            <p className="mt-2 text-sm text-gray-500 font-serif">Showing {initialProducts.length} of {totalItems} results</p>
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6 md:mt-0 w-full md:w-auto">
@@ -144,7 +131,7 @@ export default function ProductListingClient({
                  onKeyDown={(e) => {
                    if (e.key === 'Enter') {
                      e.preventDefault();
-                     e.currentTarget.blur();
+                     handleSearchSubmit();
                    }
                  }}
                  placeholder="Search fragrances..."
@@ -152,7 +139,10 @@ export default function ProductListingClient({
                />
                {searchTerm && (
                  <button
-                   onClick={() => setSearchTerm('')}
+                   onClick={() => {
+                     setSearchTerm('');
+                     updateUrl(filterBrands, filterFamilies, filterType, sortBy, '', 1);
+                   }}
                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 p-1 transition-colors"
                    aria-label="Clear search"
                  >
@@ -163,10 +153,8 @@ export default function ProductListingClient({
           </div>
         </div>
 
-        {/* Filter / Sort Bar — z-10 keeps this below sticky header (mgift z-40, nav z-50) */}
+        {/* Filter / Sort Bar */}
         <div className="w-full border-t border-b border-gray-200 py-3 mb-8 flex justify-between items-center relative z-10">
-          
-          {/* Desktop Filter Dropdowns */}
           <div className="hidden md:flex items-center space-x-8">
             <div className="relative">
               <button 
@@ -180,11 +168,17 @@ export default function ProductListingClient({
                   <div className="fixed inset-0 z-30" onClick={() => setIsFilterBrandOpen(false)} />
                   <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-50 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="max-h-60 overflow-y-auto space-y-2">
-                       <button onClick={() => { setFilterBrands([]); setIsFilterBrandOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterBrands.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Brands</button>
+                       <button onClick={() => { setFilterBrands([]); updateUrl([], filterFamilies, filterType, sortBy, searchTerm, 1); setIsFilterBrandOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterBrands.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Brands</button>
                        {brands.map(brand => (
+                         <label key={brand as string} className="flex items-center gap-2 text-sm font-serif text-gray-600 hover:text-emerald-600 cursor-pointer py-1">
+                           <input type="checkbox" checked={filterBrands.includes(brand as string)} onChange={() => toggleBrand(brand as string)} className="h-3.5 w-3.5 accent-emerald-700" />
+                           <span className={filterBrands.includes(brand as string) ? 'text-emerald-700' : ''}>{brand as string}</span>
+                         </label>
+                       ))}
+                       {filterBrands.filter(b => !brands.includes(b)).map(brand => (
                          <label key={brand} className="flex items-center gap-2 text-sm font-serif text-gray-600 hover:text-emerald-600 cursor-pointer py-1">
-                           <input type="checkbox" checked={filterBrands.includes(brand)} onChange={() => toggleBrand(brand)} className="h-3.5 w-3.5 accent-emerald-700" />
-                           <span className={filterBrands.includes(brand) ? 'text-emerald-700' : ''}>{brand}</span>
+                           <input type="checkbox" checked={true} onChange={() => toggleBrand(brand)} className="h-3.5 w-3.5 accent-emerald-700" />
+                           <span className="text-emerald-700">{brand}</span>
                          </label>
                        ))}
                     </div>
@@ -205,7 +199,7 @@ export default function ProductListingClient({
                   <div className="fixed inset-0 z-30" onClick={() => setIsFilterFamilyOpen(false)} />
                   <div className="absolute top-full left-0 mt-3 w-64 bg-white border border-[#E2E2E2] shadow-sm z-50 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="max-h-60 overflow-y-auto space-y-2">
-                      <button onClick={() => { setFilterFamilies([]); setIsFilterFamilyOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterFamilies.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Families</button>
+                      <button onClick={() => { setFilterFamilies([]); updateUrl(filterBrands, [], filterType, sortBy, searchTerm, 1); setIsFilterFamilyOpen(false); }} className={`block w-full text-left text-sm font-serif ${filterFamilies.length === 0 ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-600'}`}>All Families</button>
                       {initialFragranceFamilies.map((fam: any) => (
                         <label key={fam._id || fam.name} className="flex items-center gap-2 text-sm font-serif text-gray-600 hover:text-emerald-600 cursor-pointer py-1">
                           <input type="checkbox" checked={filterFamilies.includes(fam.name)} onChange={() => toggleFamily(fam.name)} className="h-3.5 w-3.5 accent-emerald-700" />
@@ -230,20 +224,19 @@ export default function ProductListingClient({
               ))}
             </div>
 
-            {(filterBrands.length > 0 || filterFamilies.length > 0 || filterType !== 'all') && (
+            {(filterBrands.length > 0 || filterFamilies.length > 0 || filterType !== 'all' || sortBy !== 'custom' || searchTerm !== '') && (
               <button onClick={clearAllFilters} className="text-[10px] uppercase font-bold tracking-widest text-emerald-700 border-b border-emerald-700">
                 Clear Filters
               </button>
             )}
           </div>
 
-          {/* Desktop Sort Dropdown */}
           <div className="hidden md:flex relative ml-auto">
             <button 
               onClick={() => { setIsSortOpen(!isSortOpen); setIsFilterBrandOpen(false); setIsFilterFamilyOpen(false); }}
               className="font-serif text-lg flex items-center hover:text-emerald-700 transition-colors"
             >
-              Sort by: {sortOptions.find(o => o.value === sortBy)?.label} <ChevronDown size={14} className="ml-1 opacity-60" />
+              Sort by: {sortOptions.find(o => o.value === sortBy)?.label || 'Recommended'} <ChevronDown size={14} className="ml-1 opacity-60" />
             </button>
             {isSortOpen && (
               <>
@@ -252,7 +245,7 @@ export default function ProductListingClient({
                   {sortOptions.map(option => (
                     <button
                       key={option.value}
-                      onClick={() => { setSortBy(option.value); setIsSortOpen(false); }}
+                      onClick={() => { handleSortChange(option.value); setIsSortOpen(false); }}
                       className={`block w-full text-left px-4 py-2 font-serif text-base transition-colors ${sortBy === option.value ? 'bg-slate-50 text-emerald-950 font-bold' : 'text-gray-600 hover:bg-slate-50 hover:text-emerald-950'}`}
                     >
                       {option.label}
@@ -302,9 +295,9 @@ export default function ProductListingClient({
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-950 mb-4 border-b border-gray-100 pb-2">Brand</h3>
                   <div className="space-y-3">
                     {brands.map(brand => (
-                      <label key={brand} className="flex items-center gap-3 font-serif text-lg cursor-pointer">
-                        <input type="checkbox" checked={filterBrands.includes(brand)} onChange={() => toggleBrand(brand)} className="h-4 w-4 accent-[#4B4136]" />
-                        <span className={filterBrands.includes(brand) ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{brand}</span>
+                      <label key={brand as string} className="flex items-center gap-3 font-serif text-lg cursor-pointer">
+                        <input type="checkbox" checked={filterBrands.includes(brand as string)} onChange={() => toggleBrand(brand as string)} className="h-4 w-4 accent-[#4B4136]" />
+                        <span className={filterBrands.includes(brand as string) ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{brand as string}</span>
                       </label>
                     ))}
                   </div>
@@ -349,7 +342,7 @@ export default function ProductListingClient({
                       type="radio" 
                       name="mobile_sort" 
                       checked={sortBy === option.value} 
-                      onChange={() => setSortBy(option.value)} 
+                      onChange={() => handleSortChange(option.value)} 
                       className="h-4 w-4 accent-[#4B4136]" 
                     />
                     <span className={sortBy === option.value ? 'text-[#4B4136] font-bold' : 'text-gray-700'}>{option.label}</span>
@@ -364,9 +357,9 @@ export default function ProductListingClient({
           </div>
         )}
 
-        {filteredAndSortedProducts.length > 0 ? (
+        {initialProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 -mx-4 px-2 md:-mx-7 md:px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {filteredAndSortedProducts.map((product) => (
+            {initialProducts.map((product) => (
               <ProductCard key={product._id || product.id} {...product} />
             ))}
           </div>
@@ -374,11 +367,107 @@ export default function ProductListingClient({
           <div className="py-40 text-center">
             <p className="font-serif italic text-gray-400 text-xl">No products match your selection.</p>
             <button 
-              onClick={() => { setFilterBrands([]); setFilterFamilies([]); setFilterType('all'); setSortBy('custom'); }}
+              onClick={clearAllFilters}
               className="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-600 border-b border-emerald-600"
             >
               Clear All Filters
             </button>
+          </div>
+        )}
+
+        {/* Pagination Links (SEO Friendly & Modern) */}
+        {totalPages > 1 && (
+          <div className="mt-16 flex flex-col md:flex-row items-center justify-between border-t border-gray-100 pt-8 gap-6 md:gap-0">
+            <div className="text-sm font-serif text-gray-500">
+              Showing <span className="font-bold text-gray-900">{initialProducts.length}</span> of <span className="font-bold text-gray-900">{totalItems}</span> results
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {currentPage > 1 ? (
+                <Link 
+                  href={createPageUrl(currentPage - 1)}
+                  className="p-2 border border-gray-200 rounded-md hover:bg-emerald-50 text-emerald-900 transition-colors"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={20} />
+                </Link>
+              ) : (
+                <div className="p-2 border border-gray-100 rounded-md text-gray-300">
+                  <ChevronLeft size={20} />
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-1">
+                {(() => {
+                  const getVisiblePages = () => {
+                    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+                    if (currentPage <= 3) return [1, 2, 3, 4, '...', totalPages];
+                    if (currentPage >= totalPages - 2) return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+                  };
+
+                  return getVisiblePages().map((page, idx) => (
+                    page === '...' ? (
+                      <span key={`dots-${idx}`} className="px-2 text-gray-400">...</span>
+                    ) : (
+                      <Link
+                        key={page}
+                        href={createPageUrl(page as number)}
+                        className={`w-9 h-9 flex items-center justify-center rounded-md font-serif text-sm transition-colors ${
+                          page === currentPage 
+                            ? 'bg-emerald-700 text-white' 
+                            : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-900'
+                        }`}
+                      >
+                        {page}
+                      </Link>
+                    )
+                  ));
+                })()}
+              </div>
+
+              {currentPage < totalPages ? (
+                <Link 
+                  href={createPageUrl(currentPage + 1)}
+                  className="p-2 border border-gray-200 rounded-md hover:bg-emerald-50 text-emerald-900 transition-colors"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={20} />
+                </Link>
+              ) : (
+                <div className="p-2 border border-gray-100 rounded-md text-gray-300">
+                  <ChevronRight size={20} />
+                </div>
+              )}
+            </div>
+
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const input = form.elements.namedItem('page') as HTMLInputElement;
+                const pageNum = parseInt(input.value);
+                if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+                  router.push(createPageUrl(pageNum));
+                  input.value = '';
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <label htmlFor="page-jump" className="text-sm font-serif text-gray-500">Go to page:</label>
+              <input 
+                id="page-jump"
+                name="page"
+                type="number" 
+                min={1} 
+                max={totalPages}
+                placeholder={currentPage.toString()}
+                className="w-16 px-2 py-1.5 text-center text-sm border border-gray-200 rounded-md focus:outline-none focus:border-emerald-600 font-serif"
+              />
+              <button type="submit" className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-serif transition-colors">
+                Go
+              </button>
+            </form>
           </div>
         )}
       </div>
