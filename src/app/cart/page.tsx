@@ -85,51 +85,68 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-8">
             {items.map((item, idx) => (
               <div key={item.gift_box_id ? `gb-${item.gift_box_id}-${idx}` : `${item.id}-${item.size_ml}-${item.is_pack ? 'p' : 'd'}-${item.bottle_id || ''}`} className="flex items-start space-x-6 border-b border-gray-100 pb-8">
-                <div className="w-24 h-32 bg-gray-50 flex-shrink-0 relative border border-gray-100 overflow-hidden">
+                <Link 
+                  href={`/products/${item.slug || item.id || item._id}`}
+                  className="w-24 h-32 bg-gray-50 flex-shrink-0 relative border border-gray-100 overflow-hidden hover:opacity-90 transition-opacity"
+                >
                   {item.image_url ? (
                     <Image src={item.image_url} alt={item.name} fill sizes="96px" className="object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center italic text-gray-200 text-[10px]">Image</div>
                   )}
-                </div>
+                </Link>
                 <div className="flex-1">
-                  <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.gift_box_id ? 'Gift Box' : item.brand}</p>
-                  <h3 className="font-serif text-xl text-emerald-950 mb-1">{item.name}</h3>
-                  <p className="text-xs text-emerald-600 font-bold mb-2">
-                    {item.gift_box_id
-                      ? `${item.selected_products?.length || 0} × ${item.size_ml}ML`
-                      : `${item.size_ml}ML ${item.is_pack ? 'Pack' : 'Decant'}${item.bottle_name ? ` · ${item.bottle_name}` : ''}`}
-                  </p>
+                  <Link 
+                    href={`/products/${item.slug || item.id || item._id}`}
+                    className="block hover:opacity-80 transition-opacity"
+                  >
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.gift_box_id ? 'Gift Box' : item.brand}</p>
+                    <h3 className="font-serif text-xl text-emerald-950 mb-1">{item.name}</h3>
+                    <p className="text-xs text-emerald-600 font-bold mb-2">
+                      {item.gift_box_id
+                        ? `${item.selected_products?.length || 0} × ${item.size_ml}ML`
+                        : `${item.size_ml}ML ${item.is_pack ? 'Pack' : 'Decant'}${item.bottle_name ? ` · ${item.bottle_name}` : ''}`}
+                    </p>
 
-                  {item.gift_box_id && item.selected_products && (
-                    <div className="mb-3 space-y-1 pl-2 border-l-2 border-emerald-200">
-                      {item.selected_products.map((sp: any, i: number) => (
-                        <div key={i} className="flex justify-between text-[10px] text-gray-500">
-                          <span className="truncate max-w-[180px]">{sp.name}</span>
-                          <span className="font-bold text-gray-600 ml-2">₹{sp.price}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    {item.gift_box_id && item.selected_products && (
+                      <div className="mb-3 space-y-1 pl-2 border-l-2 border-emerald-200">
+                        {item.selected_products.map((sp: any, i: number) => (
+                          <div key={i} className="flex justify-between text-[10px] text-gray-500">
+                            <span className="truncate max-w-[180px]">{sp.name}</span>
+                            <span className="font-bold text-gray-600 ml-2">₹{sp.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Link>
                   
                   <div className="flex items-center space-x-6">
                     <div className="flex items-center border border-gray-200">
                       <button 
-                        onClick={() => updateQuantity(item.id, item.size_ml, Math.max(1, item.quantity - 1), item.is_pack, item.gift_box_id, item.selected_products, item.bottle_id, item.product_type, item.set_items)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateQuantity(item.id, item.size_ml, Math.max(1, item.quantity - 1), item.is_pack, item.gift_box_id, item.selected_products, item.bottle_id, item.product_type, item.set_items);
+                        }}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="w-10 text-center text-xs font-bold">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, item.size_ml, item.quantity + 1, item.is_pack, item.gift_box_id, item.selected_products, item.bottle_id, item.product_type, item.set_items)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateQuantity(item.id, item.size_ml, item.quantity + 1, item.is_pack, item.gift_box_id, item.selected_products, item.bottle_id, item.product_type, item.set_items);
+                        }}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Plus size={14} />
                       </button>
                     </div>
                     <button 
-                      onClick={() => removeItem(item.id, item.size_ml, item.is_pack, item.gift_box_id, item.selected_products, item.bottle_id, item.product_type, item.set_items)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeItem(item.id, item.size_ml, item.is_pack, item.gift_box_id, item.selected_products, item.bottle_id, item.product_type, item.set_items);
+                      }}
                       className="text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={18} />
