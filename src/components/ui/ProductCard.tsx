@@ -304,6 +304,7 @@ const ProductCard = React.memo(({
       deal_id: activeDealId,
       quantity: 1,
       image_url,
+      slug,
       is_pack: !!activeVariant.is_pack,
       ...(isSet && {
         product_type: 'set' as const,

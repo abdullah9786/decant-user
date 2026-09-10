@@ -262,6 +262,7 @@ export default function SetDetailClient({
       product_type: "set",
       set_items: setItemSnapshot,
       image_url: product.image_url,
+      slug: product.slug,
       ...(selectedBottle && {
         bottle_id: selectedBottle.id || selectedBottle._id,
         bottle_name: selectedBottle.name,

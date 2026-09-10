@@ -301,6 +301,7 @@ export default function ProductDetailClient({
       quantity: 1,
       is_pack: isPack,
       image_url: product.image_url,
+      slug: product.slug,
       ...(selectedBottle && {
         bottle_id: selectedBottle.id || selectedBottle._id,
         bottle_name: selectedBottle.name,

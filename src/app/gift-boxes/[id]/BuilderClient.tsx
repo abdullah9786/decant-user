@@ -134,6 +134,7 @@ export default function BuilderClient({
       price: grandTotal,
       quantity: 1,
       image_url: box.image_url || "",
+      slug: box.slug,
       is_pack: false,
       gift_box_id: boxId,
       gift_box_name: box.name,

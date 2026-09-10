@@ -23,6 +23,7 @@ export interface CartItem {
     price: number;
     quantity: number;
     image_url?: string;
+    slug?: string;
     is_pack?: boolean;
     product_type?: 'single' | 'set';
     set_items?: SetItemSnapshot[];
