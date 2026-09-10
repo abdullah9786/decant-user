@@ -86,7 +86,7 @@ export default function CartPage() {
             {items.map((item, idx) => (
               <div key={item.gift_box_id ? `gb-${item.gift_box_id}-${idx}` : `${item.id}-${item.size_ml}-${item.is_pack ? 'p' : 'd'}-${item.bottle_id || ''}`} className="flex items-start space-x-6 border-b border-gray-100 pb-8">
                 <Link 
-                  href={`/products/${item.slug || item.id || item._id}`}
+                  href={`/products/${item.slug || item.id}`}
                   className="w-24 h-32 bg-gray-50 flex-shrink-0 relative border border-gray-100 overflow-hidden hover:opacity-90 transition-opacity"
                 >
                   {item.image_url ? (
@@ -97,7 +97,7 @@ export default function CartPage() {
                 </Link>
                 <div className="flex-1">
                   <Link 
-                    href={`/products/${item.slug || item.id || item._id}`}
+                    href={`/products/${item.slug || item.id}`}
                     className="block hover:opacity-80 transition-opacity"
                   >
                     <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">{item.gift_box_id ? 'Gift Box' : item.brand}</p>
