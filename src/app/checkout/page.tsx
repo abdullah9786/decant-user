@@ -19,7 +19,7 @@ function normalizeIndianMobile(phone: string): string | null {
   } else if (normalized.length === 11 && normalized.startsWith('0')) {
     normalized = normalized.slice(1);
   }
-  return /^[6-9]\d{9}$/.test(normalized) ? normalized : null;
+  return /^\d{10}$/.test(normalized) ? normalized : null;
 }
 
 export default function CheckoutPage() {
@@ -124,6 +124,41 @@ export default function CheckoutPage() {
        if (normalizedPhone !== shippingAddress.phone) {
          setShippingAddress((prev) => ({ ...prev, phone: normalizedPhone }));
        }
+       
+       // Additional validation for other fields
+       if (!shippingAddress.first_name.trim()) {
+         alert('Please enter your first name.');
+         return;
+       }
+       if (!shippingAddress.building_name.trim()) {
+         alert('Please enter your building name/house number.');
+         return;
+       }
+       if (!shippingAddress.room_no.trim()) {
+         alert('Please enter your room number (enter 0 if not applicable).');
+         return;
+       }
+       if (!shippingAddress.street.trim()) {
+         alert('Please enter your street address/landmark.');
+         return;
+       }
+       if (!shippingAddress.city.trim()) {
+         alert('Please enter your city.');
+         return;
+       }
+       if (!shippingAddress.zip.trim()) {
+         alert('Please enter your PIN code.');
+         return;
+       }
+       if (!isAuthenticated && !shippingAddress.email.trim()) {
+         alert('Please enter your email address.');
+         return;
+       }
+       if (postInstaPackingVideo && !instagramUsername.trim()) {
+         alert('Please enter your Instagram username.');
+         return;
+       }
+       
        setStep(2);
      } else if (step === 2) {
        await handleSubmitOrder();
@@ -166,8 +201,8 @@ export default function CheckoutPage() {
 
       const orderData: any = {
         user_id: isAuthenticated ? (user?.id || (user as any)._id) : "guest",
-        customer_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
-        customer_email: customerEmail,
+        customer_name: `${shippingAddress.first_name.trim()} ${shippingAddress.last_name.trim()}`,
+        customer_email: customerEmail.trim(),
         customer_phone: normalizedPhone,
         items: items.map((item: any) => ({
           product_id: item.id || (item as any)._id,
@@ -189,7 +224,7 @@ export default function CheckoutPage() {
           bottle_price: item.bottle_price || 0,
         })),
         total_amount: grandTotal,
-        shipping_address: `Room ${shippingAddress.room_no}, ${shippingAddress.building_name}, ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.zip}`,
+        shipping_address: `Room ${shippingAddress.room_no.trim()}, ${shippingAddress.building_name.trim()}, ${shippingAddress.street.trim()}, ${shippingAddress.city.trim()}, ${shippingAddress.zip.trim()}`,
         status: 'pending',
         payment_method: paymentMethod,
         ...(paymentMethod === 'cod' && codFee > 0 && { cod_fee: codFee }),
@@ -350,8 +385,8 @@ export default function CheckoutPage() {
         }
       },
       prefill: {
-        name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
-        email: customerEmail,
+        name: `${shippingAddress.first_name.trim()} ${shippingAddress.last_name.trim()}`,
+        email: customerEmail.trim(),
         contact: orderData.customer_phone,
       },
       theme: {
@@ -463,6 +498,7 @@ export default function CheckoutPage() {
                   required
                   value={shippingAddress.email}
                   onChange={(e) => setShippingAddress({...shippingAddress, email: e.target.value})}
+                  onBlur={(e) => setShippingAddress({...shippingAddress, email: e.target.value.trim()})}
                   className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               )}
@@ -472,12 +508,14 @@ export default function CheckoutPage() {
                     required
                     value={shippingAddress.first_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, first_name: e.target.value})}
+                    onBlur={(e) => setShippingAddress({...shippingAddress, first_name: e.target.value.trim()})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
                     placeholder="Last Name" 
                     value={shippingAddress.last_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, last_name: e.target.value})}
+                    onBlur={(e) => setShippingAddress({...shippingAddress, last_name: e.target.value.trim()})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600" 
                 />
               </div>
@@ -487,6 +525,7 @@ export default function CheckoutPage() {
                     required
                     value={shippingAddress.building_name}
                     onChange={(e) => setShippingAddress({...shippingAddress, building_name: e.target.value})}
+                    onBlur={(e) => setShippingAddress({...shippingAddress, building_name: e.target.value.trim()})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
@@ -494,6 +533,7 @@ export default function CheckoutPage() {
                     required
                     value={shippingAddress.room_no}
                     onChange={(e) => setShippingAddress({...shippingAddress, room_no: e.target.value})}
+                    onBlur={(e) => setShippingAddress({...shippingAddress, room_no: e.target.value.trim()})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               </div>
@@ -502,6 +542,7 @@ export default function CheckoutPage() {
                 required
                 value={shippingAddress.street}
                 onChange={(e) => setShippingAddress({...shippingAddress, street: e.target.value})}
+                onBlur={(e) => setShippingAddress({...shippingAddress, street: e.target.value.trim()})}
                 className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
               <div className="grid grid-cols-2 gap-6">
@@ -510,6 +551,7 @@ export default function CheckoutPage() {
                     required
                     value={shippingAddress.city}
                     onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
+                    onBlur={(e) => setShippingAddress({...shippingAddress, city: e.target.value.trim()})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
                 <input 
@@ -517,6 +559,7 @@ export default function CheckoutPage() {
                     required
                     value={shippingAddress.zip}
                     onChange={(e) => setShippingAddress({...shippingAddress, zip: e.target.value})}
+                    onBlur={(e) => setShippingAddress({...shippingAddress, zip: e.target.value.trim()})}
                     className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
                 />
               </div>
@@ -525,6 +568,7 @@ export default function CheckoutPage() {
                 required
                 value={shippingAddress.phone}
                 onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
+                onBlur={(e) => setShippingAddress({...shippingAddress, phone: e.target.value.trim()})}
                 className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
 
@@ -558,14 +602,14 @@ export default function CheckoutPage() {
               <button 
                 onClick={handleNext}
                 disabled={
-                  !shippingAddress.first_name || 
-                  !shippingAddress.building_name || 
-                  !shippingAddress.room_no ||
-                  !shippingAddress.street || 
-                  !shippingAddress.city || 
-                  !shippingAddress.zip || 
-                  !shippingAddress.phone ||
-                  (!isAuthenticated && !shippingAddress.email) ||
+                  !shippingAddress.first_name.trim() || 
+                  !shippingAddress.building_name.trim() || 
+                  !shippingAddress.room_no.trim() ||
+                  !shippingAddress.street.trim() || 
+                  !shippingAddress.city.trim() || 
+                  !shippingAddress.zip.trim() || 
+                  !shippingAddress.phone.trim() ||
+                  (!isAuthenticated && !shippingAddress.email.trim()) ||
                   (postInstaPackingVideo && !instagramUsername.trim())
                 }
                 className="w-full bg-emerald-950 text-white py-5 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl mt-10 disabled:opacity-50"
