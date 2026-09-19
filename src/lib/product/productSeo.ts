@@ -3,6 +3,10 @@ export interface ProductVariant {
   price: number;
   is_pack?: boolean;
   stock?: number;
+  sale_price?: number | null;
+  original_price?: number | null;
+  discount_percent?: number | null;
+  deal_id?: string | null;
 }
 
 export interface MatchedVariant {
@@ -10,6 +14,10 @@ export interface MatchedVariant {
   price: number;
   is_pack: boolean;
   stock?: number;
+  sale_price?: number | null;
+  original_price?: number | null;
+  discount_percent?: number | null;
+  deal_id?: string | null;
 }
 
 export interface ProductFormat {
@@ -193,7 +201,7 @@ export function buildSealedBottleCanonicalUrl(slug: string): string {
 }
 
 function variantAvailability(
-  matchedVariant: MatchedVariant,
+  matchedVariant: MatchedVariant | ProductVariant,
   stockMl: number,
 ): string {
   const inStock = matchedVariant.is_pack
@@ -248,7 +256,7 @@ export function buildProductJsonLd(input: {
   } = input;
 
   // Helper function to generate SKU for variants
-  const generateSku = (variant: ProductVariant): string => {
+  const generateSku = (variant: ProductVariant | MatchedVariant): string => {
     const sizePart = `${variant.size_ml}ml`;
     const typePart = variant.is_pack ? 'pack' : 'decant';
     const slugPart = slug.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
@@ -261,6 +269,39 @@ export function buildProductJsonLd(input: {
     const variantSlug = `${variant.size_ml}ml-${variant.is_pack ? 'pack' : 'decant'}`;
     const variantUrl = `${BASE_URL}/products/${slug}?size=${variant.size_ml}${variant.is_pack ? '&pack=true' : ''}`;
     
+    // Use sale_price when available (during deals), otherwise use base price
+    const currentPrice = variant.sale_price ?? variant.price;
+    const originalPrice = variant.original_price ?? variant.price;
+    const hasDiscount = variant.sale_price != null && variant.sale_price < originalPrice;
+    
+    const offerData: Record<string, unknown> = {
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: currentPrice,
+      availability: variantAvailability(
+        {
+          size_ml: variant.size_ml,
+          price: currentPrice,
+          is_pack: !!variant.is_pack,
+          stock: variant.stock,
+        },
+        stockMl
+      ),
+      itemCondition: "https://schema.org/NewCondition",
+      url: variantUrl,
+      name: variantName,
+    };
+
+    // Add priceSpecification for discounted items
+    if (hasDiscount) {
+      offerData.priceSpecification = {
+        "@type": "PriceSpecification",
+        price: originalPrice,
+        priceCurrency: "INR",
+        valueAddedTaxIncluded: true,
+      };
+    }
+    
     return {
       "@type": "Product",
       name: variantName,
@@ -270,23 +311,7 @@ export function buildProductJsonLd(input: {
       description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
       brand: { "@type": "Brand", name: brand },
       ...(imageUrl && { image: imageUrl }),
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "INR",
-        price: variant.price,
-        availability: variantAvailability(
-          {
-            size_ml: variant.size_ml,
-            price: variant.price,
-            is_pack: !!variant.is_pack,
-            stock: variant.stock,
-          },
-          stockMl
-        ),
-        itemCondition: "https://schema.org/NewCondition",
-        url: variantUrl,
-        name: variantName,
-      },
+      offers: offerData,
     };
   };
 
@@ -303,6 +328,9 @@ export function buildProductJsonLd(input: {
     // Use ProductGroup for products with multiple size variants
     const variantProducts = decantVariants.map(createVariantProduct);
     
+    // Calculate price range using sale prices when available
+    const effectivePrices = decantVariants.map((v) => v.sale_price ?? v.price);
+    
     jsonLd = {
       "@context": "https://schema.org",
       "@type": "ProductGroup",
@@ -316,8 +344,8 @@ export function buildProductJsonLd(input: {
       offers: {
         "@type": "AggregateOffer",
         priceCurrency: "INR",
-        lowPrice: Math.min(...decantVariants.map((v) => v.price)),
-        highPrice: Math.max(...decantVariants.map((v) => v.price)),
+        lowPrice: Math.min(...effectivePrices),
+        highPrice: Math.max(...effectivePrices),
         availability:
           stockMl > 0 || decantVariants.some((v) => v.is_pack && (v.stock ?? 0) > 0)
             ? "https://schema.org/InStock"
@@ -331,11 +359,38 @@ export function buildProductJsonLd(input: {
     const variantData = {
       size_ml: matchedVariant.size_ml,
       price: matchedVariant.price,
+      sale_price: matchedVariant.sale_price,
+      original_price: matchedVariant.original_price,
+      discount_percent: matchedVariant.discount_percent,
       is_pack: matchedVariant.is_pack,
       stock: matchedVariant.stock,
     };
     const variantName = `${name} ${matchedVariant.size_ml}ml ${getVariantTypeLabel(matchedVariant.is_pack)}`;
     const variantUrl = `${BASE_URL}/products/${slug}?size=${matchedVariant.size_ml}${matchedVariant.is_pack ? '&pack=true' : ''}`;
+    
+    // Use sale_price when available
+    const currentPrice = matchedVariant.sale_price ?? matchedVariant.price;
+    const originalPrice = matchedVariant.original_price ?? matchedVariant.price;
+    const hasDiscount = matchedVariant.sale_price != null && matchedVariant.sale_price < originalPrice;
+    
+    const offerData: Record<string, unknown> = {
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: currentPrice,
+      availability: variantAvailability(matchedVariant, stockMl),
+      itemCondition: "https://schema.org/NewCondition",
+      url: variantUrl,
+      name: variantName,
+    };
+
+    if (hasDiscount) {
+      offerData.priceSpecification = {
+        "@type": "PriceSpecification",
+        price: originalPrice,
+        priceCurrency: "INR",
+        valueAddedTaxIncluded: true,
+      };
+    }
     
     jsonLd = {
       "@context": "https://schema.org",
@@ -347,21 +402,45 @@ export function buildProductJsonLd(input: {
       size: `${matchedVariant.size_ml}ml`,
       sku: generateSku(variantData),
       url: variantUrl,
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "INR",
-        price: matchedVariant.price,
-        availability: variantAvailability(matchedVariant, stockMl),
-        itemCondition: "https://schema.org/NewCondition",
-        url: variantUrl,
-        name: variantName,
-      },
+      offers: offerData,
     };
   } else if (decantVariants.length === 1) {
     // Single decant variant - use individual Product
     const singleVariant = decantVariants[0];
     const variantName = `${name} ${singleVariant.size_ml}ml ${getVariantTypeLabel(!!singleVariant.is_pack)}`;
     const variantUrl = `${BASE_URL}/products/${slug}?size=${singleVariant.size_ml}${singleVariant.is_pack ? '&pack=true' : ''}`;
+    
+    // Use sale_price when available
+    const currentPrice = singleVariant.sale_price ?? singleVariant.price;
+    const originalPrice = singleVariant.original_price ?? singleVariant.price;
+    const hasDiscount = singleVariant.sale_price != null && singleVariant.sale_price < originalPrice;
+    
+    const offerData: Record<string, unknown> = {
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: currentPrice,
+      availability: variantAvailability(
+        {
+          size_ml: singleVariant.size_ml,
+          price: currentPrice,
+          is_pack: !!singleVariant.is_pack,
+          stock: singleVariant.stock,
+        },
+        stockMl
+      ),
+      itemCondition: "https://schema.org/NewCondition",
+      url: variantUrl,
+      name: variantName,
+    };
+
+    if (hasDiscount) {
+      offerData.priceSpecification = {
+        "@type": "PriceSpecification",
+        price: originalPrice,
+        priceCurrency: "INR",
+        valueAddedTaxIncluded: true,
+      };
+    }
     
     jsonLd = {
       "@context": "https://schema.org",
@@ -373,27 +452,14 @@ export function buildProductJsonLd(input: {
       size: `${singleVariant.size_ml}ml`,
       sku: generateSku(singleVariant),
       url: variantUrl,
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "INR",
-        price: singleVariant.price,
-        availability: variantAvailability(
-          {
-            size_ml: singleVariant.size_ml,
-            price: singleVariant.price,
-            is_pack: !!singleVariant.is_pack,
-            stock: singleVariant.stock,
-          },
-          stockMl
-        ),
-        itemCondition: "https://schema.org/NewCondition",
-        url: variantUrl,
-        name: variantName,
-      },
+      offers: offerData,
     };
   } else if (packVariants.length > 0) {
     // Only pack variants (sealed bottles) - treat as separate products
     const variantProducts = packVariants.map(createVariantProduct);
+    
+    // Calculate price range using sale prices when available
+    const effectivePrices = packVariants.map((v) => v.sale_price ?? v.price);
     
     jsonLd = {
       "@context": "https://schema.org",
@@ -407,8 +473,8 @@ export function buildProductJsonLd(input: {
       offers: {
         "@type": "AggregateOffer",
         priceCurrency: "INR",
-        lowPrice: Math.min(...packVariants.map((v) => v.price)),
-        highPrice: Math.max(...packVariants.map((v) => v.price)),
+        lowPrice: Math.min(...effectivePrices),
+        highPrice: Math.max(...effectivePrices),
         availability:
           packVariants.some((v) => (v.stock ?? 0) > 0)
             ? "https://schema.org/InStock"
