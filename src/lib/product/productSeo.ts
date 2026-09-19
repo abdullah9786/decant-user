@@ -247,69 +247,156 @@ export function buildProductJsonLd(input: {
     canonicalUrlOverride,
   } = input;
 
-  const jsonLd: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: jsonLdName || name,
-    description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
-    brand: { "@type": "Brand", name: brand },
-    ...(imageUrl && { image: imageUrl }),
+  // Helper function to generate SKU for variants
+  const generateSku = (variant: ProductVariant): string => {
+    const sizePart = `${variant.size_ml}ml`;
+    const typePart = variant.is_pack ? 'pack' : 'decant';
+    const slugPart = slug.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    return `${slugPart}-${sizePart}-${typePart}`;
   };
 
-  if (matchedVariant) {
-    // Single variant selected - create individual offer
-    jsonLd.offers = {
-      "@type": "Offer",
-      priceCurrency: "INR",
-      price: matchedVariant.price,
-      url: canonicalUrlOverride ?? buildProductCanonicalUrl(slug, matchedVariant),
-      availability: variantAvailability(matchedVariant, stockMl),
-      itemCondition: "https://schema.org/NewCondition",
-      name: `${name} ${matchedVariant.size_ml}ml ${getVariantTypeLabel(matchedVariant.is_pack)}`,
-    };
-  } else if (variants?.length) {
-    // Multiple variants - create individual offers for each variant for better crawlability
-    const individualOffers = variants.map((variant) => ({
-      "@type": "Offer",
-      priceCurrency: "INR",
-      price: variant.price,
-      url: buildProductCanonicalUrl(slug, {
-        size_ml: variant.size_ml,
+  // Helper function to create variant Product object
+  const createVariantProduct = (variant: ProductVariant) => {
+    const variantName = `${name} ${variant.size_ml}ml ${getVariantTypeLabel(!!variant.is_pack)}`;
+    const variantSlug = `${variant.size_ml}ml-${variant.is_pack ? 'pack' : 'decant'}`;
+    const variantUrl = `${BASE_URL}/products/${slug}?size=${variant.size_ml}${variant.is_pack ? '&pack=true' : ''}`;
+    
+    return {
+      "@type": "Product",
+      name: variantName,
+      size: `${variant.size_ml}ml`,
+      sku: generateSku(variant),
+      url: variantUrl,
+      description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
+      brand: { "@type": "Brand", name: brand },
+      ...(imageUrl && { image: imageUrl }),
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
         price: variant.price,
-        is_pack: !!variant.is_pack,
-        stock: variant.stock,
-      }),
-      availability: variantAvailability(
-        {
-          size_ml: variant.size_ml,
-          price: variant.price,
-          is_pack: !!variant.is_pack,
-          stock: variant.stock,
-        },
-        stockMl
-      ),
-      itemCondition: "https://schema.org/NewCondition",
-      name: `${name} ${variant.size_ml}ml ${getVariantTypeLabel(!!variant.is_pack)}`,
-    }));
-
-    // Also include AggregateOffer for backward compatibility and summary information
-    jsonLd.offers = {
-      "@type": "AggregateOffer",
-      priceCurrency: "INR",
-      lowPrice: Math.min(...variants.map((v) => v.price)),
-      highPrice: Math.max(...variants.map((v) => v.price)),
-      availability:
-        stockMl > 0 || variants.some((v) => v.is_pack && (v.stock ?? 0) > 0)
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      offerCount: variants.length,
-      url: canonicalUrlOverride ?? `${BASE_URL}/products/${slug}`,
+        availability: variantAvailability(
+          {
+            size_ml: variant.size_ml,
+            price: variant.price,
+            is_pack: !!variant.is_pack,
+            stock: variant.stock,
+          },
+          stockMl
+        ),
+        itemCondition: "https://schema.org/NewCondition",
+        url: variantUrl,
+        name: variantName,
+      },
     };
+  };
 
-    // Add individual offers as a separate property for AI crawlers
-    jsonLd.hasVariant = individualOffers;
+  // Separate decant and pack variants
+  const decantVariants = variants?.filter((v) => !v.is_pack) || [];
+  const packVariants = variants?.filter((v) => v.is_pack) || [];
+
+  // Determine if we should use ProductGroup or single Product
+  const hasMultipleVariants = decantVariants.length > 1 || (decantVariants.length > 0 && packVariants.length > 0);
+  
+  let jsonLd: Record<string, unknown>;
+
+  if (hasMultipleVariants && !matchedVariant) {
+    // Use ProductGroup for products with multiple size variants
+    const variantProducts = decantVariants.map(createVariantProduct);
+    
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "ProductGroup",
+      name: jsonLdName || name,
+      description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
+      brand: { "@type": "Brand", name: brand },
+      ...(imageUrl && { image: imageUrl }),
+      variesBy: "https://schema.org/size",
+      hasVariant: variantProducts,
+      // Include aggregate offer for the group
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "INR",
+        lowPrice: Math.min(...decantVariants.map((v) => v.price)),
+        highPrice: Math.max(...decantVariants.map((v) => v.price)),
+        availability:
+          stockMl > 0 || decantVariants.some((v) => v.is_pack && (v.stock ?? 0) > 0)
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+        offerCount: decantVariants.length,
+        url: canonicalUrlOverride ?? `${BASE_URL}/products/${slug}`,
+      },
+    };
+  } else if (matchedVariant) {
+    // Single variant selected - use individual Product
+    const variantProduct = createVariantProduct({
+      size_ml: matchedVariant.size_ml,
+      price: matchedVariant.price,
+      is_pack: matchedVariant.is_pack,
+      stock: matchedVariant.stock,
+    });
+    
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: jsonLdName || name,
+      description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
+      brand: { "@type": "Brand", name: brand },
+      ...(imageUrl && { image: imageUrl }),
+      ...variantProduct,
+    };
+  } else if (decantVariants.length === 1) {
+    // Single decant variant - use individual Product
+    const singleVariant = decantVariants[0];
+    const variantProduct = createVariantProduct(singleVariant);
+    
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: jsonLdName || name,
+      description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
+      brand: { "@type": "Brand", name: brand },
+      ...(imageUrl && { image: imageUrl }),
+      ...variantProduct,
+    };
+  } else if (packVariants.length > 0) {
+    // Only pack variants (sealed bottles) - treat as separate products
+    const variantProducts = packVariants.map(createVariantProduct);
+    
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "ProductGroup",
+      name: jsonLdName || name,
+      description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
+      brand: { "@type": "Brand", name: brand },
+      ...(imageUrl && { image: imageUrl }),
+      variesBy: "https://schema.org/size",
+      hasVariant: variantProducts,
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "INR",
+        lowPrice: Math.min(...packVariants.map((v) => v.price)),
+        highPrice: Math.max(...packVariants.map((v) => v.price)),
+        availability:
+          packVariants.some((v) => (v.stock ?? 0) > 0)
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+        offerCount: packVariants.length,
+        url: canonicalUrlOverride ?? `${BASE_URL}/products/${slug}`,
+      },
+    };
+  } else {
+    // Fallback - no variants
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: jsonLdName || name,
+      description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
+      brand: { "@type": "Brand", name: brand },
+      ...(imageUrl && { image: imageUrl }),
+    };
   }
 
+  // Add aggregate rating if available
   const count = reviewSummary?.review_count ?? 0;
   if (count > 0 && reviewSummary) {
     jsonLd.aggregateRating = {
@@ -321,6 +408,7 @@ export function buildProductJsonLd(input: {
     };
   }
 
+  // Add reviews if available
   if (reviews.length > 0) {
     jsonLd.review = reviews.map((review) => ({
       "@type": "Review",
