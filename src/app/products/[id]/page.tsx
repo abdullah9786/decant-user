@@ -64,6 +64,10 @@ export async function generateMetadata({
       description: seo.description,
       ...(product.image_url && { images: [product.image_url] }),
     },
+    other: {
+      // JSON-LD will be added in the page component to ensure server-side rendering
+      // This placeholder ensures metadata structure is consistent
+    },
   };
 }
 
@@ -152,13 +156,18 @@ export default async function ProductDetailPage({
 
   return (
     <>
+      {/* Render JSON-LD directly in the document to ensure it's in initial server response */}
       <script
         type="application/ld+json"
+        id="product-structured-data"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        suppressHydrationWarning
       />
       <script
         type="application/ld+json"
+        id="breadcrumb-structured-data"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        suppressHydrationWarning
       />
       {isSet ? (
         <SetDetailClient
