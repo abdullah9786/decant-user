@@ -328,12 +328,14 @@ export function buildProductJsonLd(input: {
     };
   } else if (matchedVariant) {
     // Single variant selected - use individual Product
-    const variantProduct = createVariantProduct({
+    const variantData = {
       size_ml: matchedVariant.size_ml,
       price: matchedVariant.price,
       is_pack: matchedVariant.is_pack,
       stock: matchedVariant.stock,
-    });
+    };
+    const variantName = `${name} ${matchedVariant.size_ml}ml ${getVariantTypeLabel(matchedVariant.is_pack)}`;
+    const variantUrl = `${BASE_URL}/products/${slug}?size=${matchedVariant.size_ml}${matchedVariant.is_pack ? '&pack=true' : ''}`;
     
     jsonLd = {
       "@context": "https://schema.org",
@@ -342,12 +344,24 @@ export function buildProductJsonLd(input: {
       description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
       brand: { "@type": "Brand", name: brand },
       ...(imageUrl && { image: imageUrl }),
-      ...variantProduct,
+      size: `${matchedVariant.size_ml}ml`,
+      sku: generateSku(variantData),
+      url: variantUrl,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
+        price: matchedVariant.price,
+        availability: variantAvailability(matchedVariant, stockMl),
+        itemCondition: "https://schema.org/NewCondition",
+        url: variantUrl,
+        name: variantName,
+      },
     };
   } else if (decantVariants.length === 1) {
     // Single decant variant - use individual Product
     const singleVariant = decantVariants[0];
-    const variantProduct = createVariantProduct(singleVariant);
+    const variantName = `${name} ${singleVariant.size_ml}ml ${getVariantTypeLabel(!!singleVariant.is_pack)}`;
+    const variantUrl = `${BASE_URL}/products/${slug}?size=${singleVariant.size_ml}${singleVariant.is_pack ? '&pack=true' : ''}`;
     
     jsonLd = {
       "@context": "https://schema.org",
@@ -356,7 +370,26 @@ export function buildProductJsonLd(input: {
       description: description?.replace(/<[^>]*>/g, "").slice(0, 300),
       brand: { "@type": "Brand", name: brand },
       ...(imageUrl && { image: imageUrl }),
-      ...variantProduct,
+      size: `${singleVariant.size_ml}ml`,
+      sku: generateSku(singleVariant),
+      url: variantUrl,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
+        price: singleVariant.price,
+        availability: variantAvailability(
+          {
+            size_ml: singleVariant.size_ml,
+            price: singleVariant.price,
+            is_pack: !!singleVariant.is_pack,
+            stock: singleVariant.stock,
+          },
+          stockMl
+        ),
+        itemCondition: "https://schema.org/NewCondition",
+        url: variantUrl,
+        name: variantName,
+      },
     };
   } else if (packVariants.length > 0) {
     // Only pack variants (sealed bottles) - treat as separate products
