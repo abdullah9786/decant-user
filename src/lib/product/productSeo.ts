@@ -257,6 +257,7 @@ export function buildProductJsonLd(input: {
   };
 
   if (matchedVariant) {
+    // Single variant selected - create individual offer
     jsonLd.offers = {
       "@type": "Offer",
       priceCurrency: "INR",
@@ -267,6 +268,31 @@ export function buildProductJsonLd(input: {
       name: `${name} ${matchedVariant.size_ml}ml ${getVariantTypeLabel(matchedVariant.is_pack)}`,
     };
   } else if (variants?.length) {
+    // Multiple variants - create individual offers for each variant for better crawlability
+    const individualOffers = variants.map((variant) => ({
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: variant.price,
+      url: buildProductCanonicalUrl(slug, {
+        size_ml: variant.size_ml,
+        price: variant.price,
+        is_pack: !!variant.is_pack,
+        stock: variant.stock,
+      }),
+      availability: variantAvailability(
+        {
+          size_ml: variant.size_ml,
+          price: variant.price,
+          is_pack: !!variant.is_pack,
+          stock: variant.stock,
+        },
+        stockMl
+      ),
+      itemCondition: "https://schema.org/NewCondition",
+      name: `${name} ${variant.size_ml}ml ${getVariantTypeLabel(!!variant.is_pack)}`,
+    }));
+
+    // Also include AggregateOffer for backward compatibility and summary information
     jsonLd.offers = {
       "@type": "AggregateOffer",
       priceCurrency: "INR",
@@ -279,6 +305,9 @@ export function buildProductJsonLd(input: {
       offerCount: variants.length,
       url: canonicalUrlOverride ?? `${BASE_URL}/products/${slug}`,
     };
+
+    // Add individual offers as a separate property for AI crawlers
+    jsonLd.hasVariant = individualOffers;
   }
 
   const count = reviewSummary?.review_count ?? 0;
