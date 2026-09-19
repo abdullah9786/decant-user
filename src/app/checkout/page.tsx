@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useCartStore, getQualifyingCount } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -23,6 +23,9 @@ function normalizeIndianMobile(phone: string): string | null {
 }
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation, 4: Confirming
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -107,12 +110,44 @@ export default function CheckoutPage() {
   const grandTotal = preFeeTotal + codFee;
 
   const { isAuthenticated, user } = useAuthStore();
-  const router = useRouter();
 
   // Synchronous mutex: prevents rapid double-clicks on "Place Order" from
   // creating two Razorpay orders + two pending_checkouts before React
   // re-renders the `disabled={loading}` state.
   const submittingRef = useRef(false);
+
+  // Initialize step from URL query parameter
+  useEffect(() => {
+    const stepParam = searchParams.get('step');
+    if (stepParam) {
+      const stepMap: Record<string, number> = {
+        'address': 1,
+        'payment': 2,
+        'success': 3,
+        'confirming': 4,
+      };
+      const mappedStep = stepMap[stepParam];
+      if (mappedStep) {
+        setStep(mappedStep);
+      }
+    }
+  }, [searchParams]);
+
+  // Update URL when step changes
+  useEffect(() => {
+    const stepMap: Record<number, string> = {
+      1: 'address',
+      2: 'payment',
+      3: 'success',
+      4: 'confirming',
+    };
+    const stepName = stepMap[step];
+    if (stepName) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('step', stepName);
+      router.replace(url.toString(), { scroll: false });
+    }
+  }, [step, router]);
 
   const handleNext = async () => {
      if (step === 1) {
