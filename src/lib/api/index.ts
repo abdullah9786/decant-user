@@ -144,10 +144,11 @@ export const orderApi = {
         amount: number,
         items: { product_id: string; size_ml: number; quantity: number }[],
         orderData?: any,
-    ) => api.post(`/orders/initiate-payment-only`, { amount, items, order_data: orderData }),
+        metaParams?: { meta_fbp?: string; meta_fbc?: string; meta_client_user_agent?: string },
+    ) => api.post(`/orders/initiate-payment-only`, { amount, items, order_data: orderData, ...metaParams }),
     verifyAndCreate: (paymentDetails: any, orderData: any) => api.post('/orders/verify-and-create', { payment_details: paymentDetails, order_data: orderData }),
-    placeCod: (orderData: any, idempotencyKey: string) =>
-        api.post('/orders/place-cod', { order_data: orderData, idempotency_key: idempotencyKey }),
+    placeCod: (orderData: any, idempotencyKey: string, metaParams?: { meta_fbp?: string; meta_fbc?: string; meta_client_user_agent?: string }) =>
+        api.post('/orders/place-cod', { order_data: orderData, idempotency_key: idempotencyKey, ...metaParams }),
     customerCancel: (orderId: string, customerEmail?: string) =>
         api.post(`/orders/${orderId}/customer-cancel`, { customer_email: customerEmail || undefined }),
 };

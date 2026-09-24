@@ -16,22 +16,16 @@ type MetaEventParams = {
 };
 
 /**
- * Check if Meta Pixel is available and initialized
- */
-function isPixelAvailable(): boolean {
-  return typeof window !== "undefined" && typeof window.fbq === "function";
-}
-
-/**
  * Fire a Meta Pixel event with proper error handling
  */
 function fireEvent(eventName: string, params?: MetaEventParams): void {
-  if (!isPixelAvailable()) {
+  const fbq = typeof window !== "undefined" ? window.fbq : undefined;
+  if (typeof fbq !== "function") {
     return;
   }
 
   try {
-    window.fbq("track", eventName, params);
+    fbq("track", eventName, params);
   } catch (error) {
     console.error("Meta Pixel event error:", error);
   }

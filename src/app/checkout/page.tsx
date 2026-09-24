@@ -215,6 +215,18 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Extract Meta Pixel cookies for CAPI matching
+      const getCookie = (name: string): string | undefined => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return undefined;
+      };
+      
+      const fbp = getCookie('_fbp');
+      const fbc = getCookie('_fbc');
+      const clientUserAgent = navigator.userAgent;
+
       let influencerId: string | null = null;
       let referralCode: string | null = null;
       try {
@@ -295,7 +307,11 @@ export default function CheckoutPage() {
           (typeof window !== 'undefined' && window.crypto?.randomUUID?.()) ||
           `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         try {
-          const codResponse = await orderApi.placeCod(orderData, idempotencyKey);
+          const codResponse = await orderApi.placeCod(orderData, idempotencyKey, {
+            meta_fbp: fbp,
+            meta_fbc: fbc,
+            meta_client_user_agent: clientUserAgent,
+          });
           const finalOrderId = codResponse.data?.id || (codResponse.data as any)?._id;
           setOrderId(finalOrderId);
           if (codResponse.data?.free_decants_dropped_reason) {
@@ -340,7 +356,11 @@ export default function CheckoutPage() {
         }),
         ...(it.bottle_id && { bottle_id: it.bottle_id }),
       }));
-      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData);
+      const rzpResponse = await orderApi.initiatePaymentOnly(grandTotal, stockCheckItems, orderData, {
+        meta_fbp: fbp,
+        meta_fbc: fbc,
+        meta_client_user_agent: clientUserAgent,
+      });
       const rzpData = rzpResponse.data;
 
       // If the backend stripped free decants because the offer is no longer
