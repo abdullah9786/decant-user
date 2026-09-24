@@ -607,7 +607,7 @@ export default function CheckoutPage() {
                 className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-emerald-600 border-l-4 border-l-red-400" 
               />
 
-              <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-4 space-y-4">
+              <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-4 space-y-4 hidden">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
