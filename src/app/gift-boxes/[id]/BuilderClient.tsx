@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Search, X, Gift, Check, ShoppingBag, ArrowLeft } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "react-hot-toast";
+import { trackAddToCart } from "@/lib/metaPixel";
 
 interface SelectedProduct {
   product_id: string;
@@ -145,6 +146,10 @@ export default function BuilderClient({
         price: s.price,
       })),
     } as any);
+
+    // Track AddToCart event after successful cart addition
+    trackAddToCart(boxId, grandTotal, 1);
+
     toast.success(`${box.name} added to bag!`, {
       icon: "🎁",
       style: {

@@ -24,6 +24,7 @@ import { deepenAccent, formatDealEnd } from "@/components/deal/constants";
 import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { isVariantInStock } from "@/lib/product/stock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
+import { trackViewContent, trackAddToCart } from "@/lib/metaPixel";
 import SuggestedProducts from "@/components/product/SuggestedProducts";
 import MysteryGiftCallout from "@/components/product/MysteryGiftCallout";
 import ProductReviews, {
@@ -247,6 +248,15 @@ export default function ProductDetailClient({
   );
   const bottleAddon = selectedBottle?.size_prices?.[String(selectedMl)] ?? 0;
 
+  // Track ViewContent event once on mount (no duplicate events from re-renders)
+  useEffect(() => {
+    if (product && currentVariant) {
+      const productId = String(product._id || product.id);
+      const price = selectedPrice + bottleAddon;
+      trackViewContent(productId, price, product.name);
+    }
+  }, [product, currentVariant, selectedPrice, bottleAddon]);
+
   const hasSyncedInitial = useRef(false);
 
   useEffect(() => {
@@ -286,6 +296,9 @@ export default function ProductDetailClient({
   const handleAddToCart = () => {
     if (!product || !currentVariant) return;
 
+    const productId = String(product._id || product.id);
+    const finalPrice = variantSalePrice + bottleAddon;
+
     addItem({
       id: product.id || product._id,
       name: product.name,
@@ -294,7 +307,7 @@ export default function ProductDetailClient({
       // Snapshot the daily-deal sale price (when present) so the cart total
       // stays in sync with the deal until the user checks out. Backend
       // revalidates on order creation either way.
-      price: variantSalePrice + bottleAddon,
+      price: finalPrice,
       original_price: variantOriginalPrice + bottleAddon,
       discount_percent: variantDiscountPercent,
       deal_id: currentVariant?.deal_id ?? null,
@@ -308,6 +321,10 @@ export default function ProductDetailClient({
         bottle_price: bottleAddon,
       }),
     } as any);
+
+    // Track AddToCart event after successful cart addition
+    trackAddToCart(productId, finalPrice, 1);
+
     const label = isPack ? `${selectedSize}ml Pack` : `${selectedSize}ml`;
     toast.success(`${product.name} (${label}) added to bag!`, {
       icon: "✨",

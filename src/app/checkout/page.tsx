@@ -8,6 +8,7 @@ import { useCartStore, getQualifyingCount } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { orderApi, offerApi, settingsApi } from '@/lib/api';
 import { cartItemsToGaItems, gaEvent } from '@/lib/gtag';
+import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
 import { CheckCircle2, CreditCard, MapPin, ShoppingBag, Loader2, AlertTriangle, ShieldCheck, Lock, Banknote } from 'lucide-react';
 import MysteryGiftLadder from '@/components/cart/MysteryGiftLadder';
 
@@ -288,6 +289,8 @@ export default function CheckoutPage() {
           setLoading(false);
           return;
         }
+        // Track InitiateCheckout event for COD orders
+        trackInitiateCheckout(items, grandTotal);
         const idempotencyKey =
           (typeof window !== 'undefined' && window.crypto?.randomUUID?.()) ||
           `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -305,6 +308,9 @@ export default function CheckoutPage() {
             currency: 'INR',
             items: cartItemsToGaItems(items),
           });
+          // Track Meta Pixel Purchase event after successful order completion
+          // Use same event_id format as server for deduplication: purchase_{order_id}
+          trackPurchase(items, grandTotal, `purchase_${String(finalOrderId ?? '')}`);
           setTimeout(() => clearCart(), 100);
           try { localStorage.removeItem("decume-ref"); } catch {}
         } catch (err: any) {
@@ -375,6 +381,10 @@ export default function CheckoutPage() {
   const openRazorpay = (rzpData: any, orderData: any, customerEmail: string) => {
     const gaItems = cartItemsToGaItems(items);
 
+    // Track InitiateCheckout event when Razorpay opens (genuine checkout start)
+    // Use same event_id format as server for deduplication: initiate_checkout_{razorpay_order_id}
+    trackInitiateCheckout(items, grandTotal);
+
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
       amount: rzpData.amount,
@@ -404,6 +414,9 @@ export default function CheckoutPage() {
             currency: 'INR',
             items: gaItems,
           });
+          // Track Meta Pixel Purchase event after successful order completion
+          // Use same event_id format as server for deduplication: purchase_{order_id}
+          trackPurchase(items, grandTotal, `purchase_${String(finalOrderId ?? '')}`);
           setTimeout(() => clearCart(), 100);
           try { localStorage.removeItem("decume-ref"); } catch {}
         } catch (err: any) {

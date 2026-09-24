@@ -10,6 +10,7 @@ import { buildProductSeoCopy } from '@/lib/product/productSeo';
 import { isProductOutOfStock, isVariantInStock } from '@/lib/product/stock';
 import { getSetDecantVariants, isSetInStock, isSetProduct } from '@/lib/product/setStock';
 import { variantButtonLabel } from '@/lib/product/variantLabel';
+import { trackAddToCart } from '@/lib/metaPixel';
 
 interface SetItemRef {
   product_id: string;
@@ -311,6 +312,9 @@ const ProductCard = React.memo(({
         set_items: setItemSnapshot,
       }),
     });
+
+    // Track AddToCart event after successful cart addition
+    trackAddToCart(productId as string, activeSalePrice, 1);
 
     toast.success(`${name} (${variantButtonLabel(activeVariant)}) added to bag!`, {
       icon: '✨',

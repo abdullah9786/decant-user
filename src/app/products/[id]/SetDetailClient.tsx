@@ -12,6 +12,7 @@ import PriceTag from "@/components/deal/PriceTag";
 import { buildProductSeoCopy } from "@/lib/product/productSeo";
 import { getSetDecantVariants, isSetInStock, normalizeSizeMl, sizesMatch } from "@/lib/product/setStock";
 import { variantButtonLabel } from "@/lib/product/variantLabel";
+import { trackViewContent, trackAddToCart } from "@/lib/metaPixel";
 import SuggestedProducts from "@/components/product/SuggestedProducts";
 import MysteryGiftCallout from "@/components/product/MysteryGiftCallout";
 import ProductReviews, {
@@ -155,6 +156,15 @@ export default function SetDetailClient({
   const bottleUnitAddon = selectedBottle?.size_prices?.[String(selectedMl)] ?? 0;
   const bottleAddon = bottleUnitAddon * setItemCount;
 
+  // Track ViewContent event once on mount (no duplicate events from re-renders)
+  useEffect(() => {
+    if (product && currentVariant) {
+      const productId = String(product._id || product.id);
+      const price = variantSalePrice + bottleAddon;
+      trackViewContent(productId, price, product.name);
+    }
+  }, [product, currentVariant, variantSalePrice, bottleAddon]);
+
   const setItemSnapshot = useMemo(
     () =>
       setItems.map((item: any) => ({
@@ -248,12 +258,15 @@ export default function SetDetailClient({
 
   const handleAddToCart = () => {
     if (!currentVariant || !inStock) return;
+
+    const finalPrice = variantSalePrice + bottleAddon;
+
     addItem({
       id: productId,
       name: product.name,
       brand: product.brand,
       size_ml: selectedMl,
-      price: variantSalePrice + bottleAddon,
+      price: finalPrice,
       original_price: variantOriginalPrice + bottleAddon,
       discount_percent: variantDiscountPercent,
       deal_id: (currentVariant as any)?.deal_id ?? null,
@@ -269,6 +282,10 @@ export default function SetDetailClient({
         bottle_price: bottleAddon,
       }),
     });
+
+    // Track AddToCart event after successful cart addition
+    trackAddToCart(productId, finalPrice, 1);
+
     toast.success(`${product.name} (${selectedMl}ml set) added to bag!`, {
       icon: "✨",
       style: {
