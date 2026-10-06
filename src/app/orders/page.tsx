@@ -45,7 +45,7 @@ export default function OrdersPage() {
       const response = await orderApi.getUserOrders(
         user?.id || (user as any)?._id
       );
-      setOrders(response.data);
+      setOrders(Array.isArray(response.data?.items) ? response.data.items : Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error("Error fetching orders", err);
     } finally {
@@ -64,7 +64,7 @@ export default function OrdersPage() {
       const response = await orderApi.getUserOrders(
         user?.id || (user as any)?._id
       );
-      setOrders(response.data);
+      setOrders(Array.isArray(response.data?.items) ? response.data.items : Array.isArray(response.data) ? response.data : []);
       toast.success("Orders synced", {
         duration: 2000,
         style: {
